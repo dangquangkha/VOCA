@@ -1,0 +1,38 @@
+version: '3.8'  # Phiên bản cú pháp của Docker
+
+services:       # Danh sách các "phòng" trong ngôi nhà của bạn
+  
+  # --- Dịch vụ 1: Database (Kho chứa dữ liệu) ---
+  db:
+    image: postgres:15-alpine  # Tải bản PostgreSQL 15 (bản alpine siêu nhẹ)
+    restart: always            # Nếu lỗi tự khởi động lại
+    environment:               # Thiết lập mật khẩu, tên user
+      POSTGRES_USER: khai
+      POSTGRES_PASSWORD: KHAi2692004
+      POSTGRES_DB: careerpath_db
+    ports:
+      - "5432:5432"            # Mở cửa sổ nối ra ngoài (Windows dùng port 5432 -> Linux dùng 5432)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Lưu dữ liệu vào ổ cứng ảo (để tắt máy không mất data)
+
+  # --- Dịch vụ 2: Redis (Bộ nhớ đệm siêu tốc) ---
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # --- Dịch vụ 3: Ngrok (Công khai Localhost ra Internet) ---
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command: "http http://host.docker.internal:8000"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "4040:4040" # Dashboard Ngrok
+
+# Định nghĩa cái ổ cứng ảo đã nhắc ở trên
+volumes:
+  postgres_data:

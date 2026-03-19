@@ -1,0 +1,60 @@
+import emails
+from emails.template import JinjaTemplate
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.app.models.email_log import EmailLog
+from backend.app.core.config import settings
+
+async def send_email(
+    to: str,
+    subject: str,
+    body: str,
+    db: AsyncSession
+) -> None:
+    """
+    Sends a real email using SMTP settings from config.
+    Always logs the email to DB.
+    """
+    # 1. Create Log (Always log, even if sending fails or mock)
+    email_log = EmailLog(
+        to_email=to,
+        subject=subject,
+        body=body
+    )
+    db.add(email_log)
+    await db.commit() 
+    
+    # 2. Check if Emails Enabled
+    if not settings.EMAILS_ENABLED:
+        print("="*60)
+        print(f"MOCK EMAIL SENT TO: {to}")
+        print(f"SUBJECT: {subject}")
+        print("="*60)
+        return
+
+    # 3. Send via SMTP
+    message = emails.Message(
+        subject=subject,
+        text=body, # Plain text body
+        # html=html_body, # Can add HTML support later
+        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL)
+    )
+    
+    smtp_options = {
+        "host": settings.SMTP_HOST,
+        "port": settings.SMTP_PORT,
+        "tls": True,
+        "user": settings.SMTP_USER,
+        "password": settings.SMTP_PASSWORD
+    }
+    
+    # Send (synchronous call, might block event loop slightly but acceptable for low volume)
+    # Ideally should offload to Celery/BackgroundTasks
+    try:
+        response = message.send(to=to, smtp=smtp_options)
+        
+        if response.status_code not in [250, 200]:
+            print(f"ERROR Sending Email: {response.error}")
+        else:
+            print(f"Email sent successfully to {to}")
+    except Exception as e:
+        print(f"EXCEPTION Sending Email: {e}")

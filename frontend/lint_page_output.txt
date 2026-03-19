@@ -1,0 +1,22 @@
+
+/home/hat_n/projects/CareerPath_AI_Project/frontend/src/app/dashboard/experts/page.tsx
+  80:9  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/hat_n/projects/CareerPath_AI_Project/frontend/src/app/dashboard/experts/page.tsx:80:9
+  78 |     useEffect(() => {
+  79 |         // Initial fetch on mount or when pageSize changes
+> 80 |         fetchExperts({
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  81 |             page: 1,
+  82 |             limit: pageSize,
+  83 |             q: searchQuery || undefined,  react-hooks/set-state-in-effect
+  89:8  warning  React Hook useEffect has missing dependencies: 'maxPrice', 'minPrice', 'minRating', and 'searchQuery'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+
+✖ 2 problems (1 error, 1 warning)
+

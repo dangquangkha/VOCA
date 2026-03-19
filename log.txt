@@ -1,0 +1,3 @@
+988db20 chore: remove large video files from git and update .gitignore
+b742bc5 Fix: Chuyển frontend từ submodule thành thư mục thường
+8089034 Initial commit: Sẵn sàng cộng tác

@@ -1,6 +1,7 @@
 export enum UserRole {
     STUDENT = 'STUDENT',
     EXPERT = 'EXPERT',
+    MENTOR = 'MENTOR',   // Cố vấn: tư vấn tùy hỷ
     ADMIN = 'ADMIN'
 }
 

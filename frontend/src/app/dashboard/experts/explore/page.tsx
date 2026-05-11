@@ -13,7 +13,6 @@ import { EnhancedExpert } from '@/components/experts/explore/ExpertExploreCard';
 import { ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
 
-const PAGE_SIZE = 9;
 const EASING: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 // Mock Enrichment Helpers
@@ -64,20 +63,26 @@ export default function ExpertExplorePage() {
     const [experts, setExperts] = useState<EnhancedExpert[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(3);
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Logic
     const fetchExperts = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { data } = await api.get('/experts/', {
+            // Map industry and skills to tags for backend filtering
+            const tags = [industry, ...selectedSkills].filter(Boolean).join(',');
+            
+            const { data } = await api.get('experts', {
                 params: {
                     q: searchQuery || undefined,
+                    tag: tags || undefined,
                     min_price: priceRange[0],
                     max_price: priceRange[1],
                     min_rating: minRating || undefined,
+                    sort_by: sortBy !== 'default' ? sortBy : undefined,
                     page: currentPage,
-                    limit: PAGE_SIZE
+                    limit: pageSize
                 }
             });
 
@@ -85,13 +90,14 @@ export default function ExpertExplorePage() {
             const enrichedItems = rawItems.map(mockEnrichExpert);
 
             setExperts(enrichedItems);
-            setTotalItems(data.total || enrichedItems.length);
+            // Support both 'total' and 'total_items' from backend
+            setTotalItems(data.total_items || data.total || enrichedItems.length);
         } catch (err) {
             console.error('Failed to fetch explore experts', err);
         } finally {
             setIsLoading(false);
         }
-    }, [searchQuery, priceRange, minRating, currentPage]);
+    }, [searchQuery, priceRange, minRating, currentPage, pageSize, industry, selectedSkills, sortBy]);
 
     useEffect(() => {
         fetchExperts();
@@ -110,6 +116,11 @@ export default function ExpertExplorePage() {
         );
     };
 
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(1);
+    };
+
     const handleReset = () => {
         setSearchQuery('');
         setSortBy('default');
@@ -119,6 +130,7 @@ export default function ExpertExplorePage() {
         setPriceRange([0, 2000]);
         setMinRating(0);
         setCurrentPage(1);
+        setPageSize(3);
     };
 
     // Memoized Filtered List (Client-side filtering for simulated attributes)
@@ -133,34 +145,34 @@ export default function ExpertExplorePage() {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="min-h-screen bg-[#F5F0E8] selection:bg-[#C9A84C]/20 pb-44"
+            className="min-h-screen bg-[var(--color-navy)] selection:bg-[var(--color-cyan)]/20 pb-44"
         >
             {/* Breadcrumbs */}
-            <div className="bg-[#0A1018] border-b border-white/5">
+            <div className="bg-white border-b border-black/10">
                 <nav className="max-w-[1400px] mx-auto px-8 py-6 flex items-center gap-4">
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="flex items-center gap-2 text-[10px] font-black text-black/40 hover:text-[#00A4FD] transition-all uppercase tracking-[0.2em] font-sans"
                     >
-                        <Home size={12} strokeWidth={1.5} />
+                        <Home size={12} strokeWidth={2} />
                         Trang chủ
                     </Link>
-                    <ChevronRight size={10} className="text-white/10" />
+                    <ChevronRight size={10} className="text-black/20" />
                     <Link
                         href="/dashboard"
-                        className="text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="text-[10px] font-black text-black/40 hover:text-[#00A4FD] transition-all uppercase tracking-[0.2em] font-sans"
                     >
                         Bàn làm việc
                     </Link>
-                    <ChevronRight size={10} className="text-white/10" />
+                    <ChevronRight size={10} className="text-black/20" />
                     <Link
                         href="/dashboard/experts"
-                        className="text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="text-[10px] font-black text-black/40 hover:text-[#00A4FD] transition-all uppercase tracking-[0.2em] font-sans"
                     >
                         Cố vấn
                     </Link>
-                    <ChevronRight size={10} className="text-white/10" />
-                    <span className="text-[10px] font-normal text-[#C9A84C] uppercase tracking-[0.2em] font-sans">Khám phá tinh hoa</span>
+                    <ChevronRight size={10} className="text-black/20" />
+                    <span className="text-[10px] font-black text-[#00A4FD] uppercase tracking-[0.2em] font-sans">Khám phá tinh hoa</span>
                 </nav>
             </div>
 
@@ -191,10 +203,10 @@ export default function ExpertExplorePage() {
 
                     {/* Grid Area */}
                     <div className="flex-1 space-y-20">
-                        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-[#C9A84C]/10 pb-12 px-2">
+                        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b-[6px] border-[#00A4FD]/20 pb-12 px-2">
                             <div className="space-y-4">
-                                <h2 className="text-[clamp(36px,4.2vw,54px)] font-serif italic font-light text-[#0A1018] tracking-tight leading-[1.25]">Kết quả chọn lọc</h2>
-                                <p className="text-[#0A1018]/80 font-normal text-[10px] uppercase tracking-[0.4em] font-sans">
+                                <h2 className="text-[clamp(36px,4.2vw,54px)] font-serif italic font-bold text-black tracking-tight leading-[1.25]">Kết quả chọn lọc</h2>
+                                <p className="text-black/40 font-black text-[10px] uppercase tracking-[0.4em] font-sans">
                                     {isLoading ? 'Đang truy vấn tinh hoa…' : `Hiển thị ${filteredExperts.length} trong tổng số ${totalItems} nhân tài.`}
                                 </p>
                             </div>
@@ -226,7 +238,7 @@ export default function ExpertExplorePage() {
                                     initial={{ opacity: 0, scale: 0.98 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="bg-[#FAF7F2]/40 backdrop-blur-3xl p-32 border border-[#C9A84C]/10 shadow-[0_64px_128px_-16px_rgba(10,16,24,0.05)] flex items-center justify-center rounded-[2px]"
+                                    className="bg-white p-32 border-[6px] border-[#00A4FD]/20 shadow-2xl flex items-center justify-center rounded-0"
                                 >
                                     <ExpertEmptyState onReset={handleReset} />
                                 </motion.div>
@@ -235,20 +247,20 @@ export default function ExpertExplorePage() {
                         </AnimatePresence>
 
                         {/* Pagination */}
-                        {totalItems > PAGE_SIZE && (
+                        {(totalItems > pageSize || currentPage > 1) && (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.8 }}
-                                className="pt-20 border-t border-[#C9A84C]/10"
+                                className="pt-20 border-t-[6px] border-[#00A4FD]/20"
                             >
                                 <ExpertPagination
                                     currentPage={currentPage}
-                                    totalPages={Math.ceil(totalItems / PAGE_SIZE)}
-                                    pageSize={PAGE_SIZE}
+                                    totalPages={Math.ceil(totalItems / pageSize)}
+                                    pageSize={pageSize}
                                     totalItems={totalItems}
                                     onPageChange={setCurrentPage}
-                                    onPageSizeChange={() => { }} // Fixed for explore page
+                                    onPageSizeChange={handlePageSizeChange}
                                 />
                             </motion.div>
                         )}

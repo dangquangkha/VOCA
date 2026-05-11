@@ -6,6 +6,7 @@ export enum BookingStatus {
     CONFIRMED = 'CONFIRMED',
     IN_PROGRESS = 'IN_PROGRESS',                        // UC-37: both checked in
     CANCELLED = 'CANCELLED',
+    CANCELLED_BY_EXPERT = 'CANCELLED_BY_EXPERT',
     CANCELLED_EXPERT_NO_SHOW = 'CANCELLED_EXPERT_NO_SHOW',  // UC-37
     CANCELLED_USER_NO_SHOW = 'CANCELLED_USER_NO_SHOW',      // UC-37
     CANCELLED_MUTUAL_NO_SHOW = 'CANCELLED_MUTUAL_NO_SHOW',  // UC-37
@@ -16,12 +17,21 @@ export enum BookingStatus {
     REFUNDED = 'REFUNDED',
 }
 
+export enum QuizStatus {
+    NONE = 'NONE',
+    PENDING = 'PENDING',
+    COMPLETED = 'COMPLETED',
+}
+
 export interface Booking {
     id: number;
     student_id: number;
     expert_id: number;
     status: BookingStatus;
+    quiz_status: QuizStatus;
     total_amount: number;
+    is_pwyw: boolean;           // MENTOR: pay-what-you-want booking
+    pwyw_amount: number;        // MENTOR: amount student chose to donate
     start_time: string;
     end_time: string;
     student_note?: string;
@@ -49,4 +59,25 @@ export interface BookingUpdate {
     expert_note?: string;
     meeting_url?: string;
     rejection_reason?: string;  // UC-13
+}
+
+export interface BookingDispute {
+    id: number;
+    booking_id: number;
+    user_id: number;
+    reason: string;
+    description: string;
+    contact_info?: string;
+    status: string;
+    admin_note?: string;
+    created_at: string;
+    
+    user?: User;
+    booking?: Booking;
+}
+
+export interface BookingDisputeCreate {
+    reason: string;
+    description: string;
+    contact_info?: string;
 }

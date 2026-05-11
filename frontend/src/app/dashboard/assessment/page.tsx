@@ -30,7 +30,8 @@ export default function AssessmentListPage() {
                     return;
                 }
 
-                const res = await fetch('http://localhost:8000/api/v1/assessments/', {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001/api/v1';
+                const res = await fetch(`${apiBase}/assessments/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -52,15 +53,15 @@ export default function AssessmentListPage() {
     }, [router]);
 
     if (loading) return (
-        <div className="min-h-screen bg-[#0A1018] flex items-center justify-center">
-            <div className="w-12 h-12 border-2 border-[#C9A84C]/20 border-t-[#C9A84C] rounded-full animate-spin" />
+        <div className="min-h-screen bg-navy flex items-center justify-center">
+            <div className="w-12 h-12 border-2 border-gold/20 border-t-[var(--color-gold)] rounded-full animate-spin" />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-[#0A1018] relative overflow-hidden">
+        <div className="min-h-screen bg-[var(--color-navy)] relative overflow-hidden font-dm-sans">
             {/* Background elements */}
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[#C9A84C]/5 to-transparent z-0" />
+            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[var(--color-cyan)]/5 to-transparent z-0" />
 
             <div className="max-w-[1400px] mx-auto px-8 pt-32 pb-40 relative z-10">
                 <header className="mb-24 space-y-8">
@@ -70,25 +71,25 @@ export default function AssessmentListPage() {
                         transition={{ duration: 1, ease: EASING }}
                         className="flex items-center gap-4"
                     >
-                        <div className="w-8 h-[0.5px] bg-[#C9A84C]/40" />
-                        <span className="font-sans text-[10px] text-[#C9A84C] tracking-[0.4em] uppercase font-medium">Core Exploration</span>
+                        <div className="w-8 h-[0.5px] bg-[var(--color-cyan)]/40" />
+                        <span className="font-sans text-[10px] text-[var(--color-cyan)] tracking-[0.4em] uppercase font-bold">Core Exploration</span>
                     </motion.div>
 
                     <motion.h1
                         initial={{ opacity: 0, y: 30, scale: 1.02 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ duration: 1.2, delay: 0.1, ease: EASING }}
-                        className="font-serif text-5xl md:text-7xl text-[#F5F0E8] font-light leading-tight tracking-tight"
+                        className="font-serif text-5xl md:text-7xl text-[var(--color-ivory)] font-light leading-tight tracking-tight"
                     >
                         Khám phá bản ngã. <br />
-                        <span className="italic opacity-40 font-light">Kích hoạt tiềm năng vô hạn.</span>
+                        <span className="italic text-[var(--color-cyan)] opacity-60 font-medium">Kích hoạt tiềm năng vô hạn.</span>
                     </motion.h1>
 
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1.2, delay: 0.2, ease: EASING }}
-                        className="max-w-2xl text-[17px] text-[#F5F0E8]/50 font-sans font-light leading-relaxed tracking-[0.02em]"
+                        className="max-w-2xl text-[17px] text-[var(--color-ivory-40)] font-sans font-light leading-relaxed tracking-[0.02em]"
                     >
                         Hệ thống bài trắc nghiệm chuẩn quốc tế, tinh chỉnh bởi trí tuệ nhân tạo để mang lại cái nhìn sâu sắc nhất về con đường sự nghiệp của bạn.
                     </motion.p>
@@ -103,25 +104,25 @@ export default function AssessmentListPage() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ duration: 1, delay: 0.3 + (idx * 0.1), ease: EASING }}
                                 whileHover={{ y: -12, scale: 1.02 }}
-                                className="group relative bg-white/[0.03] backdrop-blur-3xl border border-[#C9A84C]/10 p-12 flex flex-col justify-between transition-all duration-700 shadow-2xl hover:border-[#C9A84C]/40 overflow-hidden rounded-[2px]"
+                                className="group relative bg-[var(--color-obsidian)] border border-[var(--color-ivory-10)] p-12 flex flex-col justify-between transition-all duration-700 shadow-2xl hover:border-[var(--color-cyan)]/40 overflow-hidden rounded-[2px]"
                             >
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A84C]/5 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:bg-[#C9A84C]/10 transition-all duration-700" />
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-cyan)]/5 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:bg-[var(--color-cyan)]/10 transition-all duration-700" />
 
                                 <div className="relative z-10">
-                                    <div className="w-16 h-16 border border-[#C9A84C]/20 flex items-center justify-center text-[#C9A84C] mb-10 group-hover:border-[#C9A84C] transition-all duration-700">
+                                    <div className="w-16 h-16 border border-[var(--color-ivory-10)] flex items-center justify-center text-[var(--color-cyan)] mb-10 group-hover:border-[var(--color-cyan)] transition-all duration-700">
                                         {test.code === 'HOLLAND' ? <Compass strokeWidth={0.75} /> : <Brain strokeWidth={0.75} />}
                                     </div>
 
                                     <div className="space-y-4 mb-8">
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[10px] text-[#C9A84C] uppercase tracking-[0.2em] font-sans font-medium">Psychometric</span>
-                                            <div className="w-1 h-1 bg-[#C9A84C]/30 rounded-full" />
-                                            <span className="text-[10px] text-[#F5F0E8]/30 uppercase tracking-[0.2em] font-sans font-light">{test.code}</span>
+                                            <span className="text-[10px] text-[var(--color-cyan)] uppercase tracking-[0.2em] font-sans font-bold">Psychometric</span>
+                                            <div className="w-1 h-1 bg-[var(--color-cyan)]/30 rounded-full" />
+                                            <span className="text-[10px] text-[var(--color-ivory-40)] uppercase tracking-[0.2em] font-sans font-light">{test.code}</span>
                                         </div>
-                                        <h2 className="font-serif text-3xl font-light text-[#F5F0E8] group-hover:text-[#F5F0E8] transition-colors duration-700">{test.title}</h2>
+                                        <h2 className="font-serif text-3xl font-light text-[var(--color-ivory)] group-hover:text-[var(--color-ivory)] transition-colors duration-700">{test.title}</h2>
                                     </div>
 
-                                    <p className="text-[15px] text-[#F5F0E8]/40 font-sans font-light leading-relaxed mb-12 line-clamp-3 group-hover:text-[#F5F0E8]/60 transition-colors duration-700">
+                                    <p className="text-[15px] text-ivory/40 font-sans font-light leading-relaxed mb-12 line-clamp-3 group-hover:text-ivory/60 transition-colors duration-700">
                                         {test.description}
                                     </p>
                                 </div>
@@ -129,11 +130,11 @@ export default function AssessmentListPage() {
                                 <div className="relative z-10">
                                     <Link
                                         href={`/assessment/${test.id}`}
-                                        className="inline-flex items-center gap-6 text-[11px] font-bold tracking-[0.5em] uppercase text-[#F5F0E8] group/link hover:text-[#C9A84C] transition-all duration-700"
+                                        className="inline-flex items-center gap-6 text-[11px] font-bold tracking-[0.5em] uppercase text-[var(--color-ivory)] group/link hover:text-[var(--color-cyan)] transition-all duration-700"
                                     >
-                                        BẮT ĐẦU <div className="h-[0.5px] bg-[#C9A84C] w-12 group-hover:w-20 transition-all duration-700" />
+                                        BẮT ĐẦU <div className="h-[0.5px] bg-[var(--color-cyan)] w-12 group-hover:w-20 transition-all duration-700" />
                                     </Link>
-                                    <p className="mt-6 text-[8px] uppercase tracking-[0.3em] text-[#F5F0E8]/20 group-hover:text-[#C9A84C]/40 transition-colors duration-700">Approx. 15-20 Minutes</p>
+                                    <p className="mt-6 text-[8px] uppercase tracking-[0.3em] text-[var(--color-ivory-40)] group-hover:text-[var(--color-cyan)]/40 transition-colors duration-700">Approx. 15-20 Minutes</p>
                                 </div>
                             </motion.div>
                         ))}

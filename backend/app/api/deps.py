@@ -9,7 +9,7 @@ from sqlalchemy.future import select
 from backend.app.core.config import settings
 from backend.app.core import security
 from backend.app.db.session import AsyncSessionLocal
-from backend.app.models.user import User
+from backend.app.domains.identity.models import User
 from backend.app.schemas.user import TokenData
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/v1/auth/access-token")
@@ -122,7 +122,7 @@ async def get_current_superuser(
     Get current superuser (admin only).
     Accepts users with is_superuser=True OR role=ADMIN.
     """
-    from backend.app.models.user import UserRole
+    from backend.app.domains.identity.models import UserRole
     is_admin = current_user.is_superuser or current_user.role == UserRole.ADMIN
     if not is_admin:
         raise HTTPException(

@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
-from backend.app.models.booking import BookingStatus
-from backend.app.models.payment import TransactionType, TransactionStatus
+from backend.app.domains.booking.models import BookingStatus
+from backend.app.domains.payments.models import TransactionType, TransactionStatus
 from backend.app.schemas.user import User
 from backend.app.schemas.expert import ExpertProfile, ExpertProfileShort
 

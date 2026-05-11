@@ -5,9 +5,9 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
-from backend.app.models.user import User
-from backend.app.models.expert import ExpertProfile
-from backend.app.models.booking import Booking, BookingStatus
+from backend.app.domains.identity.models import User
+from backend.app.domains.marketplace.models import ExpertProfile
+from backend.app.domains.booking.models import Booking, BookingStatus
 from backend.app.models.review import Review
 from backend.app.schemas.review import ReviewCreate, Review as ReviewSchema
 from backend.app.core.config import settings

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, Video, ShieldCheck, ChevronRight, Loader2 } from 'lucide-react';
+import { Calendar, Clock, Video, ShieldCheck, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { bookingService } from '@/services/bookingService';
 import { Booking, BookingStatus } from '@/types/booking';
 
@@ -53,25 +53,25 @@ export default function UpcomingBooking() {
 
     if (loading) {
         return (
-            <div className="bg-white/60 border border-[#C9A84C]/20 p-14 backdrop-blur-xl h-full flex flex-col items-center justify-center gap-6 shadow-xl">
-                <Loader2 className="w-10 h-10 text-[#C9A84C] animate-spin" strokeWidth={1} />
-                <span className="text-[11px] font-bold text-[#0D1B2A]/60 uppercase tracking-[0.5em]">Đang đối soát lịch hẹn...</span>
+            <div className="bg-[var(--color-navy-mid)] border border-[var(--color-ivory-10)] p-14 h-full flex flex-col items-center justify-center gap-6 shadow-xl rounded-sm">
+                <Loader2 className="w-10 h-10 text-[var(--color-cyan)] animate-spin" strokeWidth={1} />
+                <span className="text-[11px] font-bold text-[var(--color-ivory-40)] uppercase tracking-[0.5em]">Đang đối soát lịch hẹn...</span>
             </div>
         );
     }
 
     if (!nextSession) {
         return (
-            <div className="bg-white/60 border border-[#C9A84C]/15 p-14 backdrop-blur-xl h-full flex flex-col items-center justify-center text-center group transition-all duration-700 hover:border-[#C9A84C]/40 shadow-xl font-dm-sans">
-                <div className="w-24 h-24 border border-[#C9A84C]/20 flex items-center justify-center text-[#C9A84C]/40 mb-10 group-hover:bg-[#C9A84C]/5 group-hover:border-[#C9A84C]/40 transition-all duration-700">
+            <div className="bg-[var(--color-navy-mid)] border border-[var(--color-ivory-10)] p-14 flex flex-col items-center justify-center text-center group transition-all duration-700 hover:border-[var(--color-cyan)]/20 shadow-xl font-dm-sans rounded-sm h-full">
+                <div className="w-24 h-24 border border-[var(--color-ivory-10)] flex items-center justify-center text-[var(--color-cyan)]/40 mb-10 group-hover:bg-[var(--color-cyan)]/5 group-hover:border-[var(--color-cyan)]/30 transition-all duration-700">
                     <Calendar size={40} strokeWidth={1} />
                 </div>
-                <h3 className="font-garamond text-3xl text-[#0D1B2A] italic mb-4">Chưa có lịch hẹn</h3>
-                <p className="text-[10px] text-[#0D1B2A]/60 font-bold uppercase tracking-[0.4em] max-w-[240px] leading-relaxed">Kết nối với chuyên gia để khai phá tiềm năng của bạn.</p>
-                <Link href="/dashboard/experts">
+                <h3 className="font-serif text-2xl text-[var(--color-ivory)] italic mb-4">Chưa có lịch hẹn</h3>
+                <p className="font-sans text-[10px] text-[var(--color-ivory-40)] uppercase tracking-widest max-w-[240px] leading-relaxed">Kết nối với chuyên gia để khai phá tiềm năng của bạn.</p>
+                <Link href="/dashboard/experts" className="w-full mt-14">
                     <button
                         suppressHydrationWarning
-                        className="mt-14 px-10 py-5 bg-[#0D1B2A] text-[#F5F0E8] text-[11px] font-bold tracking-[0.5em] uppercase transition-all duration-700 hover:bg-[#C9A84C] hover:text-[#0D1B2A] shadow-lg"
+                        className="w-full bg-transparent border border-[var(--color-cyan)]/30 text-[var(--color-ivory-60)] uppercase tracking-widest text-xs py-4 hover:bg-[var(--color-cyan)]/10 hover:text-[var(--color-cyan)] transition-all"
                     >
                         Khám phá chuyên gia
                     </button>
@@ -83,49 +83,65 @@ export default function UpcomingBooking() {
     const isReady = timeLeft <= 600; // 10 mins before
 
     return (
-        <div className="bg-white/60 border border-[#C9A84C]/20 p-12 backdrop-blur-xl flex flex-col h-full group hover:border-[#C9A84C]/50 transition-all duration-700 shadow-xl font-dm-sans">
-            <div className="flex items-center justify-between mb-12">
-                <h3 className="font-garamond text-3xl text-[#0D1B2A] italic">Lịch hẹn sắp tới</h3>
-                <div className="flex items-center gap-4 bg-[#C9A84C]/10 px-4 py-1.5 border border-[#C9A84C]/20">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#C9A84C] animate-pulse" />
-                    <span className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-[0.3em]">Ưu tiên</span>
+        <div className="bg-[var(--color-navy-mid)] border border-[var(--color-ivory-10)] p-10 flex flex-col h-full group hover:border-[var(--color-cyan)]/20 transition-all duration-700 shadow-xl font-dm-sans rounded-sm">
+            <div className="flex items-center justify-between mb-10">
+                <h3 className="font-serif text-2xl text-[var(--color-ivory)] italic">Lịch hẹn sắp tới</h3>
+                <div className="flex items-center gap-4 bg-[var(--color-cyan)]/5 px-4 py-1.5 border border-[var(--color-cyan)]/20">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-cyan)] animate-pulse" />
+                    <span className="text-[10px] font-bold text-[var(--color-cyan)] uppercase tracking-[0.3em]">Ưu tiên</span>
                 </div>
             </div>
 
             <div className="space-y-10 flex-1">
-                <div className="flex gap-8 p-8 border border-[#C9A84C]/10 bg-white/60 group-hover:bg-white/80 transition-all duration-700 shadow-sm">
-                    <div className="w-16 h-16 border border-[#C9A84C]/30 flex items-center justify-center text-[#C9A84C] shrink-0 bg-white shadow-inner">
-                        <Calendar size={24} strokeWidth={1.25} />
+                <div className="flex gap-8 p-6 border border-[var(--color-ivory-10)] bg-black/20 group-hover:bg-black/30 transition-all duration-700 shadow-sm">
+                    <div className="w-14 h-14 border border-[var(--color-cyan)]/20 flex items-center justify-center text-[var(--color-cyan)] shrink-0 bg-[var(--color-navy-dark)]">
+                        <Calendar size={20} strokeWidth={1.25} />
                     </div>
                     <div className="flex flex-col justify-center overflow-hidden">
-                        <p className="font-bold text-[#0D1B2A] text-[13px] uppercase tracking-[0.2em] truncate">{nextSession.expert?.user?.full_name || 'Hội đồng chuyên môn'}</p>
+                        <p className="font-bold text-[var(--color-ivory)] text-[13px] uppercase tracking-[0.2em] truncate">{nextSession.expert?.user?.full_name || 'Hội đồng chuyên môn'}</p>
                         <div className="flex items-center gap-5 mt-4">
-                            <span className="flex items-center gap-2.5 text-[11px] text-[#0D1B2A]/70 font-bold uppercase tracking-[0.1em]">
-                                <Clock size={14} color="#C9A84C" strokeWidth={1.5} />
+                            <span className="flex items-center gap-2.5 text-[11px] text-[var(--color-ivory-60)] font-bold uppercase tracking-[0.1em]">
+                                <Clock size={14} color="var(--color-cyan)" strokeWidth={1.5} />
                                 {new Date(nextSession.start_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })} • {new Date(nextSession.start_time).toLocaleDateString('vi-VN')}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-[#0D1B2A] p-10 text-center relative overflow-hidden shadow-2xl border border-[#C9A84C]/10">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A84C]/10 blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <p className="text-[10px] font-bold text-[#F5F0E8]/40 uppercase tracking-[0.5em] mb-6">Đếm ngược khởi động</p>
-                    <div className="text-5xl font-garamond italic text-[#C9A84C] tracking-[0.3em] tabular-nums font-light">
+                {/* UC-Expert Quiz Prompt */}
+                {nextSession.quiz_status === 'PENDING' && (
+                    <Link href={`/dashboard/student/bookings/${nextSession.id}/quiz`} className="block">
+                        <div className="bg-amber/10 border border-amber/30 p-4 flex items-center justify-between group/quiz hover:bg-amber/20 transition-all cursor-pointer">
+                            <div className="flex items-center gap-4">
+                                <AlertCircle size={20} className="text-amber animate-pulse" />
+                                <div>
+                                    <p className="text-[10px] font-bold text-amber uppercase tracking-widest">Cần chuẩn bị</p>
+                                    <p className="text-[11px] text-ivory-70 font-light mt-0.5">Vui lòng điền khảo sát để chuyên gia hỗ trợ bạn tốt nhất.</p>
+                                </div>
+                            </div>
+                            <ChevronRight size={16} className="text-amber group-hover/quiz:translate-x-1 transition-transform" />
+                        </div>
+                    </Link>
+                )}
+
+                <div className="bg-[var(--color-obsidian)] p-8 text-center relative overflow-hidden shadow-2xl border border-[var(--color-ivory-10)]">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-cyan)]/5 blur-3xl -mr-16 -mt-16 opacity-50" />
+                    <p className="text-[10px] font-bold text-[var(--color-ivory-40)] uppercase tracking-[0.5em] mb-4">Đếm ngược khởi động</p>
+                    <div className="text-4xl font-serif italic text-[var(--color-cyan)] tracking-[0.3em] tabular-nums font-light">
                         {formatTime(timeLeft)}
                     </div>
                 </div>
 
                 <div className="relative group/tooltip">
-                    <div className="flex items-center gap-4 py-2 text-[10px] font-bold text-[#C9A84C] uppercase tracking-[0.2em]">
+                    <div className="flex items-center gap-4 py-2 text-[10px] font-bold text-[var(--color-cyan)] uppercase tracking-[0.2em]">
                         <ShieldCheck size={18} strokeWidth={1.25} />
                         Bảo chứng CareerPath (Escrow)
                     </div>
 
-                    <div className="absolute bottom-full left-0 mb-6 w-80 p-8 bg-[#0D1B2A] text-[#F5F0E8] text-[11px] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-20 shadow-[0_40px_80px_rgba(0,0,0,0.5)] leading-relaxed border border-[#C9A84C]/30 translate-y-2 group-hover/tooltip:translate-y-0 duration-500">
-                        <p className="font-garamond text-lg italic text-[#C9A84C] mb-5 tracking-wide">Quyền lợi Người học</p>
-                        <p className="font-dm-sans font-light text-[#F5F0E8]/70 leading-loose">Hệ thống tạm giữ phí dịch vụ và chỉ chuyển giao khi buổi tư vấn được xác nhận hoàn tất đầy đủ chất lượng.</p>
-                        <div className="absolute top-full left-8 border-[10px] border-transparent border-t-[#0D1B2A]"></div>
+                    <div className="absolute bottom-full left-0 mb-6 w-80 p-8 bg-[var(--color-obsidian)] text-[var(--color-ivory)] text-[11px] opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-20 shadow-[0_40px_80px_rgba(0,0,0,0.5)] leading-relaxed border border-[var(--color-cyan)]/20 translate-y-2 group-hover/tooltip:translate-y-0 duration-500">
+                        <p className="font-serif text-lg italic text-[var(--color-cyan)] mb-5 tracking-wide">Quyền lợi Người học</p>
+                        <p className="font-sans font-light text-[var(--color-ivory-60)] leading-loose">Hệ thống tạm giữ phí dịch vụ và chỉ chuyển giao khi buổi tư vấn được xác nhận hoàn tất đầy đủ chất lượng.</p>
+                        <div className="absolute top-full left-8 border-[10px] border-transparent border-t-[var(--color-obsidian)]"></div>
                     </div>
                 </div>
             </div>
@@ -136,18 +152,18 @@ export default function UpcomingBooking() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`
-                        flex-1 flex items-center justify-center gap-4 py-6 text-[11px] font-bold tracking-[0.4em] uppercase transition-all duration-700 shadow-lg
+                        flex-1 flex items-center justify-center gap-4 py-4 text-[11px] font-bold tracking-[0.4em] uppercase transition-all duration-700 shadow-xl
                         ${isReady && nextSession.meeting_url
-                            ? 'bg-[#0D1B2A] text-[#F5F0E8] hover:bg-[#C9A84C] hover:text-[#0D1B2A]'
-                            : 'bg-black/5 border border-[#0D1B2A]/10 text-[#0D1B2A]/20 cursor-not-allowed'}
+                            ? 'bg-[var(--color-cyan)] text-[var(--color-obsidian)] hover:opacity-90'
+                            : 'bg-black/20 border border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
                     `}
                     onClick={(e) => (!isReady || !nextSession.meeting_url) && e.preventDefault()}
                 >
-                    <Video size={20} strokeWidth={1.25} />
-                    Tham gia phòng họp
+                    <Video size={18} strokeWidth={1.25} />
+                    Hành lang họp
                 </a>
-                <Link href="/dashboard/chat" className="w-20 h-20 border border-[#0D1B2A]/15 flex items-center justify-center text-[#0D1B2A]/40 hover:text-[#C9A84C] hover:bg-white hover:border-[#C9A84C] transition-all duration-700 shadow-sm">
-                    <ChevronRight size={24} strokeWidth={1.25} />
+                <Link href="/dashboard/chat" className="w-16 h-16 border border-[var(--color-ivory-10)] flex items-center justify-center text-[var(--color-ivory-40)] hover:text-[var(--color-cyan)] hover:bg-black/20 hover:border-[var(--color-cyan)]/30 transition-all duration-700 shadow-sm">
+                    <ChevronRight size={20} strokeWidth={1.25} />
                 </Link>
             </div>
         </div>

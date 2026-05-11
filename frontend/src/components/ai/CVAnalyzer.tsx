@@ -68,7 +68,7 @@ export default function CVAnalyzer() {
     };
 
     return (
-        <div className="w-full max-w-[1400px] mx-auto py-12 px-4 selection:bg-[#C9A84C]/30">
+        <div className="w-full max-w-[1400px] mx-auto py-12 px-4 selection:bg-[var(--color-cyan)]/30">
             <AnimatePresence mode="wait">
                 {state === 'IDLE' && (
                     <motion.div
@@ -81,22 +81,22 @@ export default function CVAnalyzer() {
                     >
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                             <div className="space-y-4">
-                                <h1 className="text-[clamp(32px,4vw,48px)] font-serif italic text-[#F5F0E8] font-light tracking-tight">Phân tích CV cùng AI</h1>
-                                <p className="text-[#F5F0E8]/40 font-sans font-light text-sm tracking-wide">Tối ưu hóa hồ sơ của bạn theo yêu cầu công việc cụ thể.</p>
+                                <h1 className="text-[clamp(32px,4vw,48px)] font-serif italic text-[var(--color-ivory)] font-light tracking-tight">Phân tích CV cùng AI</h1>
+                                <p className="text-[var(--color-ivory-40)] font-sans font-light text-sm tracking-wide">Tối ưu hóa hồ sơ của bạn theo yêu cầu công việc cụ thể.</p>
                             </div>
-                            <div className="bg-white/[0.03] px-6 py-3 border border-[#C9A84C]/10 flex items-center gap-3">
-                                <Zap className="w-3 h-3 text-[#C9A84C]" strokeWidth={1} />
-                                <span className="text-[10px] font-sans font-normal text-[#C9A84C] uppercase tracking-[0.3em]">{scansRemaining}/3 lượt miễn phí còn lại</span>
+                            <div className="bg-[var(--color-navy-mid)] px-6 py-3 border border-[var(--color-cyan)]/20 flex items-center gap-3">
+                                <Zap className="w-3 h-3 text-[var(--color-cyan)]" strokeWidth={1} />
+                                <span className="text-[10px] font-sans font-normal text-[var(--color-cyan)] uppercase tracking-[0.3em]">{scansRemaining}/3 lượt miễn phí còn lại</span>
                             </div>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-10">
                             {/* Upload Zone */}
                             <div className="space-y-6">
-                                <label className="block text-[10px] font-normal text-[#F5F0E8]/40 uppercase tracking-[0.4em] font-sans">Hồ sơ của bạn (PDF/DOCX)</label>
+                                <label className="block text-[10px] font-normal text-[var(--color-ivory-40)] uppercase tracking-[0.4em] font-sans">Hồ sơ của bạn (PDF/DOCX)</label>
                                 <div
                                     className={`border border-dashed transition-all duration-700 flex flex-col items-center justify-center text-center group cursor-pointer min-h-[280px]
-                    ${file ? 'border-[#C9A84C]/40 bg-[#C9A84C]/5' : 'border-[#F5F0E8]/10 bg-white/[0.02] hover:border-[#C9A84C]/30 hover:bg-white/[0.04]'}`}
+                    ${file ? 'border-[var(--color-cyan)]/40 bg-[var(--color-cyan)]/5' : 'border-[var(--color-ivory-10)] bg-[var(--color-navy-dark)] hover:border-[var(--color-cyan)]/30 hover:bg-[var(--color-navy-mid)]'}`}
                                 >
                                     <input
                                         type="file"
@@ -107,18 +107,18 @@ export default function CVAnalyzer() {
                                     />
                                     <label htmlFor="cv-upload" className="cursor-pointer w-full p-10">
                                         <div className={`w-16 h-16 border mx-auto flex items-center justify-center mb-8 transition-all duration-700
-                                          ${file ? 'bg-[#C9A84C] text-[#090C12] border-[#C9A84C]' : 'border-[#C9A84C]/20 text-[#C9A84C] group-hover:border-[#C9A84C] group-hover:scale-105'}`}>
+                                          ${file ? 'bg-[var(--color-cyan)] text-obsidian border-[var(--color-cyan)]' : 'border-[var(--color-cyan)]/20 text-[var(--color-cyan)] group-hover:border-[var(--color-cyan)] group-hover:scale-105'}`}>
                                             {file ? <CheckCircle2 className="w-6 h-6" strokeWidth={1} /> : <Upload className="w-6 h-6" strokeWidth={1} />}
                                         </div>
                                         {file ? (
                                             <div className="space-y-2">
-                                                <p className="text-lg font-serif italic text-[#F5F0E8] truncate max-w-[240px] mx-auto">{file.name}</p>
-                                                <p className="text-[10px] text-[#F5F0E8]/40 font-sans tracking-widest">{(file.size / 1024).toFixed(1)} KB</p>
+                                                <p className="text-lg font-serif italic text-ivory truncate max-w-[240px] mx-auto">{file.name}</p>
+                                                <p className="text-[10px] text-ivory/40 font-sans tracking-widest">{(file.size / 1024).toFixed(1)} KB</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
-                                                <p className="text-xl font-serif italic text-[#F5F0E8]/80 font-light">Kéo thả file vào đây</p>
-                                                <p className="text-[10px] text-[#F5F0E8]/30 font-sans uppercase tracking-[0.2em]">Hoặc nhấn để chọn file (Max 5MB)</p>
+                                                <p className="text-xl font-serif italic text-ivory/80 font-light">Kéo thả file vào đây</p>
+                                                <p className="text-[10px] text-ivory/30 font-sans uppercase tracking-[0.2em]">Hoặc nhấn để chọn file (Max 5MB)</p>
                                             </div>
                                         )}
                                     </label>
@@ -127,9 +127,9 @@ export default function CVAnalyzer() {
 
                             {/* JD Input */}
                             <div className="space-y-6">
-                                <label className="block text-[10px] font-normal text-[#F5F0E8]/40 uppercase tracking-[0.4em] font-sans">Mô tả công việc (Job Description)</label>
+                                <label className="block text-[10px] font-normal text-[var(--color-ivory-40)] uppercase tracking-[0.4em] font-sans">Mô tả công việc (Job Description)</label>
                                 <textarea
-                                    className="w-full h-[280px] bg-white/[0.02] border border-[#F5F0E8]/10 p-8 focus:border-[#C9A84C]/40 focus:bg-white/[0.04] transition-all duration-700 font-sans font-light text-[#F5F0E8]/70 text-sm leading-relaxed resize-none outline-none placeholder:text-[#F5F0E8]/10"
+                                    className="w-full h-[280px] bg-[var(--color-navy-dark)] border border-[var(--color-ivory-10)] p-8 focus:border-[var(--color-cyan)]/40 focus:bg-[var(--color-navy-mid)] transition-all duration-700 font-sans font-light text-[var(--color-ivory-70)] text-sm leading-relaxed resize-none outline-none placeholder:text-[var(--color-ivory-10)]"
                                     placeholder="Dán yêu cầu công việc tại đây để AI so sánh với CV của bạn..."
                                     value={jd}
                                     onChange={(e) => setJd(e.target.value)}
@@ -140,7 +140,7 @@ export default function CVAnalyzer() {
                         <div className="flex justify-center pt-8">
                             <button
                                 onClick={startAnalysis}
-                                className="px-16 py-6 bg-[#C9A84C] text-[#090C12] text-[11px] tracking-[0.5em] uppercase font-normal transition-all duration-900 hover:bg-[#F5F0E8] shadow-2xl shadow-black/40 flex items-center gap-4 group/btn"
+                                className="px-16 py-6 bg-gradient-to-r from-[var(--color-cyan)] to-[var(--color-teal-mid)] text-obsidian text-[11px] tracking-[0.5em] uppercase font-bold transition-all duration-900 hover:brightness-110 shadow-2xl shadow-[var(--color-cyan)]/20 flex items-center gap-4 group/btn"
                             >
                                 Phân tích ngay
                                 <ArrowRight className="w-4 h-4 transition-transform duration-700 group-hover/btn:translate-x-2" strokeWidth={1} />
@@ -165,7 +165,7 @@ export default function CVAnalyzer() {
                                     rotate: [0, 2, -2, 0]
                                 }}
                                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                                className="w-32 h-32 border border-[#C9A84C]/20 flex items-center justify-center text-[#C9A84C]"
+                                className="w-32 h-32 border border-[var(--color-cyan)]/20 flex items-center justify-center text-[var(--color-cyan)]"
                             >
                                 <Zap className="w-12 h-12" strokeWidth={0.5} />
                             </motion.div>
@@ -175,18 +175,18 @@ export default function CVAnalyzer() {
                                     opacity: [0.1, 0.3, 0.1]
                                 }}
                                 transition={{ duration: 4, repeat: Infinity }}
-                                className="absolute inset-0 border border-[#C9A84C]/40 blur-sm"
+                                className="absolute inset-0 border border-[var(--color-cyan)]/40 blur-sm"
                             />
                         </div>
 
                         <div className="space-y-6 max-w-sm">
-                            <h2 className="text-2xl font-serif italic text-[#F5F0E8] font-light">Đang thấu cảm dữ liệu...</h2>
+                            <h2 className="text-2xl font-serif italic text-[var(--color-ivory)] font-light">Đang thấu cảm dữ liệu...</h2>
                             <div className="flex flex-col gap-3 min-h-[40px]">
                                 <motion.p
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: [0, 1, 1, 0], y: [5, 0, 0, -5] }}
                                     transition={{ duration: 3, times: [0, 0.2, 0.8, 1], repeat: Infinity }}
-                                    className="text-[10px] text-[#C9A84C]/60 uppercase tracking-[0.3em] font-sans"
+                                    className="text-[10px] text-[var(--color-cyan)]/60 uppercase tracking-[0.3em] font-sans"
                                 >
                                     Trích xuất tri thức chuyên môn...
                                 </motion.p>
@@ -194,12 +194,12 @@ export default function CVAnalyzer() {
                         </div>
 
                         {/* Loading Bar */}
-                        <div className="w-64 h-[1px] bg-[#C9A84C]/10 mt-16 overflow-hidden relative">
+                        <div className="w-64 h-[1px] bg-[var(--color-cyan)]/10 mt-16 overflow-hidden relative">
                             <motion.div
                                 initial={{ left: "-100%" }}
                                 animate={{ left: "100%" }}
                                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute top-0 bottom-0 w-1/2 bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent"
+                                className="absolute top-0 bottom-0 w-1/2 bg-gradient-to-r from-transparent via-[var(--color-cyan)] to-transparent"
                             />
                         </div>
                     </motion.div>
@@ -230,25 +230,25 @@ export default function CVAnalyzer() {
                                             initial={{ strokeDashoffset: 2 * Math.PI * 60 }}
                                             animate={{ strokeDashoffset: (2 * Math.PI * 60) * (1 - MOCK_RESULTS.score / 100) }}
                                             transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-                                            className="text-[#C9A84C]"
+                                            className="text-[var(--color-cyan)]"
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-4xl font-serif italic text-[#F5F0E8] font-light">{MOCK_RESULTS.score}</span>
-                                        <span className="text-[8px] font-sans font-normal text-[#C9A84C] uppercase tracking-[0.3em] mt-1">CV Score</span>
+                                        <span className="text-4xl font-serif italic text-[var(--color-ivory)] font-light">{MOCK_RESULTS.score}</span>
+                                        <span className="text-[8px] font-sans font-normal text-[var(--color-cyan)] uppercase tracking-[0.3em] mt-1">CV Score</span>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h2 className="text-3xl font-serif italic text-[#F5F0E8] font-light">Tuyệt vời, {file?.name}!</h2>
-                                    <p className="text-[#F5F0E8]/40 font-sans font-light text-sm max-w-md">Hồ sơ của bạn thể hiện sự chuyên nghiệp và tương đồng cao với yêu cầu vị trí.</p>
+                                    <h2 className="text-3xl font-serif italic text-[var(--color-ivory)] font-light">Tuyệt vời, {file?.name}!</h2>
+                                    <p className="text-[var(--color-ivory-40)] font-sans font-light text-sm max-w-md">Hồ sơ của bạn thể hiện sự chuyên nghiệp và tương đồng cao với yêu cầu vị trí.</p>
                                     <div className="flex gap-4 pt-2">
-                                        <button className="text-[10px] uppercase tracking-[0.3em] px-6 py-3 bg-[#C9A84C] text-[#090C12] hover:bg-[#F5F0E8] transition-all duration-700 flex items-center gap-2">
+                                        <button className="text-[10px] uppercase tracking-[0.3em] px-6 py-3 bg-gradient-to-r from-[var(--color-cyan)] to-[var(--color-teal-mid)] text-obsidian font-bold hover:brightness-110 transition-all duration-700 flex items-center gap-2">
                                             <Download className="w-3 h-3" strokeWidth={1} />
                                             Tải báo cáo
                                         </button>
                                         <button
                                             onClick={() => setState('IDLE')}
-                                            className="text-[10px] uppercase tracking-[0.3em] px-6 py-3 border border-[#F5F0E8]/10 text-[#F5F0E8]/40 hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all duration-700 flex items-center gap-2"
+                                            className="text-[10px] uppercase tracking-[0.3em] px-6 py-3 border border-[var(--color-ivory-10)] text-[var(--color-ivory-40)] hover:border-[var(--color-cyan)] hover:text-[var(--color-cyan)] transition-all duration-700 flex items-center gap-2"
                                         >
                                             <RefreshCcw className="w-3 h-3" strokeWidth={1} />
                                             Làm mới
@@ -261,15 +261,15 @@ export default function CVAnalyzer() {
                         {/* Bento Grid Results */}
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {/* Strengths */}
-                            <div className="bg-white/[0.02] border border-[#C9A84C]/10 p-10 flex flex-col group hover:border-[#C9A84C]/30 transition-all duration-700">
-                                <div className="w-12 h-12 border border-[#C9A84C]/10 flex items-center justify-center text-[#C9A84C] mb-8 group-hover:bg-[#C9A84C]/5 transition-all duration-700">
+                            <div className="bg-[var(--color-navy-dark)] border border-[var(--color-cyan)]/10 p-10 flex flex-col group hover:border-[var(--color-cyan)]/30 transition-all duration-700">
+                                <div className="w-12 h-12 border border-[var(--color-cyan)]/10 flex items-center justify-center text-[var(--color-cyan)] mb-8 group-hover:bg-[var(--color-cyan)]/5 transition-all duration-700">
                                     <CheckCircle2 className="w-5 h-5" strokeWidth={0.5} />
                                 </div>
-                                <h3 className="text-xl font-serif italic text-[#F5F0E8] font-light mb-8">Điểm mạnh</h3>
+                                <h3 className="text-xl font-serif italic text-[var(--color-ivory)] font-light mb-8">Điểm mạnh</h3>
                                 <ul className="space-y-6 flex-grow">
                                     {MOCK_RESULTS.strengths.map((item, i) => (
-                                        <li key={i} className="flex gap-4 text-xs font-sans font-light text-[#F5F0E8]/60 leading-loose">
-                                            <div className="w-1 h-1 rounded-full bg-[#C9A84C] mt-2 shrink-0 opacity-40" />
+                                        <li key={i} className="flex gap-4 text-xs font-sans font-light text-[var(--color-ivory-60)] leading-loose">
+                                            <div className="w-1 h-1 rounded-full bg-[var(--color-cyan)] mt-2 shrink-0 opacity-40" />
                                             {item}
                                         </li>
                                     ))}
@@ -277,15 +277,15 @@ export default function CVAnalyzer() {
                             </div>
 
                             {/* Weaknesses */}
-                            <div className="bg-white/[0.02] border border-white/5 p-10 flex flex-col group hover:border-white/10 transition-all duration-700">
-                                <div className="w-12 h-12 border border-white/10 flex items-center justify-center text-[#F5F0E8]/40 mb-8 group-hover:bg-white/5 transition-all duration-700">
+                            <div className="bg-[var(--color-navy-dark)] border border-white/5 p-10 flex flex-col group hover:border-white/10 transition-all duration-700">
+                                <div className="w-12 h-12 border border-white/10 flex items-center justify-center text-[var(--color-ivory-40)] mb-8 group-hover:bg-white/5 transition-all duration-700">
                                     <AlertCircle className="w-5 h-5" strokeWidth={0.5} />
                                 </div>
-                                <h3 className="text-xl font-serif italic text-[#F5F0E8] font-light mb-8">Cần cải thiện</h3>
+                                <h3 className="text-xl font-serif italic text-[var(--color-ivory)] font-light mb-8">Cần cải thiện</h3>
                                 <ul className="space-y-6 flex-grow">
                                     {MOCK_RESULTS.weaknesses.map((item, i) => (
-                                        <li key={i} className="flex gap-4 text-xs font-sans font-light text-[#F5F0E8]/40 leading-loose">
-                                            <div className="w-1 h-1 rounded-full bg-[#F5F0E8]/20 mt-2 shrink-0" />
+                                        <li key={i} className="flex gap-4 text-xs font-sans font-light text-[var(--color-ivory-40)] leading-loose">
+                                            <div className="w-1 h-1 rounded-full bg-[var(--color-ivory-20)] mt-2 shrink-0" />
                                             {item}
                                         </li>
                                     ))}
@@ -293,15 +293,15 @@ export default function CVAnalyzer() {
                             </div>
 
                             {/* Suggestions */}
-                            <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/20 p-10 flex flex-col md:col-span-2 lg:col-span-1 group hover:bg-[#C9A84C]/10 transition-all duration-700">
-                                <div className="w-12 h-12 bg-[#C9A84C] flex items-center justify-center text-[#090C12] mb-8">
+                            <div className="bg-[var(--color-cyan)]/5 border border-[var(--color-cyan)]/20 p-10 flex flex-col md:col-span-2 lg:col-span-1 group hover:bg-[var(--color-cyan)]/10 transition-all duration-700">
+                                <div className="w-12 h-12 bg-[var(--color-cyan)] flex items-center justify-center text-obsidian mb-8">
                                     <Target className="w-5 h-5" strokeWidth={1} />
                                 </div>
-                                <h3 className="text-xl font-serif italic text-[#F5F0E8] font-light mb-8">Hành động gợi ý</h3>
+                                <h3 className="text-xl font-serif italic text-[var(--color-ivory)] font-light mb-8">Hành động gợi ý</h3>
                                 <ul className="space-y-6 flex-grow">
                                     {MOCK_RESULTS.suggestions.map((item, i) => (
-                                        <li key={i} className="flex gap-4 text-xs font-sans font-light text-[#F5F0E8]/80 leading-loose">
-                                            <span className="font-serif italic text-[#C9A84C] text-sm shrink-0">0{i + 1}</span>
+                                        <li key={i} className="flex gap-4 text-xs font-sans font-light text-[var(--color-ivory-80)] leading-loose">
+                                            <span className="font-serif italic text-[var(--color-cyan)] text-sm shrink-0">0{i + 1}</span>
                                             {item}
                                         </li>
                                     ))}

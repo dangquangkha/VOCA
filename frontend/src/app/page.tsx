@@ -5,11 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { FloatingContactMenu } from "@/components/support/ContactSupport";
+import HeroVisual from "@/components/special/HeroVisual";
 
 // ── Design Tokens ──────────────────────────────────
-const EASING = [0.22, 1, 0.36, 1] as any; // VOCA Signature Easing
-
-// ── Components ─────────────────────────────────────
+const EASING = [0.22, 1, 0.36, 1] as any;
 
 const GoldProgress = () => {
   const { scrollYProgress } = useScroll();
@@ -21,7 +20,7 @@ const GoldProgress = () => {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 right-0 h-[2px] bg-[#C9A84C] z-[100] origin-left"
+      className="fixed top-0 left-0 right-0 h-[2px] bg-[#00A4FD] z-[100] origin-left"
       style={{ scaleX }}
     />
   );
@@ -33,111 +32,88 @@ const Hero = () => {
   const y = useTransform(scrollY, [0, 1000], [0, 280]);
 
   return (
-    <section ref={containerRef} className="hero">
-      <div className="hero-bg">
-        <motion.div style={{ y }} className="hero-canvas">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="w-full h-full object-cover opacity-60 scale-110"
-          >
-            <source src="/hero.mp4" type="video/mp4" />
-          </video>
-        </motion.div>
-        <div className="hero-overlay" />
+    <section ref={containerRef} className="hero min-h-screen relative overflow-hidden bg-white font-dm-sans">
+      <div className="hero-bg absolute inset-0 z-0">
+        <HeroVisual />
+        {/* Shinkai Style Ambient Glow - Added pointer-events-none */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.2)_0%,transparent_70%)] pointer-events-none z-10" />
       </div>
 
-      <div className="hero-margin">
-        <div className="hero-margin-line" />
-        <span className="hero-margin-label">VOCA AUTHORITY</span>
-      </div>
-
-      <div className="hero-content">
+      <div className="hero-content relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-8">
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 1.05 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 1.6, ease: EASING, delay: 0.4 }}
           className="flex flex-col items-center"
         >
-          <div className="hero-eyebrow">
-            <span className="hero-eyebrow-line" />
-            CHƯƠNG 01 — KHỞI NGUYÊN BẢN SẮC
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-12 h-px bg-[#00A4FD]" />
+            <span className="text-[10px] text-[#00A4FD] font-black tracking-[0.5em] uppercase">Chương 01 — Khởi nguyên bản sắc</span>
           </div>
 
-          <h1 className="hero-headline">
+          <h1 className="text-[clamp(48px,8vw,110px)] font-garamond italic font-bold text-[#0046EA] tracking-tighter leading-[0.95] mb-12 drop-shadow-xl">
             Bạn không cô đơn <br />
-            <span className="italic">Trong sự vô định.</span>
+            <span className="text-[#00A4FD]">Trong sự vô định.</span>
           </h1>
 
-          <div className="hero-divider">
-            <span />
-            <div className="hero-divider-dot" />
-            <span />
-          </div>
-
-          <p className="hero-subline">
-            VOCA — Nơi khoa học trắc nghiệm và trí tuệ nhân tạo hội tụ <br />
-            để thắp sáng bản sắc riêng biệt của bạn.
+          <p className="max-w-2xl text-[18px] md:text-[20px] font-garamond italic text-[#171716]/60 leading-relaxed mb-20">
+            CareerPath AI — Nơi khoa học trắc nghiệm và trí tuệ nhân tạo hội tụ để thắp sáng bản sắc riêng biệt của bạn.
           </p>
 
-          <div className="pt-12">
-            <Link href="/pricing" className="px-16 py-6 bg-[#C9A84C] text-[#0A1018] font-dm-sans text-[11px] font-bold tracking-[0.5em] uppercase hover:bg-[#F5F0E8] transition-all duration-700 shadow-xl">
-              Khám phá Giải pháp —
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <Link href="/pricing" className="px-20 py-8 bg-[#0046EA] text-white font-dm-sans text-[11px] font-black tracking-[0.5em] uppercase hover:bg-[#00A4FD] transition-all duration-700 shadow-2xl rounded-full">
+              Khám phá giải pháp
+            </Link>
+            <Link href="/dashboard" className="text-[#0046EA]/40 hover:text-[#00A4FD] text-[10px] font-black uppercase tracking-[0.5em] transition-all duration-500">
+              Bắt đầu ngay
             </Link>
           </div>
         </motion.div>
       </div>
 
-      <div className="scroll-ind">
-        <div className="scroll-track">
-          <div className="scroll-dot" />
-        </div>
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 opacity-30">
+        <div className="w-[1px] h-20 bg-gradient-to-b from-white to-transparent" />
+        <span className="text-[8px] font-black uppercase tracking-[0.6em] text-white">Scroll Down</span>
       </div>
-
-      <div className="hero-bottom-fade" />
     </section>
   );
 };
 
 const Problem = () => (
-  <section className="problem group section-enter">
-    <div className="problem-inner">
+  <section className="py-48 md:py-64 bg-white relative px-8 overflow-hidden font-dm-sans">
+    <div className="max-w-[1400px] mx-auto relative z-10">
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 1, ease: EASING }}
-        className="section-eyebrow"
+        className="flex items-center gap-8 mb-16"
       >
-        <span className="section-eyebrow-line" />
-        BỐI CẢNH — THE VOID
+        <div className="w-16 h-[1.5px] bg-[#0046EA]" />
+        <span className="text-[10px] font-black text-[#0046EA] uppercase tracking-[0.4em]">Bối cảnh — The Void</span>
       </motion.div>
 
       <motion.h2
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        initial={{ opacity: 0, y: 30, scale: 1.02 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 30 }}
         viewport={{ once: true }}
         transition={{ duration: 1.2, ease: EASING }}
-        className="problem-headline"
+        className="text-[clamp(48px,6vw,84px)] font-garamond italic font-bold text-[#171716] tracking-tight leading-[1.1] mb-20"
       >
         Khi tương lai là một <br />
-        <span className="italic font-light opacity-60">Vùng trời mờ mịt.</span>
+        <span className="text-[#0046EA] opacity-40">Vùng trời mờ mịt.</span>
       </motion.h2>
 
       <motion.p
         whileInView={{ opacity: 1 }}
         initial={{ opacity: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 1.5, delay: 0.3 }}
-        className="problem-body"
+        className="max-w-3xl text-[20px] md:text-[24px] font-garamond italic text-black/40 leading-relaxed mb-32"
       >
         Bạn đang đứng trước ngưỡng cửa quan trọng nhất, nhưng lại thấy mình loay hoay, vô định.
         Có phải vì bạn đang thiếu đi một chiếc la bàn định danh chính xác?
       </motion.p>
 
-      <div className="pain-grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
         {[
           { label: "Áp lực gia đình", value: "70.7%", desc: "Học sinh lớp 12 chịu kỳ vọng nặng nề từ người thân." },
           { label: "Nỗi sợ sai lầm", value: "77.6%", desc: "Tâm lý lo lắng cực độ khi đứng trước việc chọn sai ngành." },
@@ -145,15 +121,15 @@ const Problem = () => (
         ].map((item, i) => (
           <motion.div
             key={i}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            initial={{ opacity: 0, y: 40, scale: 1.05 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 40 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, delay: i * 0.15, ease: EASING }}
-            className="pain-card p-12 bg-white/5 backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-all duration-700 group hover:scale-[1.02]"
+            transition={{ delay: i * 0.1, duration: 1 }}
+            className="p-16 bg-[#F5F8FF] border border-black/5 rounded-[64px] hover:shadow-3xl hover:shadow-blue-500/10 transition-all duration-700 group"
           >
-            <span className="text-4xl font-garamond italic text-[#C9A84C] block mb-4 group-hover:scale-110 transition-transform duration-700">{item.value}</span>
-            <p className="font-dm-sans text-[11px] text-[#F5F0E8] font-bold uppercase tracking-[0.2em] mb-4">{item.label}</p>
-            <p className="font-dm-sans text-xs text-[#F5F0E8]/40 leading-relaxed font-light">{item.desc}</p>
+            <span className="text-6xl font-garamond italic font-bold text-[#0046EA] block mb-10 group-hover:scale-110 transition-transform duration-700">{item.value}</span>
+            <p className="text-[10px] text-black font-black uppercase tracking-[0.4em] mb-6">{item.label}</p>
+            <p className="text-sm text-black/40 leading-relaxed font-dm-sans font-medium">{item.desc}</p>
           </motion.div>
         ))}
       </div>
@@ -162,50 +138,48 @@ const Problem = () => (
 );
 
 const Story = () => (
-  <section className="py-40 lg:py-64 bg-[#1A0F10] relative px-8 overflow-hidden">
-    <div className="absolute top-0 right-0 w-96 h-96 bg-[#8B4A2E]/10 blur-[120px] -mr-48 -mt-48" />
-    <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-24 items-center">
+  <section className="py-48 lg:py-72 bg-[#0046EA] relative px-8 overflow-hidden font-dm-sans">
+    <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-white/10 blur-[200px] rounded-full -mr-96 -mt-96" />
+    <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-32 items-center relative z-10">
       <motion.div
-        whileInView={{ opacity: 1, x: 0, scale: 1 }}
-        initial={{ opacity: 0, x: -40, scale: 1.02 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0, x: -40 }}
         viewport={{ once: true }}
-        transition={{ duration: 1.4, ease: EASING }}
       >
-        <div className="section-eyebrow text-[#C97B3A]">
-          <span className="section-eyebrow-line bg-[#C97B3A]/40" />
-          TRIẾT LÝ — THE MIRROR
+        <div className="flex items-center gap-8 mb-16">
+          <div className="w-16 h-px bg-[#FFE900]" />
+          <span className="text-[10px] font-black text-[#FFE900] uppercase tracking-[0.5em]">Triết lý — The Mirror</span>
         </div>
-        <h2 className="font-garamond text-5xl md:text-7xl text-[#F5F0E8] leading-tight font-light mb-12">
+        <h2 className="text-[clamp(48px,6vw,84px)] font-garamond italic font-bold text-white tracking-tight leading-[1.1] mb-16">
           Gương soi <br />
-          <span className="italic text-[#C97B3A]">Bản sắc thực thụ.</span>
+          <span className="text-[#00A4FD]">Bản sắc thực thụ.</span>
         </h2>
-        <div className="space-y-8 font-dm-sans text-lg text-[#F5F0E8]/60 font-light leading-relaxed">
+        <div className="space-y-12 text-[18px] text-white/60 font-garamond italic leading-relaxed">
           <p>
-            VOCA không chỉ là một công cụ. Chúng tôi là tấm gương phản chiếu phiên bản rực rỡ nhất mà bạn khát khao trở thành.
+            CareerPath không chỉ là một công cụ. Chúng tôi là tấm gương phản chiếu phiên bản rực rỡ nhất mà bạn khát khao trở thành.
           </p>
           <p>
-            Khi bạn nhìn vào VOCA, bạn không thấy một hệ thống máy móc. Bạn thấy sự thấu hiểu, tôn trọng và một lộ trình vinh quang được may đo riêng cho chính tâm hồn bạn.
+            Khi bạn nhìn vào CareerPath, bạn không thấy một hệ thống máy móc. Bạn thấy sự thấu hiểu, tôn trọng và một lộ trình vinh quang được may đo riêng cho chính tâm hồn bạn.
           </p>
         </div>
       </motion.div>
 
       <motion.div
-        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         viewport={{ once: true }}
-        transition={{ duration: 1.4, ease: EASING }}
-        className="relative aspect-square border border-[#C97B3A]/20 p-8"
+        className="relative aspect-square border border-white/10 p-16 flex flex-col justify-center rounded-[80px] bg-white/5 backdrop-blur-3xl shadow-3xl"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#58181F]/20 to-transparent" />
-        <div className="relative h-full border border-[#C97B3A]/10 flex flex-col justify-center p-12 space-y-8">
-          <div className="w-12 h-12 border border-[#C97B3A]/40 flex items-center justify-center text-[#C97B3A]">
-            <span className="font-garamond text-2xl italic">V</span>
+        <div className="absolute top-12 left-12 w-3 h-3 bg-[#FFE900] rounded-full animate-pulse shadow-[0_0_15px_#FFE900]" />
+        <div className="space-y-16 relative z-10">
+          <div className="w-16 h-16 border-2 border-[#00A4FD]/40 flex items-center justify-center text-[#00A4FD] rounded-2xl">
+            <span className="font-garamond text-3xl italic font-bold">C</span>
           </div>
-          <p className="font-garamond text-3xl italic text-[#F5F0E8]/80 leading-relaxed">
+          <p className="font-garamond text-[32px] italic text-white/90 leading-snug">
             "Thương hiệu tốt nhất không nói về họ — họ làm gương cho người dùng. Chúng tôi ở đây để bạn thấy được tầm vóc thực sự của chính mình."
           </p>
-          <div className="pt-8 border-t border-[#C97B3A]/10">
-            <span className="font-dm-sans text-[10px] text-[#C97B3A] tracking-[0.4em] uppercase">VOCA Manifesto</span>
+          <div className="pt-12 border-t border-white/10">
+            <span className="font-dm-sans text-[10px] text-[#FFE900] tracking-[0.5em] font-black uppercase">CareerPath Manifesto</span>
           </div>
         </div>
       </motion.div>
@@ -214,27 +188,27 @@ const Story = () => (
 );
 
 const Services = () => (
-  <section className="py-40 lg:py-64 bg-[#F5F0E8] px-8">
+  <section className="py-48 lg:py-72 bg-white px-8 font-dm-sans">
     <div className="max-w-[1400px] mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-baseline mb-32 gap-12 border-b border-[#0A1018]/5 pb-16">
-        <div className="space-y-6">
-          <div className="section-eyebrow text-[#4A7C7E]">
-            <span className="section-eyebrow-line bg-[#4A7C7E]/40" />
-            GIẢI PHÁP — THE COMPASS
+      <div className="flex flex-col md:flex-row justify-between items-baseline mb-40 gap-12 border-b border-black/5 pb-20">
+        <div className="space-y-8">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-[1.5px] bg-[#0046EA]" />
+            <span className="text-[10px] font-black text-[#0046EA] uppercase tracking-[0.4em]">Giải pháp — The Compass</span>
           </div>
           <motion.h2
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            initial={{ opacity: 0, y: 30, scale: 1.02 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 30 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2, ease: EASING }}
-            className="font-garamond text-5xl md:text-7xl text-[#0A1018] tracking-tight font-light"
+            className="text-[clamp(48px,6vw,84px)] font-garamond italic font-bold text-[#171716] tracking-tight leading-[1.1]"
           >
-            Định Nghĩa Lại <br /> <span className="italic text-[#4A7C7E]">Sự Chuẩn Mực.</span>
+            Định Nghĩa Lại <br /> <span className="text-[#00A4FD] opacity-60">Sự Chuẩn Mực.</span>
           </motion.h2>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-px bg-[#0A1018]/5 border border-[#0A1018]/5">
+      <div className="grid md:grid-cols-2 gap-12">
         {[
           {
             id: '01',
@@ -255,33 +229,32 @@ const Services = () => (
         ].map((service, i) => (
           <motion.div
             key={i}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            initial={{ opacity: 0, y: 40, scale: 1.05 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 40 }}
             viewport={{ once: true }}
-            whileHover={{ backgroundColor: service.dark ? '#0F1825' : '#FFFFFF', scale: 1.01 }}
-            transition={{ duration: 0.7, ease: EASING, delay: i * 0.2 }}
-            className={`p-16 h-[650px] flex flex-col justify-between group transition-all duration-700 ${service.dark ? 'bg-[#0A1018] text-[#F5F0E8]' : 'bg-[#FAF7F2] text-[#0A1018]'
+            transition={{ duration: 1, ease: EASING, delay: i * 0.2 }}
+            className={`p-20 h-[700px] flex flex-col justify-between group rounded-[64px] transition-all duration-700 shadow-2xl hover:shadow-blue-500/10 ${service.dark ? 'bg-[#0046EA] border-[#0046EA]' : 'bg-white border border-black/5'
               }`}
           >
-            <div className="space-y-12">
-              <span className={`font-garamond text-4xl italic ${service.dark ? 'text-white/5' : 'text-[#4A7C7E]/20'}`}>
+            <div className="space-y-16">
+              <span className={`text-[64px] font-garamond italic font-bold block ${service.dark ? 'text-white/10' : 'text-[#0046EA]/10'}`}>
                 {service.id}
               </span>
-              <div className="space-y-4">
-                <span className={`font-dm-sans text-[10px] tracking-[0.4em] uppercase ${service.dark ? 'text-[#4A7C7E]' : 'text-[#4A7C7E]'}`}>
+              <div className="space-y-6">
+                <span className={`text-[10px] font-black uppercase tracking-[0.5em] ${service.dark ? 'text-[#FFE900]' : 'text-[#00A4FD]'}`}>
                   {service.eyebrow}
                 </span>
-                <h3 className="font-garamond text-5xl font-light tracking-wide">{service.title}</h3>
+                <h3 className={`text-5xl font-garamond italic font-bold ${service.dark ? 'text-white' : 'text-[#171716]'}`}>{service.title}</h3>
               </div>
-              <p className={`font-dm-sans text-base leading-[2.2] font-light tracking-wide ${service.dark ? 'text-white/50' : 'text-[#0A1018]/60'
-                }`}>
+              <p className={`text-[17px] font-dm-sans font-medium leading-[2.1] tracking-wide ${service.dark ? 'text-white/60' : 'text-black/40'}`}>
                 {service.desc}
               </p>
             </div>
-            <Link href={service.link} className={`inline-flex items-center gap-6 text-[10px] font-bold tracking-[0.5em] uppercase group/link ${service.dark ? 'text-[#C9A84C]' : 'text-[#0A1018]'
+            <Link href={service.link} className={`inline-flex items-center gap-8 text-[10px] font-black tracking-[0.5em] uppercase group/link ${service.dark ? 'text-[#FFE900]' : 'text-[#0046EA]'
               }`}>
-              BẮT ĐẦU NGAY <div className="h-[0.5px] bg-[#C9A84C] w-16 group-hover/link:w-28 transition-all duration-700" />
+              BẮT ĐẦU NGAY <div className={`h-[1.5px] w-16 group-hover/link:w-28 transition-all duration-700 ${service.dark ? 'bg-[#FFE900]' : 'bg-[#0046EA]'}`} />
             </Link>
+
           </motion.div>
         ))}
       </div>
@@ -306,35 +279,35 @@ const Proof = () => {
   }, []);
 
   return (
-    <section className="py-40 bg-[#0A1018] px-8 relative overflow-hidden">
+    <section className="py-48 bg-[#0046EA] px-8 relative overflow-hidden font-dm-sans">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-[#C9A84C] to-transparent" />
-        <div className="absolute top-0 left-2/4 w-px h-full bg-gradient-to-b from-transparent via-[#C9A84C] to-transparent" />
-        <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-[#C9A84C] to-transparent" />
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-white to-transparent" />
+        <div className="absolute top-0 left-2/4 w-px h-full bg-gradient-to-b from-transparent via-white to-transparent" />
+        <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-white to-transparent" />
       </div>
       <div className="max-w-[1400px] mx-auto relative z-10">
         <div className="grid md:grid-cols-3 gap-24 text-center">
           {[
-            { value: '500+', label: 'Chuyên gia đồng hành', sub: 'Mạng lưới Top 1%' },
-            { value: `${count.toLocaleString()}+`, label: 'CV được tối ưu', sub: 'Bởi trí tuệ nhân tạo' },
-            { value: '93%', label: 'Học viên tự tin', sub: 'Sau khi được tư vấn' }
+            { value: '500+', label: 'Chuyên gia đồng hành', sub: 'MẠNG LƯỚI TINH HOA' },
+            { value: `${count.toLocaleString()}+`, label: 'CV được tối ưu', sub: 'TRÍ TUỆ NHÂN TẠO PHÂN TÍCH' },
+            { value: '93%', label: 'Học viên tự tin', sub: 'KHỞI TẠO LỘ TRÌNH CHUẨN XÁC' }
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              initial={{ opacity: 0, y: 20, scale: 1.05 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
               viewport={{ once: true }}
               transition={{ duration: 1.2, delay: i * 0.2, ease: EASING }}
-              className="space-y-6 group cursor-default"
+              className="space-y-10 group cursor-default"
             >
-              <div className="font-garamond text-6xl text-[#C9A84C] font-light group-hover:scale-110 transition-transform duration-1000">
+              <div className="text-7xl font-garamond italic font-bold text-[#00A4FD] group-hover:scale-110 transition-transform duration-1000">
                 {stat.value}
               </div>
-              <div className="space-y-2">
-                <div className="font-dm-sans text-[11px] font-bold uppercase tracking-[0.4em] text-[#F5F0E8]">
+              <div className="space-y-4">
+                <div className="text-[12px] font-black uppercase tracking-[0.4em] text-white">
                   {stat.label}
                 </div>
-                <div className="font-dm-sans text-[9px] uppercase tracking-[0.2em] text-[#F5F0E8]/30">
+                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">
                   {stat.sub}
                 </div>
               </div>
@@ -347,25 +320,25 @@ const Proof = () => {
 };
 
 const CTA = () => (
-  <section className="py-64 lg:py-80 bg-[#090C12] text-center px-8 relative overflow-hidden">
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.05)_0%,transparent_70%)]" />
-    <div className="max-w-4xl mx-auto space-y-24 relative z-10">
+  <section className="py-64 lg:py-80 bg-[#0046EA] text-center px-8 relative overflow-hidden font-dm-sans">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,164,253,0.1)_0%,transparent_70%)]" />
+    <div className="max-w-4xl mx-auto space-y-32 relative z-10">
       <motion.div
-        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        initial={{ opacity: 0, y: 40, scale: 1.02 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 40 }}
         viewport={{ once: true }}
         transition={{ duration: 1.4, ease: EASING }}
-        className="space-y-12"
+        className="space-y-16"
       >
-        <div className="section-eyebrow justify-center text-[#C9A84C]">
-          <span className="section-eyebrow-line bg-[#C9A84C]/40" />
-          KẾT THÚC — THE ASCENSION
+        <div className="flex items-center justify-center gap-8">
+          <div className="w-16 h-px bg-[#FFE900]" />
+          <span className="text-[10px] font-black text-[#FFE900] uppercase tracking-[0.6em]">The Ascension — Chương Cuối</span>
         </div>
-        <h2 className="font-garamond text-6xl md:text-9xl text-[#F5F0E8] font-light leading-none tracking-tight">
-          Sẵn sàng trở nên <br /> <span className="italic text-[#C9A84C]">Vô giá?</span>
+        <h2 className="text-[clamp(48px,7vw,110px)] font-garamond italic font-bold text-white tracking-tight leading-[0.95]">
+          Sẵn sàng trở nên <br /> <span className="text-[#00A4FD]">Vô giá?</span>
         </h2>
-        <p className="font-dm-sans text-base text-[#F5F0E8]/40 max-w-xl mx-auto leading-loose tracking-wide">
-          Đừng để bản sắc của bạn bị hòa lẫn. Hãy để VOCA đồng hành kiến tạo nên một chương mới huy hoàng trong sự nghiệp của bạn.
+        <p className="text-[18px] font-garamond italic text-white/50 max-w-xl mx-auto leading-relaxed">
+          Đừng để bản sắc của bạn bị hòa lẫn. Hãy để CareerPath đồng hành kiến tạo nên một chương mới huy hoàng trong sự nghiệp của bạn.
         </p>
       </motion.div>
 
@@ -375,24 +348,24 @@ const CTA = () => (
         viewport={{ once: true }}
         transition={{ duration: 1, ease: EASING }}
       >
-        <Link href="/register" className="inline-block px-20 py-8 bg-[#C9A84C] text-[#0A1018] font-dm-sans text-[11px] font-bold tracking-[0.6em] uppercase hover:bg-[#F5F0E8] transition-all duration-700 shadow-[0_20px_60px_rgba(201,168,76,0.15)]">
-          GIA NHẬP HỆ SINH THÁI
+        <Link href="/register" className="inline-block px-24 py-10 bg-[#FFE900] text-[#171716] text-[11px] font-black tracking-[0.6em] uppercase hover:bg-white hover:text-[#0046EA] transition-all duration-700 shadow-3xl rounded-full">
+          Gia nhập hệ sinh thái
         </Link>
       </motion.div>
 
-      <div className="pt-24 flex flex-col items-center gap-8">
-        <div className="w-px h-24 bg-gradient-to-b from-[#C9A84C]/40 to-transparent" />
-        <p className="font-dm-sans text-[#F5F0E8]/10 text-[9px] tracking-[0.5em] uppercase">
+      <div className="pt-32 flex flex-col items-center gap-12">
+        <div className="w-px h-32 bg-gradient-to-b from-white/20 to-transparent" />
+        <p className="text-[10px] text-white/40 font-black tracking-[.3em] uppercase italic">Kiến tạo lộ trình chuyên gia, định hình tương lai số.</p>
+        <p className="font-dm-sans text-white/10 text-[9px] font-black tracking-[0.6em] uppercase">
           Reserved for those who value standard and precision.
         </p>
       </div>
     </div>
   </section>
 );
-
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0A1018] selection:bg-[#C9A84C] selection:text-[#0A1018]">
+    <div className="min-h-screen bg-white selection:bg-[#0046EA] selection:text-white">
       <GoldProgress />
       <Hero />
       <Problem />

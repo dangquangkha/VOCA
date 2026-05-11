@@ -18,14 +18,14 @@ export const ExpertGrid: React.FC<ExpertGridProps> = ({ experts, isLoading, view
         return (
             <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-6"}>
                 {[1, 2, 3].map((n) => (
-                    <div key={n} className={`bg-[#FAF7F2]/40 backdrop-blur-sm p-10 border border-[#C9A84C]/5 animate-pulse transition-all duration-1000 rounded-[2px] ${viewMode === 'grid' ? 'h-[420px]' : 'h-[200px]'}`}>
+                    <div key={n} className={`bg-[#FFFFFF]/40 backdrop-blur-sm p-10 border border-[#0046EA]/5 animate-pulse transition-all duration-1000 rounded-[2px] ${viewMode === 'grid' ? 'h-[420px]' : 'h-[200px]'}`}>
                         <div className="flex items-start gap-8">
-                            <div className="w-24 h-24 bg-[#0A1018]/5 shrink-0 border border-[#C9A84C]/5 rounded-[2px]" />
+                            <div className="w-24 h-24 bg-[#0F0C17]/5 shrink-0 border border-[#0046EA]/5 rounded-[2px]" />
                             <div className="flex-1 space-y-6 pt-2">
-                                <div className="h-[2px] bg-[#0A1018]/5 w-1/2" />
+                                <div className="h-[2px] bg-[#0F0C17]/5 w-1/2" />
                                 <div className="space-y-3">
-                                    <div className="h-[1px] bg-[#0A1018]/5 w-full" />
-                                    <div className="h-[1px] bg-[#0A1018]/5 w-2/3" />
+                                    <div className="h-[1px] bg-[#0F0C17]/5 w-full" />
+                                    <div className="h-[1px] bg-[#0F0C17]/5 w-2/3" />
                                 </div>
                             </div>
                         </div>

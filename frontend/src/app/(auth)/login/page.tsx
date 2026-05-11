@@ -18,7 +18,7 @@ export default function LoginPage() {
         setIsLoading(true);
         setError('');
         try {
-            const formData = new FormData(e.target as HTMLFormElement);
+            const formData = new FormData(e.currentTarget as HTMLFormElement);
             const email = formData.get('email') as string;
             const password = formData.get('password') as string;
 
@@ -36,7 +36,9 @@ export default function LoginPage() {
             if (role === 'ADMIN') router.push('/dashboard/admin');
             else if (role === 'EXPERT') {
                 router.push(expert_profile?.kyc_status === 'APPROVED' ? '/dashboard/expert' : '/expert/kyc');
-            } else router.push('/');
+            } else if (role === 'MENTOR') {
+                router.push('/dashboard/expert');
+            } else router.push('/dashboard');
         } catch (err: any) {
             const detail = err.response?.data?.detail;
             setError(typeof detail === 'string' ? detail : Array.isArray(detail) ? detail.map((e: any) => e.msg).join(', ') : 'Đăng nhập không thành công. Vui lòng thử lại.');
@@ -45,51 +47,89 @@ export default function LoginPage() {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+            // Mock Google Login for development/demo
+            // In production, this would use the Google SDK to get a real id_token
+            const mockToken = `mock_google_user_${Math.floor(Math.random() * 1000)}@gmail.com`;
+
+            const { data } = await api.post('auth/google', {
+                id_token: mockToken
+            });
+
+            localStorage.setItem('token', data.access_token);
+            const userResponse = await api.get('users/me', {
+                headers: { Authorization: `Bearer ${data.access_token}` },
+            });
+
+            loginStore(data.access_token, userResponse.data);
+            window.dispatchEvent(new Event('auth-change'));
+
+            const { role, expert_profile } = userResponse.data;
+            if (role === 'ADMIN') router.push('/dashboard/admin');
+            else if (role === 'EXPERT') {
+                router.push(expert_profile?.kyc_status === 'APPROVED' ? '/dashboard/expert' : '/expert/kyc');
+            } else if (role === 'MENTOR') {
+                router.push('/dashboard/expert');
+            } else router.push('/dashboard');
+        } catch (err: any) {
+            console.error("Google Login Error:", err);
+            setError('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <div className="animate-fade-in">
-            <div className="mb-12">
-                <div className="flex items-center gap-2 mb-6 opacity-40">
-                    <div className="h-[0.5px] w-8 bg-[#0A1018]" />
-                    <span className="font-dm-sans text-[9px] uppercase tracking-[0.3em]">Hệ thống hội viên</span>
+        <div className="animate-fade-in relative z-10 font-dm-sans">
+            <div className="mb-16">
+                <div className="flex items-center gap-6 mb-8">
+                    <div className="h-px w-12 bg-[#0046EA]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#0046EA]">THE PROTOCOL</span>
                 </div>
-                <h1 className="font-garamond italic font-light text-[42px] leading-tight text-[#0A1018] mb-4">Chào mừng <br /> quay trở lại.</h1>
-                <p className="font-dm-sans text-[#0A1018]/60 text-xs font-light tracking-wide uppercase">Vui lòng nhập thông tin để tiếp tục.</p>
+                <h1 className="text-[clamp(40px,4vw,64px)] font-garamond italic font-bold text-[#171716] leading-[1.1] mb-6">Chào mừng <br /> quay trở lại.</h1>
+                <p className="text-black/40 text-[14px] font-dm-sans font-medium tracking-[0.1em] uppercase">Vui lòng nhập thông tin để tiếp tục hành trình.</p>
             </div>
 
             {/* Error Alert */}
             {error && (
-                <div className="flex items-center gap-3 p-4 mb-8 bg-[#58181F]/5 border border-[#58181F]/10 text-[#58181F] text-[11px] uppercase tracking-wider animate-fade-in">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="flex items-center gap-4 p-6 mb-12 bg-red-50 border-l-4 border-red-500 text-red-600 text-[13px] font-bold uppercase tracking-wider animate-fade-in shadow-sm rounded-r-2xl">
+                    <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>{error}</span>
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-12">
                 {/* Email */}
                 <div className="group">
-                    <label className="block text-[9px] font-medium text-[#0A1018]/40 uppercase tracking-[0.2em] mb-3 group-focus-within:text-[#C9A84C] transition-colors" htmlFor="email">
-                        Địa chỉ Email
+                    <label className="block text-[11px] font-black text-black/40 uppercase tracking-[0.3em] mb-4 group-focus-within:text-[#0046EA] transition-colors" htmlFor="email">
+                        ĐỊA CHỈ EMAIL
                     </label>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        placeholder="you@example.com"
-                        className="w-full bg-transparent border-b border-[#0A1018]/10 py-3 text-sm font-light text-[#0A1018] placeholder-[#0A1018]/20 focus:outline-none focus:border-[#C9A84C] transition-all duration-500"
-                    />
+                    <div className="relative">
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            suppressHydrationWarning
+                            placeholder="you@luxury-standard.com"
+                            className="w-full bg-[#F5F8FF] border border-black/5 px-8 py-5 text-[15px] font-medium text-[#171716] placeholder-black/20 focus:ring-2 focus:ring-[#0046EA]/20 focus:outline-none focus:border-[#0046EA] transition-all duration-500 rounded-3xl"
+                        />
+                    </div>
                 </div>
 
                 {/* Password */}
                 <div className="group">
-                    <div className="flex justify-between items-center mb-3">
-                        <label className="block text-[9px] font-medium text-[#0A1018]/40 uppercase tracking-[0.2em] group-focus-within:text-[#C9A84C] transition-colors" htmlFor="password">
-                            Mật khẩu
+                    <div className="flex justify-between items-center mb-4">
+                        <label className="block text-[11px] font-black text-black/40 uppercase tracking-[0.3em] group-focus-within:text-[#0046EA] transition-colors" htmlFor="password">
+                            MẬT KHẨU
                         </label>
-                        <Link href="/forgot-password" title="Quên mật khẩu?" className="text-[9px] font-medium text-[#0A1018]/40 hover:text-[#C9A84C] transition-colors uppercase tracking-[0.2em]">
-                            Quên?
+                        <Link href="/forgot-password" title="Quên mật khẩu?" className="text-[10px] font-black text-black/30 hover:text-[#0046EA] transition-colors uppercase tracking-[0.3em]">
+                            QUÊN MẬT KHẨU?
                         </Link>
                     </div>
                     <div className="relative">
@@ -98,16 +138,17 @@ export default function LoginPage() {
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             required
+                            suppressHydrationWarning
                             placeholder="••••••••"
-                            className="w-full bg-transparent border-b border-[#0A1018]/10 py-3 text-sm font-light text-[#0A1018] placeholder-[#0A1018]/20 focus:outline-none focus:border-[#C9A84C] transition-all duration-500"
+                            className="w-full bg-[#F5F8FF] border border-black/5 px-8 py-5 text-[15px] font-medium text-[#171716] placeholder-black/20 focus:ring-2 focus:ring-[#0046EA]/20 focus:outline-none focus:border-[#0046EA] transition-all duration-500 rounded-3xl"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 text-[#0A1018]/20 hover:text-[#C9A84C] transition-colors p-2"
+                            className="absolute right-6 top-1/2 -translate-y-1/2 text-black/20 hover:text-[#0046EA] transition-colors p-2"
                             tabIndex={-1}
                         >
-                            <span className="text-[9px] uppercase tracking-widest">{showPassword ? 'Ẩn' : 'Hiện'}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{showPassword ? 'ẨN' : 'HIỆN'}</span>
                         </button>
                     </div>
                 </div>
@@ -116,24 +157,51 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-14 bg-[#0A1018] text-[#F5F0E8] text-[11px] font-medium tracking-[0.4em] uppercase transition-all duration-700 hover:bg-[#C9A84C] hover:text-[#0A1018] flex items-center justify-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    suppressHydrationWarning
+                    className="group relative w-full py-6 bg-[#0046EA] text-[#FFE900] text-[11px] font-black tracking-[0.5em] uppercase transition-all duration-700 hover:bg-[#171716] rounded-full shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                 >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    
                     {isLoading ? (
-                        <div className="w-4 h-4 border border-[#F5F0E8]/30 border-t-[#F5F0E8] rounded-full animate-spin" />
+                        <div className="flex items-center justify-center gap-3 relative z-10">
+                            <div className="w-5 h-5 border-2 border-white/20 border-t-[#FFE900] rounded-full animate-spin" />
+                            <span>AUTHENTICATING...</span>
+                        </div>
                     ) : (
-                        <>
-                            <span>Đăng nhập</span>
-                            <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
-                        </>
+                        <div className="flex items-center justify-center gap-4 relative z-10">
+                            <span>ĐĂNG NHẬP</span>
+                            <span className="text-white/40 group-hover:text-[#FFE900] group-hover:translate-x-2 transition-all duration-500">→</span>
+                        </div>
                     )}
+                </button>
+
+                {/* Divider */}
+                <div className="flex items-center gap-6 py-4">
+                    <div className="flex-1 h-px bg-black/5" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-black/20">OR</span>
+                    <div className="flex-1 h-px bg-black/5" />
+                </div>
+
+                {/* Google Login */}
+                <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading}
+                    suppressHydrationWarning
+                    className="flex items-center justify-center gap-6 w-full py-6 bg-white border-2 border-black/5 text-[#171716] text-[11px] font-black tracking-[0.5em] uppercase transition-all duration-700 hover:border-[#0046EA] hover:text-[#0046EA] hover:bg-[#F5F8FF] disabled:opacity-50 rounded-full shadow-sm"
+                >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.908 3.152-1.928 4.176-1.288 1.288-3.312 2.696-6.896 2.696-5.584 0-10.232-4.528-10.232-10.12s4.648-10.12 10.232-10.12c3.016 0 5.256 1.192 6.84 2.688l2.304-2.304c-2.888-2.616-6.848-4.148-11.232-4.148-7.904 0-14.392 6.488-14.392 14.392s6.488 14.392 14.392 14.392c4.224 0 7.408-1.4 9.776-3.864 2.52-2.52 3.32-6.048 3.32-8.68 0-.84-.064-1.632-.192-2.32h-12.92z" />
+                    </svg>
+                    <span>GOOGLE IDENTITY</span>
                 </button>
             </form>
 
-            <div className="mt-12 pt-8 border-t border-[#0A1018]/5 text-center">
-                <p className="text-[11px] text-[#0A1018]/40 font-light tracking-wide uppercase italic">
+            <div className="mt-20 pt-10 border-t border-black/5 text-center">
+                <p className="text-[12px] text-black/40 font-medium tracking-[0.1em] uppercase">
                     Chưa có tài khoản?{' '}
-                    <Link href="/register" className="text-[#0A1018] hover:text-[#C9A84C] transition-colors border-b border-[#0A1018]/10 hover:border-[#C9A84C]/40 pb-0.5 ml-2 font-medium non-italic tracking-wider">
-                        Đăng ký miễn phí →
+                    <Link href="/register" className="text-[#0046EA] hover:text-[#171716] transition-all duration-500 font-black tracking-[0.2em] ml-2 border-b-2 border-[#0046EA]/20 hover:border-[#171716] pb-1">
+                        ĐĂNG KÝ MIỄN PHÍ →
                     </Link>
                 </p>
             </div>

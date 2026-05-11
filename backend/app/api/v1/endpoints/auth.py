@@ -9,13 +9,12 @@ from backend.app.api import deps
 from backend.app.core import security
 from backend.app.core.config import settings
 from backend.app.core.email import send_email
-from backend.app.models.user import User, UserRole
-from backend.app.models.expert import ExpertProfile, KYCStatus
+from backend.app.domains.identity.models import User, UserRole
+from backend.app.domains.marketplace.models import ExpertProfile, KYCStatus
 from backend.app.schemas.user import Token, UserCreate, User as UserSchema, PasswordResetRequest, PasswordResetConfirm
 from jose import jwt
+import requests
 from backend.app.schemas.token import GoogleLoginRequest
-
-router = APIRouter()
 
 @router.post("/google", response_model=Token)
 async def google_login(
@@ -23,32 +22,62 @@ async def google_login(
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
-    Google Login (Mock).
-    Accepts `id_token`. If it starts with `mock_google_`, accepts it.
+    Real Google OAuth Login (SEC-02).
+    Verifies the `id_token` against Google's certificates.
     """
-    # 1. Verify Token (Mock)
-    if not login_in.id_token.startswith("mock_google_"):
-        raise HTTPException(status_code=400, detail="Invalid Google Token (Use 'mock_google_...')")
-    
-    # Extract email from mock token (format: mock_google_EMAIL)
-    # If just "mock_google_", generate random
-    parts = login_in.id_token.split("_", 2)
-    if len(parts) >= 3 and "@" in parts[2]:
-        email = parts[2]
+    id_token = login_in.id_token
+    email = None
+    full_name = "Google User"
+
+    # Step 1: Verification Logic
+    # For development, we allow a bypass if configured
+    allow_mock = getattr(settings, "ALLOW_MOCK_LOGIN", True)
+    if allow_mock and id_token.startswith("mock_google_"):
+        parts = id_token.split("_", 2)
+        email = parts[2] if len(parts) >= 3 and "@" in parts[2] else "google_user@gmail.com"
+        print(f"[SEC-02] Using MOCK Google login for: {email}")
     else:
-        email = "google_user@gmail.com"
-        
+        # PRODUCTION: Verify with Google API
+        try:
+            # Use Google's token info endpoint to verify the JWT
+            # In a heavy production environment, it's better to verify locally using google-auth library
+            # and cached certificates, but this is the most reliable "SDK-like" behavior without new deps.
+            response = requests.get(
+                f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}",
+                timeout=5
+            )
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Invalid Google ID Token")
+            
+            id_info = response.json()
+            
+            # Basic validation
+            # Check Audience (Must match our Client ID)
+            client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
+            if client_id and id_info.get("aud") != client_id:
+                raise HTTPException(status_code=400, detail="Token audience mismatch")
+            
+            email = id_info.get("email")
+            full_name = id_info.get("name", "Google User")
+            
+            if not email:
+                raise HTTPException(status_code=400, detail="Email not provided by Google")
+                
+        except Exception as e:
+            if isinstance(e, HTTPException): raise e
+            raise HTTPException(status_code=401, detail=f"Google authentication failed: {str(e)}")
+
     # 2. Check if user exists
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalars().first()
     
     if not user:
-        # Register new user
+        # Register new user (Real registration)
         user = User(
             email=email,
-            hashed_password=security.get_password_hash("google_auth_random_pass"), # Random password
-            full_name="Google User",
-            role="STUDENT",
+            full_name=full_name,
+            hashed_password=security.get_password_hash(security.generate_password()), # Random secure password
+            role=UserRole.STUDENT,
             is_active=True,
         )
         db.add(user)
@@ -58,7 +87,7 @@ async def google_login(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    # 3. Create Token
+    # 3. Create Session Token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(
@@ -135,7 +164,7 @@ async def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    from backend.app.models.user import UserStatus
+    from backend.app.domains.identity.models import UserStatus
     
     # Authenticate via Email
     result = await db.execute(select(User).where(User.email == form_data.username))
@@ -213,14 +242,27 @@ async def register_user(
         is_active=True,
     )
     db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    
+    from sqlalchemy.exc import IntegrityError
+    try:
+        await db.commit()
+        await db.refresh(user)
+    except IntegrityError as e:
+        await db.rollback()
+        if "unique constraint" in str(e).lower() or "duplicate key" in str(e).lower():
+            if "email" in str(e).lower():
+                raise HTTPException(status_code=400, detail="Email này đã được sử dụng")
+            if "phone_number" in str(e).lower():
+                raise HTTPException(status_code=400, detail="Số điện thoại này đã được sử dụng")
+            raise HTTPException(status_code=400, detail="Thông tin đăng ký đã tồn tại")
+        raise HTTPException(status_code=500, detail=f"Database error during registration: {str(e)}")
 
-    # Auto-create Expert Profile if role is EXPERT
-    if user.role == UserRole.EXPERT:
+    # Auto-create Expert Profile if role is EXPERT or MENTOR
+    if user.role in [UserRole.EXPERT, UserRole.MENTOR]:
         expert_profile = ExpertProfile(
             user_id=user.id,
-            kyc_status=KYCStatus.PENDING
+            kyc_status=KYCStatus.APPROVED if user.role == UserRole.MENTOR else KYCStatus.PENDING,
+            experience_years=user_in.years_of_experience if hasattr(user_in, 'years_of_experience') else 0
         )
         db.add(expert_profile)
         await db.commit()

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, AlertCircle } from 'lucide-react';
+import { AxiosError } from 'axios';
 import { Button } from './ui/Button';
 import api from '@/lib/api';
 
@@ -36,8 +37,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ bookingId, expertName,
                 comment: comment.trim() || undefined
             });
             onSuccess();
-        } catch (err: any) {
-            const msg = err.response?.data?.detail || 'Failed to submit review';
+        } catch (err: unknown) {
+            const axiosError = err as AxiosError<{ detail?: string }>;
+            const msg = axiosError.response?.data?.detail || 'Failed to submit review';
             setError(msg);
         } finally {
             setIsLoading(false);
@@ -45,86 +47,99 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ bookingId, expertName,
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#090C12]/90 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-[#090C12] border border-[#C9A84C]/20 w-full max-w-lg overflow-hidden"
+                className="bg-[var(--color-navy-mid)] border-[0.5px] border-[var(--color-gold-line)] rounded-sm w-full max-w-lg overflow-hidden shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
             >
-                <div className="px-10 py-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                    <h3 className="text-2xl font-serif italic text-[#F5F0E8] font-light tracking-tight">Thẩm định phiên tư vấn</h3>
-                    <button onClick={onClose} className="text-[#F5F0E8]/20 hover:text-[#C9A84C] transition-colors duration-700">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M6 18L18 6M6 6l12 12" /></svg>
+                {/* Header */}
+                <div className="px-8 py-6 border-b border-[var(--color-ivory-10)] flex justify-between items-center">
+                    <h3 className="text-2xl font-serif italic text-[var(--color-ivory)] font-light tracking-tight">Thẩm định phiên tư vấn</h3>
+                    <button
+                        onClick={onClose}
+                        className="text-[var(--color-ivory-45)] hover:text-[var(--color-gold)] transition-colors duration-300"
+                        title="Đóng"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-10 space-y-10">
-                    <p className="text-sm text-[#F5F0E8]/40 font-sans font-light leading-relaxed">
-                        Phiên tư vấn cùng <span className="text-[#C9A84C] italic font-serif text-lg">{expertName}</span> mang lại giá trị như thế nào cho lộ trình của bạn?
+                <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                    {/* Main Question */}
+                    <p className="text-sm text-[var(--color-ivory-70)] font-sans font-light leading-relaxed">
+                        Phiên tư vấn cùng <span className="text-[var(--color-gold)] italic font-serif text-lg">{expertName}</span> mang lại giá trị như thế nào cho lộ trình của bạn?
                     </p>
 
                     {/* Star Rating */}
-                    <div className="flex justify-center gap-4 py-4">
+                    <div className="flex justify-center gap-4 py-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <button
                                 key={star}
                                 type="button"
                                 onClick={() => setRating(star)}
-                                className={`group relative p-2 transition-all duration-700 ${rating >= star ? 'scale-110' : 'hover:scale-105 opacity-20 hover:opacity-100'}`}
+                                className="group relative p-2 transition-transform duration-300 hover:scale-110 active:scale-95 outline-none focus:ring-0"
                             >
                                 <Star
-                                    className={`w-10 h-10 ${rating >= star ? 'text-[#C9A84C] fill-[#C9A84C]' : 'text-[#F5F0E8]/20'}`}
-                                    strokeWidth={0.5}
+                                    className={`w-10 h-10 transition-all duration-300 ${rating >= star
+                                        ? 'text-[var(--color-gold)] fill-[var(--color-gold)] drop-shadow-[0_0_8px_var(--color-gold-dim)]'
+                                        : 'text-[var(--color-ivory-20)] hover:text-[var(--color-gold-faint)]'
+                                        }`}
+                                    strokeWidth={rating >= star ? 0 : 1}
                                 />
                                 {rating === star && (
                                     <motion.div
                                         layoutId="star-glow"
-                                        className="absolute inset-0 bg-[#C9A84C]/20 blur-xl -z-10"
+                                        className="absolute inset-0 bg-[var(--color-gold-faint)] blur-2xl -z-10"
                                     />
                                 )}
                             </button>
                         ))}
                     </div>
 
-                    <div className="space-y-4">
-                        <label className="block text-[10px] uppercase tracking-[0.3em] font-sans text-[#F5F0E8]/20">
-                            Phản hồi chi tiết (Tùy chọn)
+                    {/* Feedback Textarea */}
+                    <div className="space-y-3">
+                        <label className="block text-[10px] uppercase tracking-[0.15em] font-sans text-[var(--color-ivory-45)]">
+                            PHẢN HỒI CHI TIẾT
                         </label>
                         <textarea
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Chia sẻ trải nghiệm về kiến thức và định hướng bạn nhận được..."
-                            className="w-full bg-white/[0.02] border border-white/5 p-6 text-sm text-[#F5F0E8] font-sans font-light focus:border-[#C9A84C]/40 transition-all outline-none resize-none placeholder:text-[#F5F0E8]/10"
-                            rows={4}
+                            className="w-full bg-transparent border-[0.5px] border-[var(--color-ivory-20)] p-4 text-sm text-[var(--color-ivory)] font-sans font-light focus:border-[var(--color-gold)] transition-colors outline-none resize-none placeholder-[var(--color-ivory-45)] h-32"
                         />
                     </div>
 
+                    {/* Error Message */}
                     {error && (
                         <motion.div
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="p-4 bg-red-500/5 border border-red-500/10 text-red-400 text-[10px] uppercase tracking-widest font-sans flex items-center"
+                            className="p-3 bg-red-500/5 border border-red-500/10 text-red-400 text-[10px] uppercase tracking-widest font-sans flex items-center"
                         >
                             <AlertCircle className="w-4 h-4 mr-3" strokeWidth={1} />
                             {error}
                         </motion.div>
                     )}
 
-                    <div className="flex gap-6 pt-4">
+                    {/* Footer Buttons */}
+                    <div className="flex gap-4 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isLoading}
-                            className="flex-1 py-4 border border-white/5 text-[#F5F0E8]/40 text-[10px] uppercase tracking-[0.3em] font-sans hover:bg-white/5 transition-all duration-700"
+                            className="flex-1 py-3 border border-[var(--color-ivory-10)] text-[var(--color-ivory-45)] text-[10px] uppercase tracking-widest font-sans hover:border-[var(--color-gold-dim)] hover:text-[var(--color-gold)] transition-all duration-300 disabled:opacity-30"
                         >
-                            Bỏ qua
+                            BỎ QUA
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading || rating === 0}
-                            className="flex-1 py-4 bg-[#C9A84C] text-[#090C12] text-[10px] uppercase tracking-[0.3em] font-sans hover:bg-[#F5F0E8] transition-all duration-700 shadow-xl shadow-black/40 disabled:opacity-30"
+                            className="flex-1 py-3 bg-transparent border border-[var(--color-gold)] text-[var(--color-gold)] text-[10px] uppercase tracking-widest font-sans hover:bg-[var(--color-gold-faint)] hover:text-[var(--color-ivory)] transition-all duration-300 disabled:opacity-30"
                         >
-                            Gửi thẩm định
+                            {isLoading ? 'Đang gửi...' : 'GỬI THẨM ĐỊNH'}
                         </button>
                     </div>
                 </form>

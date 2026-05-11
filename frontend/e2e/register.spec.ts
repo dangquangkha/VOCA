@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('Registration Flow', async ({ page }) => {
     // 1. Navigate to Register Page
     await page.goto('/register');
-    await expect(page).toHaveTitle(/Create Next App/); // Or custom title
+    await expect(page).toHaveTitle(/VOCA/); // Updated to match VOCA branding
 
     // 2. Select Role (Student by default, switch to Expert)
     await page.getByText('Career Expert').click();

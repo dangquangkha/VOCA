@@ -5,12 +5,12 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
-from backend.app.models.user import User, UserRole, UserStatus
-from backend.app.models.expert import ExpertProfile, KYCStatus
-from backend.app.models.booking import Booking
-from backend.app.models.payment import PaymentTransaction
+from backend.app.domains.identity.models import User, UserRole, UserStatus
+from backend.app.domains.marketplace.models import ExpertProfile, KYCStatus
+from backend.app.domains.booking.models import Booking
+from backend.app.domains.payments.models import PaymentTransaction
 from backend.app.schemas.user import User as UserSchema, PaginatedUserResponse
-from backend.app.schemas.expert import ExpertProfileRead, ExpertProfileShort
+from backend.app.schemas.expert import ExpertProfileRead, ExpertProfileShort, AdminExpertCreate
 from backend.app.models.email_log import EmailLog
 from backend.app.schemas.email_log import EmailLogRead
 from pydantic import BaseModel
@@ -22,6 +22,11 @@ class AdminStats(BaseModel):
     total_experts: int
     total_bookings: int
     total_revenue: int
+    pending_withdrawals: int
+    pending_refunds: int
+    open_disputes: int
+    open_support_tickets: int
+    pending_experts: int
 
 @router.get("/emails", response_model=List[EmailLogRead])
 async def get_email_logs(
@@ -36,8 +41,13 @@ async def get_email_logs(
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough privileges")
     
-    result = await db.execute(select(EmailLog).order_by(EmailLog.sent_at.desc()).offset(skip).limit(limit))
-    return result.scalars().all()
+    try:
+        result = await db.execute(select(EmailLog).order_by(EmailLog.sent_at.desc()).offset(skip).limit(limit))
+        return result.scalars().all()
+    except Exception as e:
+        # Log error but don't crash the whole API
+        print(f"ERROR fetching email logs: {e}")
+        return []
 
 @router.get("/stats", response_model=AdminStats)
 async def get_admin_stats(
@@ -50,23 +60,84 @@ async def get_admin_stats(
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough privileges")
     
+    async def get_stat(query):
+        try:
+            return await db.scalar(query)
+        except Exception as e:
+            print(f"Error fetching stat: {e}")
+            return 0
+
     # Count Users
-    users_count = await db.scalar(select(func.count(User.id)))
+    users_count = await get_stat(select(func.count(User.id)))
     
     # Count Experts
-    experts_count = await db.scalar(select(func.count(ExpertProfile.id)))
+    experts_count = await get_stat(select(func.count(ExpertProfile.id)))
     
     # Count Bookings
-    bookings_count = await db.scalar(select(func.count(Booking.id)))
+    bookings_count = await get_stat(select(func.count(Booking.id)))
     
-    # Calc Revenue (Total Deposits)
-    # revenue = await db.scalar(select(func.sum(PaymentTransaction.amount)).where(PaymentTransaction.type == "DEPOSIT"))
-    
+    # Calc Revenue: sum of platform commission (SERVICE_PAYMENT = 20% per booking)
+    from backend.app.domains.payments.models import TransactionType, TransactionStatus
+    revenue = await get_stat(
+        select(func.sum(PaymentTransaction.amount)).where(
+            PaymentTransaction.type == TransactionType.SERVICE_PAYMENT,
+            PaymentTransaction.status == TransactionStatus.COMPLETED,
+        )
+    )
+
+    # Pending Withdrawals
+    pending_withdrawals = await get_stat(
+        select(func.count(PaymentTransaction.id)).where(
+            PaymentTransaction.type == TransactionType.WITHDRAWAL,
+            PaymentTransaction.status == TransactionStatus.PENDING_PAYOUT
+        )
+    )
+
+    # Pending Refunds
+    pending_refunds = await get_stat(
+        select(func.count(PaymentTransaction.id)).where(
+            PaymentTransaction.type == TransactionType.REFUND_REQUEST,
+            PaymentTransaction.status == TransactionStatus.PENDING
+        )
+    )
+
+    # Open Disputes
+    from backend.app.domains.booking.models import BookingDispute, DisputeStatus
+    open_disputes = await get_stat(
+        select(func.count(BookingDispute.id)).where(
+            BookingDispute.status == DisputeStatus.PENDING
+        )
+    )
+
+    # Open Support Tickets
+    try:
+        from backend.app.models.support import SupportTicket, SupportStatus
+        open_support_tickets = await db.scalar(
+            select(func.count(SupportTicket.id)).where(
+                SupportTicket.status == SupportStatus.OPEN
+            )
+        )
+    except Exception as e:
+        print(f"Error fetching support tickets: {e}")
+        open_support_tickets = 0
+
+    # Pending Experts
+    pending_experts = await get_stat(
+        select(func.count(ExpertProfile.id)).where(
+            ExpertProfile.kyc_status == KYCStatus.PENDING
+        )
+    )
+
     return {
         "total_users": users_count or 0,
         "total_experts": experts_count or 0,
         "total_bookings": bookings_count or 0,
-        "total_revenue": 0 # Placeholder
+        "total_revenue": revenue or 0,
+        "pending_withdrawals": pending_withdrawals or 0,
+        "pending_refunds": pending_refunds or 0,
+        "open_disputes": open_disputes or 0,
+        "open_support_tickets": open_support_tickets or 0,
+        "pending_experts": pending_experts or 0,
     }
 
 @router.get("/users", response_model=PaginatedUserResponse)
@@ -109,22 +180,9 @@ async def list_users(
     count_query = select(func.count()).select_from(query.subquery())
     total = await db.scalar(count_query)
     
-    # Sorting
-    if sort_by == "created_at":
-        # Check if created_at exists (it's in Base? No, User doesn't seem to have explicit created_at in view_file, 
-        # but usually should. Wait, User model doesn't show created_at in previous view_file. 
-        # Checking User model again... ID, email, hashed_password... no created_at shown.
-        # But Base might not have it. Let's assume ID for now if created_at missing, or stick to ID desc.
-        # Ideally should add created_at to User. For now, sort by ID as proxy for Time if created_at missing.
-        if sort_desc:
-            query = query.order_by(User.id.desc())
-        else:
-            query = query.order_by(User.id.asc())
-    else:
-         if sort_desc:
-            query = query.order_by(User.id.desc())
-         else:
-            query = query.order_by(User.id.asc())
+    # UPDATE (ARCH-11): Now sorts by real User.created_at field (was using User.id as proxy)
+    sort_column = User.created_at if sort_by == "created_at" else User.id
+    query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
             
     # Pagination
     query = query.options(selectinload(User.expert_profile)).offset(skip).limit(limit)
@@ -140,6 +198,59 @@ async def list_users(
         "total_pages": ((total or 0) + limit - 1) // limit
     }
 
+@router.post("/experts", response_model=ExpertProfileShort)
+async def create_expert_admin(
+    expert_in: AdminExpertCreate,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Admin manually creates an Expert account.
+    Requires Superuser.
+    """
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough privileges")
+        
+    from backend.app.schemas.expert import AdminExpertCreate
+    from backend.app.core import security
+    
+    # Check if user already exists
+    existing_user = await db.scalar(select(User).where(User.email == expert_in.email))
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email này đã được sử dụng bởi một người dùng khác.")
+        
+    # Create User
+    new_user = User(
+        email=expert_in.email,
+        full_name=expert_in.full_name,
+        hashed_password=security.get_password_hash(expert_in.password),
+        role=UserRole.EXPERT,
+        is_active=True
+    )
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    
+    # Create ExpertProfile
+    new_profile = ExpertProfile(
+        user_id=new_user.id,
+        kyc_status=KYCStatus.APPROVED,
+        experience_years=0,
+        hourly_rate=50
+    )
+    db.add(new_profile)
+    await db.commit()
+    
+    # Reload with relations to match response_model
+    result = await db.execute(
+        select(ExpertProfile)
+        .where(ExpertProfile.id == new_profile.id)
+        .options(
+            selectinload(ExpertProfile.user).selectinload(User.expert_profile),
+            selectinload(ExpertProfile.availabilities)
+        )
+    )
+    return result.scalars().first()
 
 @router.get("/experts", response_model=List[ExpertProfileShort])
 async def list_experts(

@@ -10,7 +10,13 @@ class Settings(BaseSettings):
     # SePay
     SEPAY_API_TOKEN: str = "placeholder_token"
     SEPAY_ACCOUNT_NUMBER: str = "placeholder_account"
-    SEPAY_BANK_CODE: str = "MB" # Example default
+    SEPAY_BANK_CODE: str = "MB"  # Example default
+    # UPDATE (SEC-01): Shared secret for webhook Bearer token verification.
+    # Set this in .env to enable HMAC check. If None, check is SKIPPED (dev mode only).
+    SEPAY_WEBHOOK_TOKEN: str | None = None
+
+    # Redis — used by ARQ background worker
+    REDIS_URL: str = "redis://localhost:6379"
 
     # Email
     EMAILS_ENABLED: bool = True
@@ -20,6 +26,14 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = "password"
     EMAILS_FROM_EMAIL: str = "info@careerpathai.com"
     EMAILS_FROM_NAME: str = "CareerPath AI"
+
+    # Google OAuth (SEC-02)
+    GOOGLE_CLIENT_ID: str | None = None
+    ALLOW_MOCK_LOGIN: bool = True # Set to False in production
+
+    # Telegram
+    TELEGRAM_BOT_TOKEN: str | None = None
+    TELEGRAM_ADMIN_CHAT_ID: str | None = None
 
     class Config:
         env_file = "backend/.env"

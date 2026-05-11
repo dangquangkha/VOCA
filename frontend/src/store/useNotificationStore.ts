@@ -104,7 +104,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         // Use a more robust way to derive the WS host from NEXT_PUBLIC_API_URL
         let host = window.location.host;
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001/api/v1';
             const urlObj = new URL(apiUrl);
             // If API is on a different domain, use that. If it's localhost/127.0.0.1, 
             // maybe use window.location.host to match browser context

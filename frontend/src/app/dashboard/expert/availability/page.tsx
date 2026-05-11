@@ -6,6 +6,8 @@ import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Plus, Trash2, Save, ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from "@/hooks/useToast";
+import ToastContainer from "@/components/ui/Toast";
 
 interface TimeSlot {
     id?: number; // Added from API perspective
@@ -30,12 +32,13 @@ export default function AvailabilityPage() {
     const [slots, setSlots] = useState<TimeSlot[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const toast = useToast();
 
     // Fetch
     useEffect(() => {
         const fetchAvailability = async () => {
             try {
-                const { data } = await api.get('/experts/me/availability');
+                const { data } = await api.get('experts/me/availability');
                 // Ensure data is sorted by day
                 const sortedData = (data || []).sort((a: TimeSlot, b: TimeSlot) => {
                     const d1 = a.day_of_week === 0 ? 7 : a.day_of_week;
@@ -69,84 +72,83 @@ export default function AvailabilityPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await api.post('/experts/me/availability', slots);
+            await api.post('experts/me/availability', slots);
             // Re-fetch to get IDs and stable order
-            const { data } = await api.get('/experts/me/availability');
+            const { data } = await api.get('experts/me/availability');
             setSlots(data);
-        } catch (err) {
+            toast.success("Cập nhật lịch biểu thành công!");
+        } catch (err: any) {
             console.error("Failed to save", err);
+            toast.error(err.response?.data?.detail || "Không thể lưu lịch biểu. Vui lòng thử lại.");
         } finally {
             setIsSaving(false);
         }
     };
 
     if (isLoading) return (
-        <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
+        <div className="min-h-screen bg-white flex items-center justify-center">
             <div className="flex flex-col items-center gap-8">
-                <div className="w-12 h-12 border border-[#C9A84C]/20 border-t-[#C9A84C] rounded-full animate-spin" />
-                <p className="text-[#0A1018]/20 font-normal uppercase tracking-[0.4em] text-[10px] font-sans">Đang truy vấn lịch trình…</p>
+                <div className="w-12 h-12 border-2 border-[#0046EA]/10 border-t-[#0046EA] rounded-full animate-spin" />
+                <p className="text-[#0046EA] font-black uppercase tracking-[0.4em] text-[10px] font-dm-sans">Đang truy vấn lịch trình…</p>
             </div>
         </div>
     );
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="min-h-screen bg-[#F5F0E8] selection:bg-[#C9A84C]/20 pb-44"
-        >
-            {/* ── Breadcrumbs ── */}
-            <div className="bg-[#0A1018] border-b border-white/5">
-                <nav className="max-w-[1400px] mx-auto px-8 py-6 flex items-center gap-4">
-                    <Link
-                        href="/dashboard"
-                        className="flex items-center gap-2 text-[10px] font-normal text-white/30 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
-                    >
-                        <Home size={12} strokeWidth={1.5} />
-                        Bàn làm việc
-                    </Link>
-                    <ChevronRight size={10} className="text-white/10" />
-                    <span className="text-[10px] font-normal text-[#C9A84C] uppercase tracking-[0.2em] font-sans">Quản lý Lịch biểu</span>
-                </nav>
+        <div className="bg-white min-h-screen selection:bg-[#0046EA]/10 text-[#171716] font-dm-sans pb-44">
+            {/* ── Header Section (The Sky) ── */}
+            <div className="bg-[#0046EA] pt-24 pb-32 px-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(0,164,253,0.3)_0%,transparent_70%)]" />
+                <div className="max-w-[1400px] mx-auto relative z-10">
+                    <nav className="flex items-center gap-4 mb-12">
+                        <Link
+                            href="/dashboard/expert"
+                            className="flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.2em]"
+                        >
+                            Bàn làm việc
+                        </Link>
+                        <ChevronRight size={10} className="text-white/20" />
+                        <span className="text-[10px] font-black text-[#FFE900] uppercase tracking-[0.2em]">Quản lý Lịch biểu</span>
+                    </nav>
+
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-[2px] bg-[#FFE900]" />
+                            <span className="text-[10px] text-[#FFE900] tracking-[0.5em] font-black uppercase">Availability Protocol</span>
+                        </div>
+                        <h1 className="text-[clamp(40px,5vw,68px)] font-garamond italic font-bold text-white tracking-tight leading-none">
+                            Thời gian biểu Cố vấn
+                        </h1>
+                        <p className="max-w-2xl text-white/60 font-dm-sans text-sm font-light leading-relaxed">
+                            Thiết lập khung giờ làm việc định kỳ hàng tuần. Lịch trình này sẽ được hiển thị để học viên đăng ký tư vấn chiến lược trực tiếp.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <main className="max-w-[1400px] mx-auto px-8 py-32">
-                <header className="mb-20 space-y-6">
-                    <motion.h1
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 1.2, ease: EASING }}
-                        className="text-5xl md:text-6xl font-serif italic text-[#0A1018] tracking-tight"
-                    >
-                        Thời gian biểu Cố vấn
-                    </motion.h1>
-                    <p className="text-[#0A1018]/40 font-normal text-[10px] uppercase tracking-[0.4em] font-sans max-w-xl leading-relaxed">
-                        Thiết lập khung giờ làm việc định kỳ hàng tuần. Lịch trình này sẽ được hiển thị để học viên đăng ký tư vấn trực tiếp.
-                    </p>
-                </header>
-
+            <main className="max-w-[1400px] mx-auto px-8 -mt-16 relative z-20">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.2, ease: EASING, delay: 0.2 }}
-                    className="bg-[#FAF7F2]/40 backdrop-blur-3xl border border-[#C9A84C]/10 rounded-[2px] shadow-[0_64px_128px_-16px_rgba(10,16,24,0.05)] overflow-hidden"
+                    transition={{ duration: 1.2, ease: EASING }}
+                    className="bg-white border border-black/5 rounded-[48px] shadow-2xl overflow-hidden"
                 >
                     <div className="p-12 md:p-16 space-y-12">
-                        <div className="flex items-center justify-between border-b border-[#C9A84C]/10 pb-10">
-                            <h3 className="text-[10px] font-normal text-[#0A1018]/30 uppercase tracking-[0.4em] flex items-center gap-4">
-                                <Calendar size={14} className="text-[#C9A84C]" strokeWidth={1.5} />
-                                Các khung giờ hiện hữu
+                        <div className="flex items-center justify-between border-b border-black/5 pb-12">
+                            <h3 className="text-[#171716]/40 uppercase text-[10px] font-black tracking-[0.4em] flex items-center gap-4">
+                                <Calendar size={14} className="text-[#0046EA]" />
+                                DANH SÁCH KHUNG GIỜ CHIẾN LƯỢC
                             </h3>
                             <button
                                 onClick={addSlot}
-                                className="flex items-center gap-3 text-[10px] font-normal text-[#C97B3A] uppercase tracking-[0.2em] font-sans hover:text-[#0A1018] transition-all"
+                                className="h-12 px-6 bg-[#F5F8FF] text-[#0046EA] text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-[#0046EA] hover:text-white transition-all duration-500 flex items-center gap-3 shadow-sm"
                             >
-                                <Plus size={14} strokeWidth={1.5} />
-                                Thêm khung giờ
+                                <Plus size={14} />
+                                THÊM KHUNG GIỜ
                             </button>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             <AnimatePresence mode="popLayout">
                                 {slots.length > 0 ? (
                                     slots.map((slot, index) => (
@@ -156,92 +158,99 @@ export default function AvailabilityPage() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.98 }}
                                             transition={{ duration: 0.6, ease: EASING }}
-                                            className="flex flex-col md:flex-row items-start md:items-center gap-10 p-8 bg-white/40 border border-transparent hover:border-[#C9A84C]/20 transition-all rounded-[1px] group"
+                                            className="grid grid-cols-1 md:grid-cols-12 items-center gap-10 p-10 bg-[#00A4FD] border-[6px] border-[#00A4FD] rounded-none hover:bg-[#D20048] hover:border-[#D20048] shadow-sm hover:shadow-2xl transition-all duration-500 group text-white"
                                         >
-                                            <div className="w-full md:w-56 space-y-2">
-                                                <label className="block text-[9px] font-sans text-[#0A1018]/30 uppercase tracking-[0.2em]">Ngày trong tuần</label>
-                                                <select
-                                                    value={slot.day_of_week}
-                                                    onChange={(e) => updateSlot(index, 'day_of_week', parseInt(e.target.value))}
-                                                    className="w-full bg-transparent border-b border-[#0A1018]/10 text-sm font-serif italic text-[#0A1018] py-2 focus:outline-none focus:border-[#C9A84C] transition-all appearance-none cursor-pointer"
-                                                >
-                                                    {DAYS.map((day) => (
-                                                        <option key={day.value} value={day.value}>{day.label}</option>
-                                                    ))}
-                                                </select>
+                                            <div className="md:col-span-4 space-y-4">
+                                                <label className="block text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Ngày trong tuần</label>
+                                                <div className="relative">
+                                                    <select
+                                                        value={slot.day_of_week}
+                                                        onChange={(e) => updateSlot(index, 'day_of_week', parseInt(e.target.value))}
+                                                        className="w-full bg-white/10 border border-white/20 text-lg font-garamond italic font-bold text-white px-6 py-4 rounded-none focus:outline-none focus:border-white transition-all appearance-none cursor-pointer"
+                                                    >
+                                                        {DAYS.map((day) => (
+                                                            <option key={day.value} value={day.value} className="text-black">{day.label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <ChevronRight size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-white rotate-90 pointer-events-none" />
+                                                </div>
                                             </div>
 
-                                            <div className="flex flex-1 items-center gap-8 w-full">
-                                                <div className="flex-1 space-y-2">
-                                                    <label className="block text-[9px] font-sans text-[#0A1018]/30 uppercase tracking-[0.2em]">Bắt đầu</label>
+                                            <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8 items-end">
+                                                <div className="space-y-4">
+                                                    <label className="block text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Bắt đầu</label>
                                                     <div className="relative">
                                                         <input
                                                             type="time"
                                                             value={slot.start_time.slice(0, 5)}
                                                             onChange={(e) => updateSlot(index, 'start_time', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-[#0A1018]/10 text-sm font-sans text-[#0A1018] py-2 focus:outline-none focus:border-[#C9A84C] transition-all cursor-pointer tabular-nums"
+                                                            className="w-full bg-white/10 border border-white/20 text-xl font-black text-white px-6 py-4 rounded-none focus:outline-none focus:border-white transition-all cursor-pointer tabular-nums"
                                                         />
-                                                        <Clock size={12} className="absolute right-0 top-3 text-[#0A1018]/20 pointer-events-none" strokeWidth={1.5} />
+                                                        <Clock size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
                                                     </div>
                                                 </div>
 
-                                                <div className="pt-6 text-[#C9A84C]/30 font-light">—</div>
-
-                                                <div className="flex-1 space-y-2">
-                                                    <label className="block text-[9px] font-sans text-[#0A1018]/30 uppercase tracking-[0.2em]">Kết thúc</label>
+                                                <div className="space-y-4">
+                                                    <label className="block text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Kết thúc</label>
                                                     <div className="relative">
                                                         <input
                                                             type="time"
                                                             value={slot.end_time.slice(0, 5)}
                                                             onChange={(e) => updateSlot(index, 'end_time', e.target.value)}
-                                                            className="w-full bg-transparent border-b border-[#0A1018]/10 text-sm font-sans text-[#0A1018] py-2 focus:outline-none focus:border-[#C9A84C] transition-all cursor-pointer tabular-nums"
+                                                            className="w-full bg-white/10 border border-white/20 text-xl font-black text-white px-6 py-4 rounded-none focus:outline-none focus:border-white transition-all cursor-pointer tabular-nums"
                                                         />
-                                                        <Clock size={12} className="absolute right-0 top-3 text-[#0A1018]/20 pointer-events-none" strokeWidth={1.5} />
+                                                        <Clock size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 md:pt-6">
+                                            <div className="md:col-span-1 flex justify-end">
                                                 <button
                                                     onClick={() => removeSlot(index)}
-                                                    className="p-3 text-[#0A1018]/20 hover:text-red-800 transition-all rounded-full hover:bg-red-50"
+                                                    className="w-14 h-14 bg-white/10 border border-white/20 text-white/40 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all duration-500 rounded-none flex items-center justify-center"
                                                     title="Loại bỏ"
                                                 >
-                                                    <Trash2 size={16} strokeWidth={1.5} />
+                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </motion.div>
                                     ))
                                 ) : (
-                                    <div className="py-20 text-center border border-dashed border-[#C9A84C]/20 rounded-[1px]">
-                                        <p className="text-[10px] text-[#0A1018]/20 uppercase tracking-[0.4em] font-sans">Chưa có khung giờ nào được thiết lập.</p>
+                                    <div className="py-32 flex flex-col items-center justify-center bg-[#F5F8FF] border-2 border-dashed border-black/5 rounded-[40px]">
+                                        <Calendar size={48} className="text-[#0046EA]/20 mb-6" />
+                                        <p className="text-[#171716]/30 font-black uppercase text-[10px] tracking-[0.4em]">
+                                            CHƯA CÓ KHUNG GIỜ NÀO ĐƯỢC THIẾT LẬP.
+                                        </p>
                                     </div>
                                 )}
                             </AnimatePresence>
                         </div>
 
-                        <div className="pt-16 border-t border-[#C9A84C]/10 flex flex-col md:flex-row justify-between items-center gap-8">
-                            <p className="text-[9px] text-[#0A1018]/30 font-sans uppercase tracking-[0.2em] italic">
-                                * Lưu ý: Các thay đổi sẽ có hiệu lực ngay sau khi lưu.
-                            </p>
-                            <div className="flex items-center gap-6 w-full md:w-auto">
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isSaving}
-                                    className="flex-1 md:flex-none bg-[#0A1018] text-[#F5F0E8] px-16 py-5 rounded-[2px] font-sans text-[11px] uppercase tracking-[0.3em] transition-all hover:bg-[#C9A84C] hover:text-[#0A1018] disabled:opacity-20 flex items-center justify-center gap-4"
-                                >
-                                    {isSaving ? (
-                                        <div className="w-4 h-4 border border-white/20 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <Save size={14} strokeWidth={1.5} />
-                                    )}
-                                    Lưu Lịch biểu
-                                </button>
+                        <div className="pt-16 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-12">
+                            <div className="flex items-center gap-4">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#FFE900]" />
+                                <p className="text-[10px] text-black/30 font-black uppercase tracking-[0.3em]">
+                                    Cập nhật lịch biểu sẽ có hiệu lực tức thì trên hồ sơ của bạn.
+                                </p>
                             </div>
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="h-16 px-16 bg-[#171716] text-white text-[11px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-[#0046EA] transition-all duration-700 disabled:opacity-20 flex items-center justify-center gap-4 shadow-2xl"
+                            >
+                                {isSaving ? (
+                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <Save size={16} />
+                                )}
+                                LƯU LỊCH BIỂU CHIẾN LƯỢC
+                            </button>
                         </div>
                     </div>
                 </motion.div>
             </main>
-        </motion.div>
+
+            <ToastContainer toasts={toast.toasts} onDismiss={toast.dismissToast} />
+        </div>
     );
 }

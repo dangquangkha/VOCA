@@ -4,16 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mic,
-    MicOff,
     StopCircle,
     SkipForward,
     CheckCircle2,
     Trophy,
     MessageSquare,
-    Volume2,
-    VolumeX,
     ArrowRight,
-    AlertCircle,
     Zap
 } from 'lucide-react';
 
@@ -76,7 +72,7 @@ export default function MockInterview() {
     };
 
     return (
-        <div className="w-full max-w-[1400px] mx-auto py-12 px-4 h-full min-h-[600px] flex flex-col selection:bg-[#C9A84C]/30">
+        <div className="w-full max-w-[1400px] mx-auto py-12 px-4 h-full min-h-[600px] flex flex-col selection:bg-[var(--color-cyan)]/30">
             <AnimatePresence mode="wait">
 
                 {/* State 1: Mic Check */}
@@ -90,16 +86,16 @@ export default function MockInterview() {
                         className="flex-grow flex flex-col items-center justify-center text-center space-y-20"
                     >
                         <div className="space-y-6">
-                            <h1 className="text-[clamp(32px,5vw,52px)] font-serif italic text-[#F5F0E8] font-light tracking-tight">Sẵn sàng cho phỏng vấn?</h1>
-                            <p className="text-[#F5F0E8]/40 font-sans font-light text-sm tracking-wide">Hãy dành 1 phút để kiểm tra thiết bị của bạn.</p>
+                            <h1 className="text-[clamp(32px,5vw,52px)] font-serif italic text-[var(--color-ivory)] font-light tracking-tight">Sẵn sàng cho phỏng vấn?</h1>
+                            <p className="text-[var(--color-ivory-40)] font-sans font-light text-sm tracking-wide">Hãy dành 1 phút để kiểm tra thiết bị của bạn.</p>
                         </div>
 
                         <div className="relative group">
-                            <div className="w-48 h-48 border border-[#C9A84C]/10 flex items-center justify-center overflow-hidden relative">
-                                <Mic className="w-12 h-12 text-[#C9A84C]/20 group-hover:text-[#C9A84C]/40 transition-colors duration-700" strokeWidth={0.5} />
+                            <div className="w-48 h-48 border border-[var(--color-cyan)]/10 flex items-center justify-center overflow-hidden relative">
+                                <Mic className="w-12 h-12 text-[var(--color-cyan)]/20 group-hover:text-[var(--color-cyan)]/40 transition-colors duration-700" strokeWidth={0.5} />
                                 {/* Audio Level Visualizer */}
                                 <motion.div
-                                    className="absolute bottom-0 w-full bg-[#C9A84C]/5"
+                                    className="absolute bottom-0 w-full bg-[var(--color-cyan)]/5"
                                     animate={{ height: `${micLevel}%` }}
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                 />
@@ -107,18 +103,18 @@ export default function MockInterview() {
                             <motion.div
                                 animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.4, 0.2] }}
                                 transition={{ duration: 4, repeat: Infinity }}
-                                className="absolute inset-x-[-10px] inset-y-[-10px] border border-[#C9A84C]/20 pointer-events-none"
+                                className="absolute inset-x-[-10px] inset-y-[-10px] border border-[var(--color-cyan)]/20 pointer-events-none"
                             />
                         </div>
 
                         <div className="space-y-10">
-                            <div className="flex items-center gap-3 text-[#C9A84C]/60 font-sans text-[10px] tracking-[0.3em] uppercase justify-center">
+                            <div className="flex items-center gap-3 text-[var(--color-cyan)]/60 font-sans text-[10px] tracking-[0.3em] uppercase justify-center">
                                 <CheckCircle2 className="w-3 h-3" strokeWidth={1} />
                                 Microphone đã kết nối
                             </div>
                             <button
                                 onClick={enterRoom}
-                                className="px-16 py-6 bg-[#C9A84C] text-[#090C12] text-[11px] tracking-[0.5em] uppercase font-normal transition-all duration-900 hover:bg-[#F5F0E8] shadow-2xl shadow-black/40 flex items-center gap-4 group/btn"
+                                className="px-16 py-6 bg-gradient-to-r from-[var(--color-cyan)] to-[var(--color-teal-mid)] text-obsidian text-[11px] tracking-[0.5em] uppercase font-bold transition-all duration-900 hover:brightness-110 shadow-2xl shadow-[var(--color-cyan)]/20 flex items-center gap-4 group/btn"
                             >
                                 Vào phòng phỏng vấn
                                 <ArrowRight className="w-4 h-4 transition-transform duration-700 group-hover/btn:translate-x-2" strokeWidth={1} />
@@ -140,15 +136,15 @@ export default function MockInterview() {
                         {/* Top Bar */}
                         <div className="w-full flex justify-between items-center px-4 md:px-8">
                             <div className="flex items-center gap-4">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C] animate-pulse" />
-                                <span className="text-[10px] font-normal uppercase tracking-[0.3em] text-[#F5F0E8]/40 font-sans">Đang phỏng vấn • {questionCount}/5</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-magenta)] animate-pulse shadow-[0_0_10px_var(--color-magenta)]" />
+                                <span className="text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--color-ivory-40)] font-sans">Đang phỏng vấn • {questionCount}/5</span>
                             </div>
                             <button
                                 onClick={() => setShowTranscript(!showTranscript)}
-                                className="w-12 h-12 border border-[#C9A84C]/10 flex items-center justify-center hover:bg-[#C9A84C]/5 transition-all duration-700 group"
+                                className="w-12 h-12 border border-[var(--color-cyan)]/10 flex items-center justify-center hover:bg-[var(--color-cyan)]/5 transition-all duration-700 group"
                                 title="Switch to Text"
                             >
-                                <MessageSquare className={`w-5 h-5 transition-colors duration-700 ${showTranscript ? 'text-[#C9A84C]' : 'text-[#F5F0E8]/20 group-hover:text-[#F5F0E8]/40'}`} strokeWidth={1} />
+                                <MessageSquare className={`w-5 h-5 transition-colors duration-700 ${showTranscript ? 'text-[var(--color-cyan)]' : 'text-[var(--color-ivory-20)] group-hover:text-[var(--color-ivory-40)]'}`} strokeWidth={1} />
                             </button>
                         </div>
 
@@ -160,16 +156,16 @@ export default function MockInterview() {
                                     opacity: isAIspeaking ? [0.6, 1, 0.6] : 0.4
                                 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-                                className="w-32 h-32 border border-[#C9A84C]/40 flex items-center justify-center mb-20 relative group"
+                                className="w-32 h-32 border border-[var(--color-cyan)]/40 flex items-center justify-center mb-20 relative group"
                             >
-                                <Zap className="w-10 h-10 text-[#C9A84C]" strokeWidth={0.5} />
+                                <Zap className="w-10 h-10 text-[var(--color-cyan)]" strokeWidth={0.5} />
                                 <motion.div
                                     animate={{
                                         scale: [1, 1.5, 1],
                                         opacity: [0.1, 0.3, 0.1]
                                     }}
                                     transition={{ duration: 4, repeat: Infinity }}
-                                    className="absolute inset-0 border border-[#C9A84C]/60 blur-md"
+                                    className="absolute inset-0 border border-[var(--color-cyan)]/60 blur-md"
                                 />
                             </motion.div>
 
@@ -179,15 +175,15 @@ export default function MockInterview() {
                                     <motion.div
                                         key={i}
                                         animate={{
-                                            height: (isAIspeaking || isUserSpeaking) ? [4, Math.random() * 40 + 8, 4] : 4
+                                            height: (isAIspeaking || isUserSpeaking) ? [4, 20 + (i % 10) * 2, 4] : 4
                                         }}
                                         transition={{
-                                            duration: 0.3 + Math.random() * 0.2,
+                                            duration: 0.3 + (i % 5) * 0.05,
                                             repeat: Infinity,
                                             ease: "easeInOut"
                                         }}
-                                        className={`w-[1px] ${isAIspeaking ? 'bg-[#C9A84C]' :
-                                            isUserSpeaking ? 'bg-[#F5F0E8]' : 'bg-white/10'
+                                        className={`w-[1px] ${isAIspeaking ? 'bg-[var(--color-cyan)] shadow-[0_0_8px_var(--color-cyan)]' :
+                                            isUserSpeaking ? 'bg-[var(--color-magenta)] shadow-[0_0_8px_var(--color-magenta)]' : 'bg-white/10'
                                             }`}
                                     />
                                 ))}
@@ -197,7 +193,7 @@ export default function MockInterview() {
                                 <motion.p
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="mt-12 text-[9px] uppercase tracking-[0.4em] text-[#C9A84C]/60 font-sans"
+                                    className="mt-12 text-[9px] uppercase tracking-[0.4em] text-[var(--color-cyan)]/60 font-sans font-bold"
                                 >
                                     AI đang thấu cảm...
                                 </motion.p>
@@ -206,10 +202,10 @@ export default function MockInterview() {
 
                         {/* Bottom Controls */}
                         <div className="w-full max-w-xl px-4">
-                            <div className="bg-white/[0.03] border border-[#F5F0E8]/10 p-6 flex items-center justify-between relative">
+                            <div className="bg-black/40 backdrop-blur-md border border-[var(--color-ivory-10)] p-6 flex items-center justify-between relative">
                                 <button
                                     onClick={endInterview}
-                                    className="flex items-center gap-3 px-6 py-4 text-[10px] font-normal text-[#F5F0E8]/40 hover:text-white transition-all duration-700 uppercase tracking-widest font-sans"
+                                    className="flex items-center gap-3 px-6 py-4 text-[10px] font-normal text-[var(--color-ivory-40)] hover:text-white transition-all duration-700 uppercase tracking-widest font-sans"
                                 >
                                     <StopCircle className="w-4 h-4" strokeWidth={1} />
                                     Kết thúc
@@ -220,21 +216,21 @@ export default function MockInterview() {
                                     onMouseUp={() => setIsUserSpeaking(false)}
                                     className={`w-16 h-16 border rounded-none flex items-center justify-center transition-all duration-700
                     ${isUserSpeaking
-                                            ? 'bg-[#C9A84C] text-[#090C12] border-[#C9A84C] scale-105'
-                                            : 'border-[#C9A84C]/40 text-[#C9A84C] bg-white/[0.02] hover:bg-white/[0.05]'}`}
+                                            ? 'bg-[var(--color-magenta)] text-obsidian border-[var(--color-magenta)] scale-105 shadow-[0_0_20px_var(--color-magenta)]'
+                                            : 'border-[var(--color-cyan)]/40 text-[var(--color-cyan)] bg-black/20 hover:bg-black/40'}`}
                                 >
                                     <Mic className="w-6 h-6" strokeWidth={1} />
                                 </button>
 
                                 <button
                                     onClick={skipQuestion}
-                                    className="flex items-center gap-3 px-6 py-4 text-[10px] font-normal text-[#F5F0E8]/40 hover:text-[#C9A84C] transition-all duration-700 uppercase tracking-widest font-sans"
+                                    className="flex items-center gap-3 px-6 py-4 text-[10px] font-normal text-[var(--color-ivory-40)] hover:text-[var(--color-cyan)] transition-all duration-700 uppercase tracking-widest font-sans"
                                 >
                                     <SkipForward className="w-4 h-4" strokeWidth={1} />
                                     Bỏ qua
                                 </button>
                             </div>
-                            <p className="text-center text-[9px] font-normal text-[#F5F0E8]/20 mt-8 uppercase tracking-[0.4em] font-sans">
+                            <p className="text-center text-[9px] font-normal text-ivory/20 mt-8 uppercase tracking-[0.4em] font-sans">
                                 Nhấn giữ để phản hồi
                             </p>
                         </div>
@@ -247,14 +243,14 @@ export default function MockInterview() {
                                     animate={{ x: 0 }}
                                     exit={{ x: '100%' }}
                                     transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                                    className="absolute right-0 top-0 bottom-0 w-80 bg-[#090C12] border-l border-[#C9A84C]/10 p-10 z-20 backdrop-blur-xl"
+                                    className="absolute right-0 top-0 bottom-0 w-80 bg-[var(--color-obsidian)] border-l border-[var(--color-ivory-10)] p-10 z-20 backdrop-blur-xl"
                                 >
                                     <div className="flex justify-between items-center mb-10">
-                                        <h3 className="font-serif italic text-xl text-[#F5F0E8] font-light">Lịch sử đối thoại</h3>
-                                        <button onClick={() => setShowTranscript(false)} className="text-[#F5F0E8]/20 hover:text-[#C9A84C] transition-colors duration-700 text-sm italic">Thoát</button>
+                                        <h3 className="font-serif italic text-xl text-[var(--color-ivory)] font-light">Lịch sử đối thoại</h3>
+                                        <button onClick={() => setShowTranscript(false)} className="text-[var(--color-ivory-20)] hover:text-[var(--color-cyan)] transition-colors duration-700 text-sm italic">Thoát</button>
                                     </div>
-                                    <div className="space-y-6 text-xs font-sans font-light text-[#F5F0E8]/60">
-                                        <p className="bg-white/[0.03] p-5 border border-[#C9A84C]/5 leading-loose">Chào mừng bạn. Bạn hãy giới thiệu bản thân nhé!</p>
+                                    <div className="space-y-6 text-xs font-sans font-light text-[var(--color-ivory-60)]">
+                                        <p className="bg-black/20 p-5 border border-[var(--color-cyan)]/10 leading-loose">Chào mừng bạn. Bạn hãy giới thiệu bản thân nhé!</p>
                                         <p className="p-5 border border-white/5 text-right italic opacity-40">Đang chờ bạn trả lời...</p>
                                     </div>
                                 </motion.div>
@@ -273,49 +269,49 @@ export default function MockInterview() {
                         className="space-y-16 pb-20"
                     >
                         <div className="text-center space-y-6">
-                            <div className="w-20 h-20 border border-[#C9A84C]/30 flex items-center justify-center text-[#C9A84C] mx-auto mb-10 group">
+                            <div className="w-20 h-20 border border-[var(--color-teal-mid)]/30 flex items-center justify-center text-[var(--color-teal-mid)] mx-auto mb-10 group">
                                 <Trophy className="w-10 h-10" strokeWidth={0.5} />
                             </div>
-                            <h2 className="text-[clamp(32px,5vw,52px)] font-serif italic text-[#F5F0E8] font-light">Hoàn thành đối thoại!</h2>
-                            <p className="text-[#F5F0E8]/40 font-sans font-light text-sm tracking-wide">Chúc mừng bạn đã hoàn thiện phiên luyện tập cùng trợ lý chiến lược.</p>
+                            <h2 className="text-[clamp(32px,5vw,52px)] font-serif italic text-[var(--color-ivory)] font-light">Hoàn thành đối thoại!</h2>
+                            <p className="text-[var(--color-ivory-40)] font-sans font-light text-sm tracking-wide">Chúc mừng bạn đã hoàn thiện phiên luyện tập cùng trợ lý chiến lược.</p>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-8">
-                            <div className="bg-white/[0.02] border border-[#C9A84C]/10 p-12 flex flex-col items-center text-center space-y-8 group hover:border-[#C9A84C]/30 transition-all duration-700">
-                                <div className="text-6xl font-serif italic text-[#F5F0E8] font-light">{MOCK_INTERVIEW_DATA.score}<span className="text-xl text-[#F5F0E8]/20 font-sans italic">/100</span></div>
+                            <div className="bg-[var(--color-navy-dark)] border border-[var(--color-teal-mid)]/10 p-12 flex flex-col items-center text-center space-y-8 group hover:border-[var(--color-teal-mid)]/30 transition-all duration-700">
+                                <div className="text-6xl font-serif italic text-[var(--color-ivory)] font-light">{MOCK_INTERVIEW_DATA.score}<span className="text-xl text-[var(--color-ivory-20)] font-sans italic">/100</span></div>
                                 <div className="space-y-2">
-                                    <p className="text-[10px] uppercase tracking-[0.4em] text-[#C9A84C] font-normal font-sans">Điểm tổng thể</p>
-                                    <p className="text-[10px] text-[#F5F0E8]/40 font-sans font-light uppercase tracking-widest">Top 15% ứng viên xuất sắc</p>
+                                    <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--color-teal-mid)] font-bold font-sans">Điểm tổng thể</p>
+                                    <p className="text-[10px] text-[var(--color-ivory-40)] font-sans font-light uppercase tracking-widest">Top 15% ứng viên xuất sắc</p>
                                 </div>
                             </div>
-                            <div className="bg-[#C9A84C] p-12 text-[#090C12] flex flex-col items-center text-center space-y-8 shadow-3xl shadow-black/40 group hover:bg-[#F5F0E8] transition-all duration-900">
-                                <div className="text-6xl font-serif italic font-light">{MOCK_INTERVIEW_DATA.fluency}%</div>
+                            <div className="bg-gradient-to-r from-[var(--color-teal-mid)] to-[var(--color-cyan)] p-12 text-obsidian flex flex-col items-center text-center space-y-8 shadow-[0_0_30px_rgba(var(--color-teal-mid-rgb),0.3)] group hover:brightness-110 transition-all duration-900">
+                                <div className="text-6xl font-serif italic font-bold">{MOCK_INTERVIEW_DATA.fluency}%</div>
                                 <div className="space-y-2">
-                                    <p className="text-[10px] uppercase tracking-[0.4em] font-normal font-sans opacity-80">Độ lưu loát</p>
+                                    <p className="text-[10px] uppercase tracking-[0.4em] font-bold font-sans opacity-80">Độ lưu loát</p>
                                     <p className="text-[10px] font-sans font-light uppercase tracking-widest opacity-60">Khả năng diễn đạt mạch lạc</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-10">
-                            <h3 className="text-2xl font-serif italic text-[#F5F0E8] font-light">Hồ sơ thẩm định</h3>
+                            <h3 className="text-2xl font-serif italic text-[var(--color-ivory)] font-light">Hồ sơ thẩm định</h3>
                             <div className="space-y-8">
                                 {MOCK_INTERVIEW_DATA.feedback.map((item, i) => (
-                                    <div key={i} className="bg-white/[0.02] border border-white/5 p-10 space-y-10 group hover:border-[#C9A84C]/20 transition-all duration-700">
+                                    <div key={i} className="bg-[var(--color-navy-dark)] border border-[var(--color-ivory-10)] p-10 space-y-10 group hover:border-[var(--color-teal-mid)]/20 transition-all duration-700">
                                         <div className="space-y-4">
-                                            <p className="text-[9px] font-normal text-[#C9A84C]/60 uppercase tracking-[0.5em] font-sans">Câu hỏi 0{i + 1}</p>
-                                            <p className="text-2xl font-serif italic text-[#F5F0E8] font-light leading-snug">{item.q}</p>
+                                            <p className="text-[9px] font-bold text-[var(--color-teal-mid)]/60 uppercase tracking-[0.5em] font-sans">Câu hỏi 0{i + 1}</p>
+                                            <p className="text-2xl font-serif italic text-[var(--color-ivory)] font-light leading-snug">{item.q}</p>
                                         </div>
-                                        <div className="bg-white/[0.01] border-l border-white/5 p-8 italic text-sm text-[#F5F0E8]/40 font-sans font-light leading-loose">
+                                        <div className="bg-black/20 border-l-2 border-[var(--color-teal-mid)]/20 p-8 italic text-sm text-[var(--color-ivory-40)] font-sans font-light leading-loose">
                                             &ldquo;{item.a}&rdquo;
                                         </div>
                                         <div className="flex gap-6">
-                                            <div className="w-12 h-12 border border-[#C9A84C]/20 flex items-center justify-center shrink-0">
-                                                <MessageSquare className="w-5 h-5 text-[#C9A84C]/60" strokeWidth={0.5} />
+                                            <div className="w-12 h-12 border border-[var(--color-teal-mid)]/20 flex items-center justify-center shrink-0">
+                                                <MessageSquare className="w-5 h-5 text-[var(--color-teal-mid)]/60" strokeWidth={0.5} />
                                             </div>
                                             <div className="space-y-3">
-                                                <p className="text-[10px] uppercase tracking-[0.3em] font-normal text-[#C9A84C] font-sans">Phân tích chuyên sâu</p>
-                                                <p className="text-sm text-[#F5F0E8]/60 font-sans font-light leading-[1.8] tracking-wide">{item.feedback}</p>
+                                                <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--color-teal-mid)] font-sans">Phân tích chuyên sâu</p>
+                                                <p className="text-sm text-[var(--color-ivory-60)] font-sans font-light leading-[1.8] tracking-wide">{item.feedback}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -326,7 +322,7 @@ export default function MockInterview() {
                         <div className="flex justify-center pt-10">
                             <button
                                 onClick={() => setState('PRE_CHECK')}
-                                className="px-12 py-5 border border-[#C9A84C]/30 text-[#C9A84C] text-[10px] tracking-[0.5em] uppercase font-normal transition-all duration-900 hover:bg-[#C9A84C] hover:text-[#090C12] shadow-2xl"
+                                className="px-12 py-5 border border-[var(--color-teal-mid)]/30 text-[var(--color-teal-mid)] text-[10px] tracking-[0.5em] uppercase font-bold transition-all duration-900 hover:bg-[var(--color-teal-mid)] hover:text-obsidian shadow-[0_0_20px_rgba(var(--color-teal-mid-rgb),0.2)]"
                             >
                                 Luyện tập phiên mới
                             </button>

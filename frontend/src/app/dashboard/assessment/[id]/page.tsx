@@ -37,7 +37,8 @@ export default function TakeAssessmentPage() {
                     return;
                 }
 
-                const res = await fetch(`http://localhost:8000/api/v1/assessments/${id}`, {
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001/api/v1';
+                const res = await fetch(`${apiBase}/assessments/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -79,7 +80,8 @@ export default function TakeAssessmentPage() {
         setSubmitting(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:8000/api/v1/assessments/${id}/submit`, {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001/api/v1';
+            const res = await fetch(`${apiBase}/assessments/${id}/submit`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,57 +107,67 @@ export default function TakeAssessmentPage() {
         }
     };
 
-    if (loading) return <div className="p-8">Loading assessment...</div>;
-    if (!assessment) return <div className="p-8">Assessment not found.</div>;
+    if (loading) return (
+        <div className="min-h-screen bg-[var(--color-navy)] flex items-center justify-center">
+            <div className="w-12 h-12 border-2 border-[var(--color-cyan)]/20 border-t-[var(--color-cyan)] rounded-full animate-spin" />
+        </div>
+    );
+    if (!assessment) return (
+        <div className="min-h-screen bg-[var(--color-navy)] flex items-center justify-center text-[var(--color-ivory-40)]">
+            Assessment not found.
+        </div>
+    );
 
     return (
-        <div className="max-w-3xl mx-auto p-8">
-            <h1 className="text-3xl font-bold mb-2">{assessment.title}</h1>
-            <p className="text-gray-600 mb-8">{assessment.description}</p>
+        <div className="min-h-screen bg-[var(--color-navy)] font-dm-sans">
+            <div className="max-w-3xl mx-auto p-8 pt-20">
+                <h1 className="text-4xl font-serif italic text-[var(--color-ivory)] mb-4">{assessment.title}</h1>
+                <p className="text-[var(--color-ivory-40)] font-sans font-light leading-relaxed mb-12">{assessment.description}</p>
 
-            <div className="space-y-8">
-                {assessment.questions.map((q, index) => (
-                    <div key={q.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-medium mb-4">
-                            <span className="text-blue-600 mr-2">{index + 1}.</span>
-                            {q.content}
-                        </h3>
+                <div className="space-y-8">
+                    {assessment.questions.map((q, index) => (
+                        <div key={q.id} className="bg-[var(--color-obsidian)] p-8 border border-[var(--color-ivory-10)] shadow-2xl">
+                            <h3 className="text-xl font-serif italic text-[var(--color-ivory)] mb-8">
+                                <span className="text-[var(--color-cyan)] mr-4 font-sans font-bold text-sm">0{index + 1}.</span>
+                                {q.content}
+                            </h3>
 
-                        {q.question_type === 'LIKERT' && (
-                            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4">
-                                <span className="text-xs text-gray-500 uppercase font-semibold">Strongly Disagree</span>
-                                <div className="flex gap-4">
-                                    {[1, 2, 3, 4, 5].map((val) => (
-                                        <label key={val} className="flex flex-col items-center cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name={`q-${q.id}`}
-                                                value={val}
-                                                checked={answers[q.id] === val}
-                                                onChange={() => handleAnswerChange(q.id, val)}
-                                                className="w-5 h-5 text-blue-600 focus:ring-blue-500 mb-1"
-                                            />
-                                            <span className="text-sm text-gray-400">{val}</span>
-                                        </label>
-                                    ))}
+                            {q.question_type === 'LIKERT' && (
+                                <div className="flex flex-col md:flex-row justify-between items-center gap-8 mt-10 p-6 bg-black/20 border border-[var(--color-ivory-10)]/5">
+                                    <span className="text-[9px] text-[var(--color-ivory-40)] uppercase tracking-[0.2em] font-bold">Rất không đồng ý</span>
+                                    <div className="flex gap-6">
+                                        {[1, 2, 3, 4, 5].map((val) => (
+                                            <label key={val} className="flex flex-col items-center cursor-pointer group">
+                                                <input
+                                                    type="radio"
+                                                    name={`q-${q.id}`}
+                                                    value={val}
+                                                    checked={answers[q.id] === val}
+                                                    onChange={() => handleAnswerChange(q.id, val)}
+                                                    className="w-6 h-6 border-none ring-1 ring-[var(--color-cyan)]/20 checked:bg-[var(--color-cyan)] checked:ring-[var(--color-cyan)] focus:ring-[var(--color-cyan)] transition-all cursor-pointer mb-2"
+                                                />
+                                                <span className={`text-[10px] font-bold transition-colors ${answers[q.id] === val ? 'text-[var(--color-cyan)]' : 'text-[var(--color-ivory-20)]'}`}>{val}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <span className="text-[9px] text-[var(--color-cyan)] uppercase tracking-[0.2em] font-bold">Rất đồng ý</span>
                                 </div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">Strongly Agree</span>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Add MBTI Choice type handling if needed */}
-                    </div>
-                ))}
-            </div>
+                            {/* Add MBTI Choice type handling if needed */}
+                        </div>
+                    ))}
+                </div>
 
-            <div className="mt-10 flex justify-end">
-                <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {submitting ? 'Submitting...' : 'Finish & View Results'}
-                </button>
+                <div className="mt-16 flex justify-end pb-32">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="bg-gradient-to-r from-[var(--color-teal-mid)] to-[var(--color-cyan)] text-obsidian font-black py-4 px-12 text-[11px] tracking-[0.5em] uppercase shadow-2xl shadow-[var(--color-cyan)]/20 hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed group flex items-center gap-4"
+                    >
+                        {submitting ? 'ĐANG GỬI...' : 'HOÀN TẤT & XEM KẾT QUẢ'}
+                    </button>
+                </div>
             </div>
         </div>
     );

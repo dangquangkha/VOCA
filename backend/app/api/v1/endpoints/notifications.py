@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 from sqlalchemy import func, update
 
 from backend.app.api import deps
-from backend.app.models.user import User
+from backend.app.domains.identity.models import User
 from backend.app.models.notification import Notification
 from backend.app.schemas.notification import Notification as NotificationSchema, NotificationUpdate, NotificationWithSender
 from backend.app.services.notification_socket import notification_manager
@@ -27,7 +27,7 @@ async def read_notifications(
     query = (
         select(Notification)
         .where(Notification.recipient_id == current_user.id)
-        .options(selectinload(Notification.sender))
+        .options(selectinload(Notification.sender).selectinload(User.expert_profile))
         .order_by(Notification.created_at.desc())
         .offset(skip)
         .limit(limit)

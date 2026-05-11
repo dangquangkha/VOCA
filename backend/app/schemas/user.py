@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-from backend.app.models.user import UserRole, UserStatus
+from backend.app.domains.identity.models import UserRole, UserStatus
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -13,6 +13,7 @@ class UserCreate(UserBase):
     password: str
     phone_number: str
     role: UserRole = UserRole.STUDENT
+    years_of_experience: Optional[int] = 0
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -32,7 +33,7 @@ class UserInDBBase(UserBase):
     class Config:
         from_attributes = True
 
-from backend.app.models.expert import KYCStatus
+from backend.app.domains.marketplace.models import KYCStatus
 
 class ExpertProfileNested(BaseModel):
     id: int

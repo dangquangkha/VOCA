@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Video, FileText, CheckCircle2, Loader2 } from 'lucide-react';
+import { Calendar, Video, FileText, CheckCircle2, Loader2, XCircle, AlertTriangle } from 'lucide-react';
 import { bookingService } from '@/services/bookingService';
 import { Booking, BookingStatus } from '@/types/booking';
 import axios from 'axios';
@@ -73,20 +73,20 @@ export default function NextSession() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-blue-100 animate-spin" />
+            <div className="bg-[var(--color-navy-mid)] rounded-sm p-8 border border-[var(--color-ivory-10)] h-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[var(--color-ivory-10)] animate-spin" />
             </div>
         );
     }
 
     if (!nextSession) {
         return (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-full flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 mb-4">
+            <div className="bg-[var(--color-navy-mid)] rounded-sm p-8 border border-[var(--color-ivory-10)] h-full flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-sm bg-[var(--color-navy)] flex items-center justify-center text-[var(--color-ivory-10)] border border-[var(--color-ivory-10)] mb-6">
                     <Calendar size={32} />
                 </div>
-                <h3 className="font-bold text-slate-800">Không có lịch hẹn</h3>
-                <p className="text-xs text-slate-400 mt-2 max-w-[200px]">Bạn hiện không có lịch hẹn nào sắp tới.</p>
+                <h3 className="font-serif italic text-lg text-[var(--color-ivory-70)]">Không có lịch hẹn</h3>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-ivory-20)] mt-4 max-w-[200px]">Bạn hiện không có lịch hẹn nào sắp tới.</p>
             </div>
         );
     }
@@ -94,74 +94,100 @@ export default function NextSession() {
     const isReady = timeLeft <= 300; // 5 mins before
 
     return (
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-full flex flex-col hover:border-blue-200 transition-all group">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-slate-800">Lịch hẹn tiếp theo</h3>
-                <span className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg uppercase tracking-wider animate-pulse">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+        <div className="bg-[var(--color-navy-mid)] rounded-sm p-8 border border-[var(--color-ivory-10)] h-full flex flex-col hover:border-[var(--color-gold-line)] transition-all group shadow-2xl font-sans">
+            <div className="flex items-center justify-between mb-8">
+                <h3 className="text-[11px] font-medium text-[var(--color-ivory-45)] uppercase tracking-[0.3em]">Lịch hẹn tiếp theo</h3>
+                <span className="flex items-center gap-2 text-[9px] font-medium text-[var(--color-gold)] border border-[var(--color-gold-dim)] px-2.5 py-1 rounded-full uppercase tracking-widest bg-transparent animate-pulse">
+                    <span className="w-1 h-1 rounded-full bg-[var(--color-gold)] shadow-[0_0_8px_var(--color-gold)]"></span>
                     Sắp diễn ra
                 </span>
             </div>
 
-            <div className="space-y-6 flex-1">
+            <div className="space-y-8 flex-1">
                 {/* Student Info */}
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-50 group-hover:bg-blue-50/30 group-hover:border-blue-50 transition-all">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold overflow-hidden">
+                <div className="flex items-center gap-5 p-5 rounded-sm bg-[var(--color-navy)] border border-[var(--color-ivory-10)] transition-all group-hover:border-[var(--color-gold-line)]">
+                    <div className="w-12 h-12 rounded-sm bg-gradient-to-br from-[var(--color-gold)] to-[var(--color-gold-deep)] flex items-center justify-center text-[var(--color-navy)] font-serif italic text-lg shadow-lg">
                         {nextSession.student?.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1">
-                        <p className="font-bold text-slate-900 text-sm leading-tight">{nextSession.student?.full_name}</p>
-                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">{nextSession.student?.email}</p>
+                        <p className="font-serif italic text-[var(--color-ivory)] text-lg leading-tight">{nextSession.student?.full_name}</p>
+                        <p className="text-[10px] text-[var(--color-ivory-20)] font-light mt-1 tracking-wide">{nextSession.student?.email}</p>
                     </div>
-                    <button className="p-2 rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all hover:scale-105 shadow-sm">
+                    <button className="p-2.5 rounded-sm bg-transparent border border-[var(--color-ivory-10)] text-[var(--color-ivory-45)] hover:text-[var(--color-gold)] hover:border-[var(--color-gold-line)] transition-all group-hover:scale-105">
                         <FileText size={18} />
                     </button>
                 </div>
 
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                        <p className="text-sm font-bold text-slate-700">{nextSession.student_note || "Tư vấn hướng nghiệp"}</p>
+                <div className="space-y-6">
+                    <div className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-gold)] mt-1.5 opacity-60"></div>
+                        <p className="text-sm font-light text-[var(--color-ivory-70)] leading-relaxed">{nextSession.student_note || "Tư vấn hướng nghiệp"}</p>
                     </div>
 
                     {/* Countdown */}
-                    <div className="bg-slate-900 rounded-2xl p-4 text-center">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">Thời gian đếm ngược</p>
-                        <div className="text-3xl font-mono font-black text-white tracking-widest">
+                    <div className="bg-[var(--color-obsidian)] rounded-sm p-6 text-center border border-[var(--color-ivory-10)] shadow-inner">
+                        <p className="text-[9px] font-medium text-[var(--color-ivory-20)] uppercase tracking-[0.4em] mb-3">Thời gian đếm ngược</p>
+                        <div className="text-3xl font-mono font-medium text-[var(--color-gold)] tracking-[0.3em]">
                             {formatTime(timeLeft)}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-3">
+            <div className="mt-10 grid grid-cols-2 gap-4">
                 <a
                     href={nextSession.meeting_url || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`
-                        flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs transition-all
+                        flex items-center justify-center gap-2 py-3.5 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] transition-all
                         ${isReady && nextSession.meeting_url
-                            ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 hover:scale-[1.02]'
-                            : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-80'}
+                            ? 'bg-[var(--color-gold-faint)] text-[var(--color-gold)] border border-[var(--color-gold-line)] hover:bg-[var(--color-gold-dim)] hover:text-[var(--color-ivory)] shadow-lg shadow-[rgba(201,168,76,0.1)]'
+                            : 'bg-transparent border border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
                     `}
                     onClick={(e) => (!isReady || !nextSession.meeting_url) && e.preventDefault()}
                 >
-                    <Video size={16} />
+                    <Video size={16} className="opacity-70" />
                     Tham gia Meet
                 </a>
                 <button
                     onClick={handleCheckin}
-                    disabled={!isReady || nextSession.expert_checked_in_at !== null && nextSession.expert_checked_in_at !== undefined}
+                    disabled={!isReady || (nextSession.expert_checked_in_at !== null && nextSession.expert_checked_in_at !== undefined)}
                     className={`
-                        flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs border transition-all
+                        flex items-center justify-center gap-2 py-3.5 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] border transition-all
                         ${isReady && !nextSession.expert_checked_in_at
-                            ? 'border-emerald-500 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 hover:scale-[1.02]'
-                            : 'border-slate-200 text-slate-300 cursor-not-allowed'}
+                            ? 'border-[var(--color-gold-line)] text-[var(--color-ivory-70)] hover:bg-[var(--color-gold-faint)] hover:text-[var(--color-gold)]'
+                            : 'border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
                     `}
                 >
-                    <CheckCircle2 size={16} />
+                    <CheckCircle2 size={16} className="opacity-70" />
                     {nextSession.expert_checked_in_at ? 'Đã Check-in' : 'Check-in'}
+                </button>
+            </div>
+
+            {/* UC-Expert Cancellation */}
+            <div className="mt-4 pt-4 border-t border-[var(--color-ivory-10)]">
+                <button 
+                    onClick={async () => {
+                        const isLate = (new Date(nextSession.start_time).getTime() - new Date().getTime()) < 12 * 3600 * 1000;
+                        const message = isLate 
+                            ? "CẢNH BÁO: Bạn đang hủy lịch trong vòng 12h trước buổi hẹn. Bạn sẽ bị trừ 0.1 điểm đánh giá và ghi nhận 1 lần hủy muộn. Bạn có chắc chắn muốn hủy?"
+                            : "Bạn có chắc chắn muốn hủy buổi hẹn này? Số tiền sẽ được hoàn trả cho học viên.";
+                        
+                        if (window.confirm(message)) {
+                            try {
+                                await bookingService.updateBooking(nextSession.id, { status: BookingStatus.CANCELLED_BY_EXPERT });
+                                alert("Hủy lịch thành công.");
+                                window.location.reload();
+                            } catch (err) {
+                                alert("Hủy lịch thất bại.");
+                            }
+                        }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 text-[9px] uppercase tracking-widest text-[var(--color-ivory-45)] hover:text-[var(--color-neon-orange)] transition-colors"
+                >
+                    <XCircle size={14} />
+                    Hủy buổi hẹn
                 </button>
             </div>
         </div>

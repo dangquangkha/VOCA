@@ -6,6 +6,11 @@ export interface AdminStats {
     total_experts: number;
     total_bookings: number;
     total_revenue: number;
+    pending_withdrawals: number;
+    pending_refunds: number;
+    open_disputes: number;
+    open_support_tickets: number;
+    pending_experts: number;
 }
 
 export interface EmailLog {
@@ -25,6 +30,11 @@ export const adminService = {
     getExperts: async (status?: string): Promise<Expert[]> => {
         const url = status ? `admin/experts?status=${status}` : 'admin/experts';
         const response = await api.get(url);
+        return response.data;
+    },
+
+    createExpert: async (payload: any): Promise<Expert> => {
+        const response = await api.post('admin/experts', payload);
         return response.data;
     },
 

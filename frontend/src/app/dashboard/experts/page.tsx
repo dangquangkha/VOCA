@@ -16,9 +16,11 @@ interface FetchExpertsParams {
     page?: number;
     limit?: number;
     q?: string;
+    role?: string;
+    min_rating?: string | number;
     min_price?: string | number;
     max_price?: string | number;
-    min_rating?: string | number;
+    viewMode?: 'grid' | 'list';
 }
 
 const EASING: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -28,6 +30,7 @@ export default function ExpertsMarketplacePage() {
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [minRating, setMinRating] = useState('');
+    const [selectedRole, setSelectedRole] = useState<'ALL' | 'EXPERT' | 'MENTOR'>('ALL');
 
     const [experts, setExperts] = useState<Expert[]>([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -37,6 +40,19 @@ export default function ExpertsMarketplacePage() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isPending, startTransition] = useTransition();
+    const [gritStatus, setGritStatus] = useState<{ is_grit_verified: boolean } | null>(null);
+
+    useEffect(() => {
+        const fetchGrit = async () => {
+            try {
+                const { data } = await api.get('roadmap/grit-status');
+                setGritStatus(data);
+            } catch (err) {
+                console.error("Failed to fetch grit status", err);
+            }
+        };
+        fetchGrit();
+    }, []);
 
     const fetchExperts = useCallback(async (params: FetchExpertsParams = {}) => {
         setIsLoading(true);
@@ -48,15 +64,17 @@ export default function ExpertsMarketplacePage() {
                 min_price: minP,
                 max_price: maxP,
                 min_rating: minR,
+                role: rValue,
                 ...rest
             } = params;
 
-            const { data } = await api.get('/experts/', {
+            const { data } = await api.get('experts', {
                 params: {
                     q: qValue,
                     min_price: minP,
                     max_price: maxP,
                     min_rating: minR,
+                    role: rValue === 'ALL' ? undefined : rValue,
                     page: fetchPage,
                     limit: fetchLimit,
                     ...rest
@@ -86,10 +104,11 @@ export default function ExpertsMarketplacePage() {
             q: searchQuery || undefined,
             min_price: minPrice || undefined,
             max_price: maxPrice || undefined,
-            min_rating: minRating || undefined
+            min_rating: minRating || undefined,
+            role: selectedRole
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pageSize, fetchExperts]);
+    }, [pageSize, fetchExperts, selectedRole]);
 
     const handleSearch = () => {
         setCurrentPage(1);
@@ -108,6 +127,7 @@ export default function ExpertsMarketplacePage() {
         setMinPrice('');
         setMaxPrice('');
         setMinRating('');
+        setSelectedRole('ALL');
         setCurrentPage(1);
         fetchExperts({
             page: 1,
@@ -115,7 +135,8 @@ export default function ExpertsMarketplacePage() {
             q: undefined,
             min_price: undefined,
             max_price: undefined,
-            min_rating: undefined
+            min_rating: undefined,
+            role: 'ALL'
         });
     };
 
@@ -154,26 +175,26 @@ export default function ExpertsMarketplacePage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F0E8] selection:bg-[#C9A84C]/20 pb-44">
+        <div className="min-h-screen bg-transparent selection:bg-[#0046EA]/20 pb-44">
             {/* Breadcrumbs */}
-            <div className="bg-[#0A1018] border-b border-white/5">
+            <div className="bg-transparent border-b border-[#0F0C17]/10">
                 <nav className="max-w-[1400px] mx-auto px-8 py-6 flex items-center gap-4">
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="flex items-center gap-2 text-[10px] font-bold text-[#0F0C17]/40 hover:text-[#0046EA] transition-all uppercase tracking-[0.2em] font-sans"
                     >
                         <Home size={12} strokeWidth={1.5} />
                         Trang chủ
                     </Link>
-                    <ChevronRight size={10} className="text-white/10" />
+                    <ChevronRight size={10} className="text-[#0F0C17]/20" />
                     <Link
                         href="/dashboard"
-                        className="text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="text-[10px] font-bold text-[#0F0C17]/40 hover:text-[#0046EA] transition-all uppercase tracking-[0.2em] font-sans"
                     >
                         Bàn làm việc
                     </Link>
-                    <ChevronRight size={10} className="text-white/10" />
-                    <span className="text-[10px] font-normal text-[#C9A84C] uppercase tracking-[0.2em] font-sans">Sàn Chuyên gia</span>
+                    <ChevronRight size={10} className="text-[#0F0C17]/20" />
+                    <span className="text-[10px] font-bold text-[#0046EA] uppercase tracking-[0.2em] font-sans">Sàn Chuyên gia</span>
                 </nav>
             </div>
 
@@ -197,80 +218,88 @@ export default function ExpertsMarketplacePage() {
 
             {/* ── Experts Grid & Pagination Container ── */}
             <main className="max-w-[1400px] mx-auto px-8 mb-44">
-                <header className="flex flex-col md:flex-row justify-between items-end mb-16 gap-10">
+                <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-10">
                     <div className="space-y-6">
-                        <motion.h2
-                            initial={{ opacity: 0, x: -10 }}
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 1, ease: EASING }}
-                            className="text-[clamp(38px,4.6vw,58px)] font-serif italic font-light text-[#0A1018] tracking-tight leading-[1.22]"
                         >
-                            {searchQuery ? `Kết quả cho "${searchQuery}"` : 'Cố vấn đắc lực'}
-                        </motion.h2>
-                        <div className="flex items-center gap-6">
-                            <p className="text-[#0A1018]/80 font-normal uppercase tracking-[0.2em] text-[10px] font-sans">
-                                {isLoading ? 'Đang truy vấn dữ liệu…' : `${totalItems} nhân tài hiện hữu.`}
+                            <nav className="flex items-center gap-3 mb-4">
+                                <span className="w-8 h-px bg-[#FFE900]" />
+                                <span className="text-[10px] font-black text-[#FFE900] uppercase tracking-[0.4em]">Tinh hoa Hội tụ</span>
+                            </nav>
+                            <h2 className="text-[clamp(40px,5vw,64px)] font-garamond italic font-bold text-[#171716] tracking-tight leading-none">
+                                {searchQuery ? `Kết quả cho "${searchQuery}"` : 'Cố vấn đắc lực'}
+                            </h2>
+                        </motion.div>
+                        
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
+                            <p className="text-black/30 font-black uppercase tracking-[0.2em] text-[10px]">
+                                {isLoading ? 'Đang truy vấn tinh hoa…' : `${totalItems} nhân tài phù hợp`}
                             </p>
-                            <span className="w-1.5 h-1.5 bg-[#C9A84C]/30 rounded-full" />
-                            <Link
-                                href="/dashboard/experts/explore"
-                                className="text-[10px] font-normal text-[#A85C1E] uppercase tracking-[0.2em] font-sans hover:text-[#0A1018] transition-all border-b border-[#C9A84C]/20 pb-0.5"
-                            >
-                                Khám phá tinh hoa →
-                            </Link>
+
+                            {/* Role Switcher Tabs - Shinkai Style */}
+                            <div className="flex items-center gap-1 p-1 bg-[#FFE900] rounded-2xl border border-[#FFE900]">
+                                {[
+                                    { id: 'ALL', label: 'Tất cả' },
+                                    { id: 'EXPERT', label: 'Chuyên gia' },
+                                    { id: 'MENTOR', label: 'Cố vấn' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setSelectedRole(tab.id as any)}
+                                        className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-500 rounded-xl ${selectedRole === tab.id
+                                            ? 'bg-[#0046EA] text-white shadow-lg shadow-blue-500/20'
+                                            : 'text-[#0046EA]/40 hover:text-[#0046EA] hover:bg-white'
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center bg-[#FAF7F2]/80 backdrop-blur-md p-1 border border-[#C9A84C]/10 rounded-[2px] relative">
-                        <motion.div
-                            className="absolute bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-[2px]"
-                            style={{
-                                width: '36px',
-                                height: '36px',
-                                top: '4px',
-                            }}
-                            animate={{
-                                left: viewMode === 'grid' ? '4px' : '44px'
-                            }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                        />
-
+                    <div className="flex items-center gap-4 bg-[#FFE900] p-1.5 rounded-2xl border border-[#FFE900] relative">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`relative z-10 w-9 h-9 flex items-center justify-center transition-colors duration-700 ${viewMode === 'grid' ? 'text-[#A85C1E]' : 'text-[#0A1018]/40 hover:text-[#0A1018]'}`}
+                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${viewMode === 'grid' ? 'bg-white text-[#0046EA] shadow-sm' : 'text-[#0046EA]/20 hover:text-[#0046EA]'}`}
                         >
-                            <LayoutGrid size={16} strokeWidth={1.5} />
+                            <LayoutGrid size={18} />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`relative z-10 w-9 h-9 flex items-center justify-center transition-colors duration-700 ${viewMode === 'list' ? 'text-[#A85C1E]' : 'text-[#0A1018]/40 hover:text-[#0A1018]'}`}
+                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${viewMode === 'list' ? 'bg-white text-[#0046EA] shadow-sm' : 'text-[#0046EA]/20 hover:text-[#0046EA]'}`}
                         >
-                            <List size={16} strokeWidth={1.5} />
+                            <List size={18} />
                         </button>
                     </div>
                 </header>
 
-                <div className="bg-[#FAF7F2]/40 backdrop-blur-3xl border border-[#C9A84C]/10 overflow-hidden min-h-[600px] flex flex-col rounded-[2px] shadow-[0_64px_128px_-16px_rgba(10,16,24,0.05)]">
-                    <div className="p-8 flex-1 relative group/carousel">
+                <div className="bg-white border border-black/5 overflow-hidden min-h-[600px] flex flex-col rounded-[48px] shadow-sm relative">
+                    <div className="p-10 flex-1 relative group/carousel">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-[#0046EA]/5 blur-[80px] rounded-full -mr-32 -mt-32" />
+                        
                         {experts.length > 0 ? (
                             <>
                                 <ExpertGrid experts={experts} isLoading={isLoading} viewMode={viewMode} />
 
-                                {/* Carousel Navigation Buttons */}
+                                {/* Carousel Navigation - Premium Styling */}
                                 <div className="hidden lg:block opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-700">
                                     <button
                                         onClick={handlePrevPage}
                                         disabled={currentPage === 1 || isLoading}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-md border border-[#C9A84C]/20 flex items-center justify-center text-[#0A1018]/80 hover:text-[#A85C1E] disabled:opacity-0 transition-all z-20 hover:scale-105 active:scale-95 rounded-full"
+                                        className="absolute -left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white border border-black/5 flex items-center justify-center text-black/20 hover:text-[#0046EA] disabled:opacity-0 transition-all z-20 hover:scale-110 active:scale-95 rounded-full shadow-xl"
                                     >
-                                        <ChevronLeft size={20} strokeWidth={1} />
+                                        <ChevronLeft size={24} />
                                     </button>
                                     <button
                                         onClick={handleNextPage}
                                         disabled={currentPage === Math.ceil(totalItems / pageSize) || isLoading}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-md border border-[#C9A84C]/20 flex items-center justify-center text-[#0A1018]/80 hover:text-[#A85C1E] disabled:opacity-0 transition-all z-20 hover:scale-105 active:scale-95 rounded-full"
+                                        className="absolute -right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white border border-black/5 flex items-center justify-center text-black/20 hover:text-[#0046EA] disabled:opacity-0 transition-all z-20 hover:scale-110 active:scale-95 rounded-full shadow-xl"
                                     >
-                                        <ChevronRight size={20} strokeWidth={1} />
+                                        <ChevronRight size={24} />
                                     </button>
                                 </div>
                             </>
@@ -279,64 +308,71 @@ export default function ExpertsMarketplacePage() {
                         )}
                     </div>
 
-                    {/* Pagination */}
+                    {/* Pagination - Professional Styling */}
                     {totalItems > 0 && (
-                        <ExpertPagination
-                            currentPage={currentPage}
-                            totalPages={Math.ceil(totalItems / pageSize)}
-                            pageSize={pageSize}
-                            totalItems={totalItems}
-                            onPageChange={handlePageChange}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
+                        <div className="bg-[#F5F8FF] border-t border-black/5">
+                            <ExpertPagination
+                                currentPage={currentPage}
+                                totalPages={Math.ceil(totalItems / pageSize)}
+                                pageSize={pageSize}
+                                totalItems={totalItems}
+                                onPageChange={handlePageChange}
+                                onPageSizeChange={handlePageSizeChange}
+                            />
+                        </div>
                     )}
                 </div>
             </main>
 
-            {/* ── Testimonials ─────────────────────────────────── */}
+            {/* ── Testimonials ── */}
             <section className="max-w-[1400px] mx-auto px-8">
-                <div className="bg-[#0A1018] p-16 md:p-24 text-[#F5F0E8] relative overflow-hidden rounded-[2px] border border-[#C9A84C]/20 shadow-4xl">
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C9A84C]/5 blur-[120px] rounded-full -mr-64 -mt-64" />
-                    <div className="absolute bottom-0 left-0 w-full h-[0.5px] bg-gradient-to-r from-transparent via-[#C9A84C]/10 to-transparent" />
+                <div className="bg-[#0046EA] p-20 md:p-32 text-white relative overflow-hidden rounded-[60px] shadow-2xl">
+                    {/* Animated Background Elements */}
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-white/10 blur-[150px] rounded-full -mr-96 -mt-96" />
+                    <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/20 to-transparent" />
+                    <div className="absolute top-1/4 left-10 w-2 h-2 bg-[#FFE900] rounded-full animate-ping" />
+                    <div className="absolute bottom-1/4 right-10 w-2 h-2 bg-[#00A4FD] rounded-full animate-pulse" />
 
-                    <div className="relative z-10 text-center mb-24 space-y-6">
-                        <motion.h2
+                    <div className="relative z-10 text-center mb-24 space-y-8">
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 1.2, ease: EASING }}
-                            className="text-[clamp(38px,4.6vw,58px)] font-serif italic font-light tracking-tight leading-tight"
+                            className="flex flex-col items-center gap-6"
                         >
-                            Được tín nhiệm bởi <br />Hội đồng chuyên gia
-                        </motion.h2>
-                        <p className="text-[#A85C1E] font-normal text-[10px] uppercase tracking-[0.4em] font-sans">Lời chứng thực từ những hành trình vươn tầm</p>
+                            <span className="text-[#FFE900] font-black text-[10px] uppercase tracking-[0.5em]">Kinh nghiệm Thực chứng</span>
+                            <h2 className="text-[clamp(40px,5vw,72px)] font-garamond italic font-bold tracking-tight leading-none">
+                                Được tín nhiệm bởi <br />Hội đồng chuyên gia
+                            </h2>
+                            <div className="w-20 h-1 bg-[#FFE900] rounded-full" />
+                        </motion.div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative z-10">
                         {[
                             { name: 'Anh Tuấn', role: 'Kỹ sư Phần mềm tại Shopee', text: 'Những lời khuyên tôi nhận được chỉ trong 1 giờ tư vấn đã giúp đội ngũ kỹ thuật tiết kiệm hàng tuần nghiên cứu. Rất đáng đầu tư.' },
-                            { name: 'Minh Châu', role: 'Quản lý Sản phẩm tại VNG', text: 'Tôi đã tìm được người hướng dẫn tuyệt vời cho lộ trình chuyển sang PM. Chuyên gia đưa ra các lời khuyên rất thực tế và sát với thị trường Việt Nam.' },
-                            { name: 'Quang Hải', role: 'Sáng lập tại TechStartup', text: 'Là một người khởi nghiệp lần đầu, nền tảng này đã kết nối tôi với một cố vấn CTO, giúp chúng tôi tránh được những sai lầm lớn về hạ tầng ngay từ đầu.' },
+                            { name: 'Minh Châu', role: 'Quản lý Sản phẩm tại VNG', text: 'Tôi đã tìm được người hướng dẫn tuyệt vời cho lộ trình chuyển sang PM. Chuyên gia đưa ra các lời khuyên rất thực tế.' },
+                            { name: 'Quang Hải', role: 'Sáng lập tại TechStartup', text: 'Là một người khởi nghiệp lần đầu, nền tảng này đã kết nối tôi với một cố vấn CTO cực kỳ tài năng.' },
                         ].map((item, idx) => (
                             <motion.div
                                 key={item.name}
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ duration: 1, ease: EASING, delay: idx * 0.1 }}
-                                className="bg-white/[0.03] backdrop-blur-xl p-10 border border-[#C9A84C]/10 flex flex-col justify-between hover:bg-white/[0.06] transition-all duration-700 group rounded-[2px]"
+                                transition={{ delay: idx * 0.1 }}
+                                className="bg-white/10 backdrop-blur-xl p-12 border border-white/20 flex flex-col justify-between hover:bg-white/20 transition-all group rounded-[40px] shadow-xl"
                             >
-                                <div>
-                                    <Quote className="w-10 h-10 text-[#C9A84C]/20 group-hover:text-[#C9A84C] mb-8 transition-colors duration-700" strokeWidth={1} />
-                                    <p className="text-[#F5F0E8]/80 mb-10 leading-[1.60] font-serif italic text-[20px]">&ldquo;{item.text}&rdquo;</p>
+                                <div className="space-y-8">
+                                    <Quote className="w-12 h-12 text-[#FFE900] opacity-20 group-hover:opacity-100 transition-opacity" />
+                                    <p className="text-white text-xl font-garamond italic leading-relaxed">&ldquo;{item.text}&rdquo;</p>
                                 </div>
-                                <div className="flex items-center gap-6 border-t border-[#C9A84C]/10 pt-8">
-                                    <div className="w-12 h-12 bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center text-[#C9A84C] font-light text-sm rounded-full">
-                                        {item.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                <div className="flex items-center gap-6 mt-12 pt-8 border-t border-white/10">
+                                    <div className="w-14 h-14 bg-white text-[#0046EA] rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
+                                        {item.name[0]}
                                     </div>
-                                    <div className="space-y-1">
-                                        <h4 className="text-[15px] font-normal text-[#F5F0E8] tracking-wide font-sans">{item.name}</h4>
-                                        <p className="text-[9px] text-[#A85C1E] font-normal uppercase tracking-[0.2em]">{item.role}</p>
+                                    <div>
+                                        <h4 className="text-sm font-black uppercase tracking-widest text-white">{item.name}</h4>
+                                        <p className="text-[9px] text-white/50 font-black uppercase tracking-widest mt-1">{item.role}</p>
                                     </div>
                                 </div>
                             </motion.div>

@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { Booking, BookingCreate, BookingUpdate } from '@/types/booking';
+import { Booking, BookingCreate, BookingUpdate, BookingDispute, BookingDisputeCreate } from '@/types/booking';
 
 export const bookingService = {
     /**
@@ -41,6 +41,30 @@ export const bookingService = {
      */
     resolveNoshow: async (id: number): Promise<Booking> => {
         const response = await api.post(`bookings/${id}/resolve-noshow`);
+        return response.data;
+    },
+
+    /**
+     * Raise a dispute for a booking
+     */
+    disputeBooking: async (bookingId: number, data: BookingDisputeCreate): Promise<BookingDispute> => {
+        const response = await api.post(`bookings/${bookingId}/dispute`, data);
+        return response.data;
+    },
+
+    /**
+     * [ADMIN] List all disputes
+     */
+    getAllDisputes: async (): Promise<BookingDispute[]> => {
+        const response = await api.get('bookings/disputes/all');
+        return response.data;
+    },
+
+    /**
+     * [ADMIN] Update dispute status
+     */
+    updateDisputeStatus: async (disputeId: number, status: string, adminNote?: string): Promise<BookingDispute> => {
+        const response = await api.patch(`bookings/disputes/${disputeId}`, { status, admin_note: adminNote });
         return response.data;
     }
 };

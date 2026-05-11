@@ -29,7 +29,7 @@ export default function AccountActionsPage() {
 
     const fetchActions = async () => {
         try {
-            const response = await api.get("/admin/account-actions/actions");
+            const response = await api.get("admin/account-actions/actions");
             setActions(response.data);
         } catch (error) {
             console.error("Failed to fetch account actions:", error);
@@ -87,58 +87,59 @@ export default function AccountActionsPage() {
                 </select>
             </div>
 
-            {/* Actions Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target User</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredActions.map((action) => (
-                            <tr key={action.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {new Date(action.created_at).toLocaleString('vi-VN')}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {getActionBadge(action.action_type)}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                    <div>
-                                        <div className="font-medium text-gray-900">ID: {action.target_user_id}</div>
-                                        <div className="text-xs text-gray-500">{action.target_user_email || "N/A"}</div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {action.admin_email || `ID: ${action.admin_id}`}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-900">
-                                    {action.reason}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                    {action.notes || "-"}
-                                </td>
+            <div className="max-w-[1400px] mx-auto px-8 py-12">
+                <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-[#0F0C17]/10">
+                    <table className="w-full text-left">
+                        <thead className="bg-white text-[#0F0C17]/50 border-b border-[#0F0C17]/10">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target User</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="bg-transparent divide-y divide-[#0F0C17]/10">
+                            {filteredActions.map((action) => (
+                                <tr key={action.id} className="hover:bg-white transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {new Date(action.created_at).toLocaleString('vi-VN')}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {getActionBadge(action.action_type)}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div>
+                                            <div className="font-medium text-gray-900">ID: {action.target_user_id}</div>
+                                            <div className="text-xs text-gray-500">{action.target_user_email || "N/A"}</div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {action.admin_email || `ID: ${action.admin_id}`}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">
+                                        {action.reason}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                        {action.notes || "-"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                {filteredActions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                        No actions found
-                    </div>
-                )}
+                    {filteredActions.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                            No actions found
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Stats */}
-            <div className="mt-6 grid grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-lg shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+                <div className="bg-white p-8 rounded-xl border border-[#0F0C17]/10 shadow-2xl">
                     <div className="text-sm text-gray-500">Total Actions</div>
                     <div className="text-2xl font-bold">{actions.length}</div>
                 </div>

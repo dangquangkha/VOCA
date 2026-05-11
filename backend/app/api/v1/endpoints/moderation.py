@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend.app.api import deps
-from backend.app.models.user import User, UserStatus
-from backend.app.models.expert import ExpertProfile
-from backend.app.models.booking import Booking, BookingStatus
+from backend.app.domains.identity.models import User, UserStatus
+from backend.app.domains.marketplace.models import ExpertProfile
+from backend.app.domains.booking.models import Booking, BookingStatus
 from backend.app.models.account_action import AccountAction, AccountActionType
 from backend.app.models.blacklist import Blacklist
 from backend.app.core.email import send_email

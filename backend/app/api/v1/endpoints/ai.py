@@ -2,19 +2,22 @@ from typing import Any, List
 from datetime import datetime
 import random
 
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from backend.app.core.limiter import limiter
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from backend.app.api import deps
-from backend.app.models.user import User
+from backend.app.domains.identity.models import User
 from backend.app.models.ai_service import CVAnalysis, MockInterview
 from backend.app.schemas.ai import CVAnalysis as CVSchema, MockInterview as InterviewSchema
 
 router = APIRouter()
 
 @router.post("/cv-analyze", response_model=CVSchema)
+@limiter.limit("5/minute")
 async def analyze_cv(
+    request: Request,
     file: UploadFile = File(...),
     job_description: str = Form(...),
     db: AsyncSession = Depends(deps.get_db),
@@ -55,7 +58,9 @@ async def analyze_cv(
     return cv_entry
 
 @router.post("/interview-simulate", response_model=InterviewSchema)
+@limiter.limit("3/minute")
 async def simulate_interview(
+    request: Request,
     job_description: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),

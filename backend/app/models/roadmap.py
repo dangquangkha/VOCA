@@ -25,3 +25,16 @@ class DailyProgress(Base):
     
     # Relationships
     user = relationship("User", backref="daily_progress")
+
+class RoadmapHistory(Base):
+    __tablename__ = "roadmap_history"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    
+    snapshot_data: Mapped[dict] = mapped_column(JSON, nullable=False) # Full state of 30 days
+    is_premium: Mapped[bool] = mapped_column(Integer, default=0) # Using Integer as boolean placeholder if needed, or just bool
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", backref="roadmap_histories")

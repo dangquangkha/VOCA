@@ -1,496 +1,362 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --font-serif: var(--serif);
-  --font-sans: var(--sans);
-}
+/* ============================================================
+   VOCA — DESIGN SYSTEM
+   Reference: kiminona.com · tenkinoko.com (Makoto Shinkai)
+   Palette: Sky Blue #00A4FD · White #FFFFFF · Ink #171716
+   Rule: NO border-radius. Square corners. Wide letter-spacing.
+   ============================================================ */
 
-/* ── VOCA Design Tokens (story.md & land.html) ────────────────── */
 :root {
-  /* Core palette */
-  --navy: #0A1018;
-  --navy-mid: #0F1825;
-  --obsidian: #090C12;
-  --gold: #C9A84C;
-  --gold-dim: rgba(201, 168, 76, .45);
-  --gold-faint: rgba(201, 168, 76, .12);
-  --gold-line: rgba(201, 168, 76, .22);
-  --ivory: #F5F0E8;
-  --ivory-70: rgba(245, 240, 232, .70);
-  --ivory-45: rgba(245, 240, 232, .45);
-  --ivory-20: rgba(245, 240, 232, .20);
-  --ivory-10: rgba(245, 240, 232, .10);
+  /* ── Core Palette ── */
+  --sky:         #00A4FD;
+  --sky-dark:    #0086D4;
+  --sky-dim:     rgba(0, 164, 253, 0.15);
+  --sky-pale:    #EAF6FF;
+  --white:       #FFFFFF;
+  --ink:         #000000;
+  --ink-60:      rgba(0, 0, 0, 0.6);
+  --ink-40:      rgba(0, 0, 0, 0.4);
+  --ink-20:      rgba(0, 0, 0, 0.2);
+  --ink-08:      rgba(0, 0, 0, 0.08);
+  --yellow:      #FFE900;
+  --crimson:     #D20048;
+  --crimson-dim: rgba(210, 0, 72, 0.4);
 
-  /* Section palettes */
-  --teal-deep: #071E20;
-  --teal: #0F3235;
-  --teal-mid: #4A7C7E;
-  --teal-light: rgba(74, 124, 126, .15);
-  --cream: #FAF7F2;
-  --cream-warm: #F5EDE0;
-  --linen: #EDE0D0;
-  --amber: #A85C1E;
-  --amber-dim: rgba(168, 92, 30, .2);
-  --terra: #6B2E12;
-  --walnut: #1E0E06;
-  --walnut-text: #2A1608;
-  --bronze: #6B4F27;
-  --burgundy: #58181F;
+  /* ── Border ── */
+  --border:      6px solid rgba(0, 164, 253, 0.4);
+  --border-dark: 6px solid rgba(0, 164, 253, 0.6);
+  --border-ink:  6px solid rgba(0, 0, 0, 0.15);
 
-  /* Typography (Aligned with layout.tsx) */
-  --serif: var(--font-cormorant-garamond), 'Cormorant Garamond', Georgia, serif;
-  --sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  /* ── Typography ── */
+  --sans:      var(--font-dm-sans), 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --serif:     var(--font-cormorant-garamond), 'Cormorant Garamond', Georgia, serif;
+  --ls-wide:   0.15em;
+  --ls-wider:  0.25em;
+  --ls-widest: 0.4em;
 
-  /* Motion */
+  /* ── Easing ── */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── Global Styles ─────────────────────────────────────────── */
+/* ── SQUARE CORNERS ENFORCEMENT ── */
+*, *::before, *::after {
+  border-radius: 0 !important;
+  box-sizing: border-box;
+}
+
+/* ── BASE ── */
+html { scroll-behavior: smooth; }
+
 body {
-  background: var(--navy);
-  color: var(--ivory);
+  background: var(--white);
+  color: var(--ink);
   font-family: var(--sans);
-  font-weight: 300;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Components ────────────────────────────────────────────── */
+a, button, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
 
-/* HERO */
-.hero {
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+}
+
+/* ── ANIMATIONS ── */
+
+/* Light sweep — hover trên card */
+@keyframes light-sweep {
+  0%   { transform: translateX(-150%) skewX(-18deg); }
+  100% { transform: translateX(250%) skewX(-18deg); }
+}
+
+/* Pulse — nút Đặt lịch */
+@keyframes sky-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 164, 253, 0.7); }
+  60%       { box-shadow: 0 0 0 12px rgba(0, 164, 253, 0); }
+}
+
+/* Crimson glow — avatar border */
+@keyframes crimson-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--crimson), 0 0 10px 0 var(--crimson-dim); }
+  50%       { box-shadow: 0 0 0 3px var(--crimson), 0 0 20px 4px var(--crimson-dim); }
+}
+
+/* Scroll indicator */
+@keyframes scroll-drop {
+  0%   { top: -6px; opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { top: calc(100% + 2px); opacity: 0; }
+}
+
+/* ── UTILITY CLASSES ── */
+
+.border-6 {
+  border-width: 6px !important;
+}
+
+/* --- Cards --- */
+
+/* Standard card: trắng, viền xanh */
+.card {
+  background: var(--white);
+  border: 6px solid rgba(0, 164, 253, 0.4);
   position: relative;
-  width: 100%;
-  height: 100vh;
-  min-height: 800px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   overflow: hidden;
-  background: var(--navy);
-  padding-top: 120px;
+  transition: 
+    border-color 0.35s var(--ease),
+    box-shadow   0.35s var(--ease),
+    transform    0.35s var(--ease);
 }
 
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.card:hover {
+  border-color: #00A4FD !important;
+  box-shadow: 0 12px 48px rgba(0, 164, 253, 0.25);
+  transform: translateY(-8px);
 }
 
-.hero-canvas {
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(ellipse 52% 48% at 20% 82%, rgba(170, 90, 20, .11) 0%, transparent 58%),
-    radial-gradient(ellipse 50% 44% at 68% 8%, rgba(40, 100, 170, .09) 0%, transparent 60%),
-    radial-gradient(ellipse 38% 32% at 10% 15%, rgba(80, 140, 190, .07) 0%, transparent 52%),
-    linear-gradient(158deg, #080E18 0%, #0C1722 38%, #0A1420 65%, #080C14 100%);
+/* Card on blue background */
+.card-on-blue {
+  background: var(--white);
+  border: 6px solid rgba(255, 255, 255, 0.6);
   position: relative;
+  overflow: hidden;
+  transition: 
+    border-color 0.35s var(--ease),
+    box-shadow   0.35s var(--ease),
+    transform    0.35s var(--ease);
 }
 
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(to bottom,
-      rgba(8, 12, 20, .20) 0%,
-      rgba(8, 12, 20, .50) 48%,
-      rgba(8, 12, 20, .84) 88%,
-      rgba(8, 12, 20, .97) 100%);
+.card-on-blue:hover {
+  border-color: #FFFFFF !important;
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.35);
+  transform: translateY(-8px);
 }
 
-.hero-margin {
-  position: absolute;
-  left: 54px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+/* --- Avatar --- */
+
+/* Vuông, viền đỏ hồng, hover chuyển xanh */
+.avatar-glow {
+  border: 4px solid #D20048;
+  transition: all 0.35s var(--ease);
+  overflow: hidden;
 }
 
-.hero-margin-line {
-  width: .5px;
-  height: 70px;
-  background: linear-gradient(to bottom, transparent, var(--gold-line));
+.avatar-glow:hover {
+  border-color: #00A4FD;
+  box-shadow: 0 0 20px rgba(0, 164, 253, 0.4);
+  transform: scale(1.05);
 }
 
-.hero-margin-label {
-  writing-mode: vertical-rl;
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: 9px;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--ivory-20);
+/* Shimmer alias */
+.shinkai-avatar-glow {
+  border: 4px solid #D20048;
+  transition: all 0.35s var(--ease);
+  overflow: hidden;
 }
 
-.hero-content {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-  padding: 0 40px;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
+.shinkai-avatar-glow:hover {
+  border-color: #00A4FD;
+  box-shadow: 0 0 20px rgba(0, 164, 253, 0.4);
+  transform: scale(1.05);
 }
 
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  font-family: var(--sans);
-  font-weight: 400;
+/* --- Buttons --- */
+
+/* Primary sky button */
+.btn-sky {
+  background: var(--sky);
+  color: var(--yellow);
+  border: 1px solid var(--sky);
   font-size: 10px;
-  letter-spacing: .22em;
+  font-weight: 600;
+  letter-spacing: var(--ls-widest);
   text-transform: uppercase;
-  color: var(--gold-dim);
-  margin-bottom: 28px;
-  width: 100%;
-}
-
-.hero-eyebrow-line {
-  display: block;
-  width: 26px;
-  height: .5px;
-  background: var(--gold-line);
-  flex-shrink: 0;
-}
-
-.hero-headline {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-style: italic;
-  font-size: clamp(48px, 7vw, 84px);
-  line-height: 1.1;
-  letter-spacing: .01em;
-  color: var(--ivory);
-  margin-bottom: 24px;
-}
-
-.hero-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin: 0 auto 24px;
-  width: 180px;
-}
-
-.hero-divider span {
-  display: block;
-  flex: 1;
-  height: .5px;
-  background: var(--gold-line);
-}
-
-.hero-divider-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--gold-dim);
-  flex-shrink: 0;
-}
-
-.hero-subline {
-  font-family: var(--sans);
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 1.7;
-  letter-spacing: .03em;
-  color: var(--ivory-70);
-  margin: 0 auto 64px;
-  max-width: 840px;
-}
-
-.hero-cta {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  border: .5px solid var(--gold-line);
-  border-radius: 2px;
-  overflow: hidden;
-  width: fit-content;
-  margin: 0 auto 80px;
-}
-
-.cta-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 42px;
-  gap: 4px;
-  transition: background .35s;
+  padding: 14px 32px;
   cursor: pointer;
-}
-
-.cta-card:hover {
-  background: var(--gold-faint);
-}
-
-.cta-card:first-child {
-  border-right: .5px solid var(--gold-line);
-}
-
-.cta-card-eyebrow {
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: 9px;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--ivory-45);
-}
-
-.cta-card-title {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 18px;
-  color: var(--ivory-70);
-  transition: color .3s;
-}
-
-.cta-card:hover .cta-card-title {
-  color: var(--ivory);
-}
-
-.cta-card-arrow {
-  font-family: var(--sans);
-  font-size: 10px;
-  color: var(--gold-dim);
-  letter-spacing: .1em;
-  margin-top: 2px;
-  transition: transform .3s;
-  text-transform: uppercase;
-}
-
-.cta-card:hover .cta-card-arrow {
-  transform: translateX(5px);
-}
-
-.cta-or {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--ivory-20);
-  background: var(--gold-faint);
-  flex-shrink: 0;
-}
-
-.hero-stats {
-  display: flex;
-  justify-content: center;
-  border: .5px solid var(--ivory-10);
-  border-radius: 2px;
-  overflow: hidden;
-  white-space: nowrap;
-  width: fit-content;
-  margin: 0 auto;
-  z-index: 10;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 28px;
-  border-right: .5px solid var(--ivory-10);
-  gap: 3px;
-}
-
-.stat:last-child {
-  border-right: none;
-}
-
-.stat-num {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: 20px;
-  color: var(--ivory-70);
-  letter-spacing: .04em;
-}
-
-.stat-label {
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: 9px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--ivory-20);
-}
-
-.scroll-ind {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.scroll-track {
-  width: 1px;
-  height: 48px;
-  background: var(--ivory-10);
   position: relative;
   overflow: hidden;
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 
-.scroll-dot {
-  position: absolute;
-  top: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--gold);
-  animation: scrollDrop 2.2s ease-in-out infinite;
+.btn-sky:hover {
+  background: var(--sky-dark);
+  box-shadow: 0 4px 20px rgba(0, 164, 253, 0.4);
 }
 
-@keyframes scrollDrop {
-  0% {
-    top: -4px;
-    opacity: 0;
-  }
-
-  30% {
-    opacity: 1;
-  }
-
-  60% {
-    top: 48px;
-    opacity: 0;
-  }
-
-  100% {
-    top: 48px;
-    opacity: 0;
-  }
+/* Pulse booking button */
+.btn-pulse {
+  animation: sky-pulse 2.5s ease-in-out infinite;
 }
 
-.hero-bottom-fade {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  z-index: 4;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgba(8, 12, 20, .98));
-}
-
-/* PROBLEM */
-.problem {
-  background: linear-gradient(to bottom, #080C14 0%, var(--teal-deep) 8%, var(--teal) 100%);
-  padding: 140px 60px 120px;
-}
-
-.problem-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.section-eyebrow {
-  font-family: var(--sans);
-  font-weight: 400;
+/* Ghost button */
+.btn-ghost {
+  background: transparent;
+  color: var(--sky);
+  border: 1px solid var(--sky);
   font-size: 10px;
-  letter-spacing: .2em;
+  font-weight: 600;
+  letter-spacing: var(--ls-widest);
   text-transform: uppercase;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease);
+}
+
+.btn-ghost:hover {
+  background: var(--sky);
+  color: var(--yellow);
+}
+
+/* --- Sidebar nav item --- */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 28px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  border-left: 2px solid transparent;
+  transition: color 0.25s, background 0.25s, border-color 0.25s;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item.active {
+  color: var(--yellow);
+  background: rgba(255, 255, 255, 0.06);
+  border-left-color: var(--yellow);
+}
+
+/* --- Section label — kiểu tạp chí --- */
+.section-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--sky);
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 28px;
 }
 
-.section-eyebrow-line {
+.section-label::before {
+  content: '';
   display: block;
-  width: 32px;
-  height: .5px;
+  width: 24px;
+  height: 1px;
+  background: var(--sky);
   flex-shrink: 0;
 }
 
-.problem .section-eyebrow {
-  color: var(--teal-mid);
+/* --- Dividers --- */
+.divider { width: 100%; height: 1px; background: var(--ink-08); }
+.divider-sky { width: 100%; height: 1px; background: rgba(0, 164, 253, 0.2); }
+
+/* --- Tags / Badges --- */
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--sky-pale);
+  color: var(--sky);
+  border: 1px solid rgba(0, 164, 253, 0.25);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+  transition: background 0.25s, color 0.25s;
 }
 
-.problem .section-eyebrow-line {
-  background: var(--teal-mid);
-  opacity: .5;
+.tag:hover {
+  background: var(--sky);
+  color: var(--white);
 }
 
-.problem-headline {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(32px, 4.2vw, 52px);
-  line-height: 1.2;
-  color: var(--ivory);
-  margin-bottom: 36px;
-  max-width: 680px;
+.tag-on-blue {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
 }
 
-.problem-body {
+/* --- Inputs --- */
+.input-sky {
+  width: 100%;
+  background: var(--white);
+  border: 6px solid #00A4FD;
+  color: var(--ink);
   font-family: var(--sans);
-  font-weight: 300;
-  font-size: 16px;
-  line-height: 1.9;
-  color: rgba(245, 240, 232, .5);
-  max-width: 580px;
-  margin-bottom: 64px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 12px 16px;
+  transition: border-color 0.25s;
 }
 
-.pain-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 24px;
+.input-sky:focus {
+  border-color: #0046EA;
+  outline: none;
 }
 
-@media (min-width: 768px) {
-  .pain-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.input-sky::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.05em;
+  font-size: 12px;
 }
 
-.pain-card {
-  border: .5px solid rgba(74, 124, 126, .2);
-  transition: all 0.7s var(--ease);
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 164, 253, 0.3); }
+::-webkit-scrollbar-thumb:hover { background: var(--sky); }
+
+/* --- Selection --- */
+::selection { background: var(--sky); color: var(--white); }
+
+/* --- Font helpers --- */
+.font-dm-sans, .font-sans { font-family: var(--sans); }
+.font-garamond, .font-serif { font-family: var(--serif); }
+
+/* --- Shimkai premium card (legacy alias — same as .card) --- */
+.shinkai-premium-card {
+  background: var(--white);
+  border: var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.35s var(--ease), box-shadow 0.35s var(--ease), transform 0.35s var(--ease);
 }
 
-.pain-card:hover {
-  background: rgba(74, 124, 126, .1);
-  border-color: var(--teal-mid);
+.shinkai-premium-card:hover {
+  border-color: var(--sky);
+  box-shadow: 0 6px 24px rgba(0, 164, 253, 0.15);
+  transform: translateY(-4px);
 }
 
-/* ── Custom Scrollbar ─────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--navy);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--gold-line);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gold);
-}
-
-::selection {
-  background: var(--gold);
-  color: var(--navy);
-}
+/* --- Custom scrollbar class (for .custom-scrollbar) --- */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 164, 253, 0.2); }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--sky); }

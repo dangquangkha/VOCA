@@ -10,7 +10,7 @@ export interface DayContent {
     topic: string;
     interaction_type: string;
     prompt: string;
-    requirements?: Record<string, any>;
+    requirements?: Record<string, unknown>;
 }
 
 export interface DailyProgress {
@@ -18,10 +18,19 @@ export interface DailyProgress {
     user_id: number;
     day_number: number;
     status: DayStatus;
-    content_data?: Record<string, any>;
+    content_data?: Record<string, unknown>;
     completed_at?: string;
+    reward_earned?: number;
 }
 
 export interface DailyProgressUpdate {
-    content_data: Record<string, any>;
+    content_data: Record<string, unknown>;
+}
+
+export interface RoadmapHistory {
+    id: number;
+    user_id: number;
+    snapshot_data: Record<string, any>;
+    is_premium: boolean;
+    created_at: string;
 }

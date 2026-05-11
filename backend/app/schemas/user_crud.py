@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, validator
-from backend.app.models.user import UserRole, UserStatus
+from backend.app.domains.identity.models import UserRole, UserStatus
 
 
 class UserCreate(BaseModel):

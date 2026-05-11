@@ -28,6 +28,17 @@ export interface PaymentTransaction {
     bank_account?: string;
     bank_holder_name?: string;
     admin_note?: string;
+    payout_reference?: string;
+    user?: {
+        id: number;
+        email: string;
+        full_name?: string;
+        credits: number;
+        expert_profile?: {
+            id: number;
+            kyc_status: string;
+        };
+    };
 }
 
 export interface PaymentCreate {

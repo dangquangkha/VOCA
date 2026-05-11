@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
-from backend.app.models.user import User
+from backend.app.domains.identity.models import User
 from backend.app.models.account_action import AccountAction
 from backend.app.schemas.account_action import AccountActionRead
 from backend.app.utils.csv_export import export_actions_to_csv

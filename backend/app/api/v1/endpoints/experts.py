@@ -7,8 +7,8 @@ from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import selectinload, joinedload
 
 from backend.app.api import deps
-from backend.app.models.expert import ExpertProfile, KYCStatus, ExpertAvailability
-from backend.app.models.user import User, UserRole
+from backend.app.domains.marketplace.models import ExpertProfile, KYCStatus, ExpertAvailability
+from backend.app.domains.identity.models import User, UserRole
 from backend.app.schemas.expert import (
     ExpertProfile as ExpertProfileSchema,
     ExpertProfileShort,
@@ -290,9 +290,9 @@ async def get_availability(
     """
     Get current user's availability.
     """
-    if current_user.role != UserRole.EXPERT:
+    if current_user.role not in [UserRole.EXPERT, UserRole.MENTOR]:
         # Maybe allowed for UI logic? But specific to ME.
-        raise HTTPException(status_code=400, detail="User is not an expert")
+        raise HTTPException(status_code=400, detail="User is not an expert or mentor")
         
     query = select(ExpertProfile).where(ExpertProfile.user_id == current_user.id)
     result = await db.execute(query)
@@ -323,11 +323,13 @@ async def search_experts(
     Search for experts with filters.
     Only returns active experts (KYC Approved and account ACTIVE).
     """
-    from backend.app.models.user import UserStatus
+    from backend.app.domains.identity.models import UserStatus
     
     skip = (page - 1) * limit
     try:
         # Base filter and count
+        # UPDATE (BL-07): Only return APPROVED experts — PENDING experts excluded from
+        # the marketplace to prevent students from booking unvetted advisors.
         base_filters = [
             ExpertProfile.kyc_status == KYCStatus.APPROVED,
             User.account_status == UserStatus.ACTIVE
@@ -391,9 +393,9 @@ async def get_expert_detail(
     """
     Get generic expert profile details.
     """
-    from backend.app.models.user import UserStatus
+    from backend.app.domains.identity.models import UserStatus
     
-    # Also hide suspended/banned experts from detail view
+    # UPDATE (BL-07): detail page also only shows APPROVED experts
     from backend.app.models.review import Review
     query = select(ExpertProfile).join(User).where(
         and_(

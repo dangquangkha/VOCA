@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel
-from backend.app.models.expert import KYCStatus
+from backend.app.domains.marketplace.models import KYCStatus
 from backend.app.schemas.user import User
 from backend.app.schemas.review import ReviewWithUser
 
@@ -76,3 +76,8 @@ class PaginatedExpertResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+class AdminExpertCreate(BaseModel):
+    full_name: str
+    email: str
+    password: str

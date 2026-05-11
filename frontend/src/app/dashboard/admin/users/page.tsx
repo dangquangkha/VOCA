@@ -164,37 +164,39 @@ export default function UserManagementPage() {
     };
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
+        <div className="p-8 max-w-7xl mx-auto min-h-screen">
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-                <p className="mt-1 text-gray-600">Manage all users with advanced filtering and search</p>
+            <div className="mb-10">
+                <h1 className="text-4xl font-serif italic text-[#0F0C17] tracking-tight">User Management</h1>
+                <p className="mt-2 text-[#0F0C17]/50 font-sans text-sm tracking-wide font-light">Manage all users with advanced filtering and search</p>
             </div>
 
             {/* Search & Filters */}
-            <div className="bg-white p-6 rounded-lg shadow mb-6 space-y-4">
-                <div className="flex flex-col lg:flex-row gap-4">
+            <div className="bg-white border border-[#0F0C17]/10 rounded-sm p-6 mb-8 space-y-6 transition-all duration-300">
+                <div className="flex flex-col lg:flex-row gap-6">
                     <div className="flex-1">
                         <SearchBar onSearch={handleSearch} />
                     </div>
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium whitespace-nowrap"
+                        className="bg-gradient-to-r from-[#0046EA] to-[#00A4FD] text-white font-bold uppercase tracking-[0.15em] text-xs px-8 py-3 rounded-sm hover:opacity-90 transition-all duration-300 whitespace-nowrap border-0"
                     >
                         + Create User
                     </button>
                 </div>
-                <FilterPanel
-                    roleFilter={roleFilter}
-                    statusFilter={statusFilter}
-                    activeFilter={activeFilter}
-                    onRoleChange={(val) => { setRoleFilter(val); setPage(1); }}
-                    onStatusChange={(val) => { setStatusFilter(val); setPage(1); }}
-                    onActiveChange={(val) => { setActiveFilter(val); setPage(1); }}
-                    onClearFilters={handleClearFilters}
-                />
-                <div className="text-sm text-gray-600">
-                    Total: <span className="font-medium">{totalUsers}</span> users
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+                    <FilterPanel
+                        roleFilter={roleFilter}
+                        statusFilter={statusFilter}
+                        activeFilter={activeFilter}
+                        onRoleChange={(val) => { setRoleFilter(val); setPage(1); }}
+                        onStatusChange={(val) => { setStatusFilter(val); setPage(1); }}
+                        onActiveChange={(val) => { setActiveFilter(val); setPage(1); }}
+                        onClearFilters={handleClearFilters}
+                    />
+                    <div className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50">
+                        Pool: <span className="text-[#0046EA] font-medium">{totalUsers}</span> accounts
+                    </div>
                 </div>
             </div>
 
@@ -221,16 +223,16 @@ export default function UserManagementPage() {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-2xl font-bold mb-4">Create User</h2>
-                        <div className="space-y-4">
+                <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-white border border-[#0F0C17]/10 rounded-sm p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <h2 className="text-2xl font-serif italic text-[#0F0C17] mb-6">Create New Account</h2>
+                        <div className="space-y-5">
                             <input
                                 type="email"
-                                placeholder="Email *"
+                                placeholder="Email Address *"
                                 value={formData.email || ""}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="border rounded-lg px-3 py-2 w-full"
+                                className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
                                 required
                             />
                             <input
@@ -238,7 +240,7 @@ export default function UserManagementPage() {
                                 placeholder="Password (min 8 chars) *"
                                 value={(formData as UserCreateDto).password || ""}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                className="border rounded-lg px-3 py-2 w-full"
+                                className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
                                 required
                             />
                             <input
@@ -246,7 +248,7 @@ export default function UserManagementPage() {
                                 placeholder="Full Name *"
                                 value={formData.full_name || ""}
                                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                className="border rounded-lg px-3 py-2 w-full"
+                                className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
                                 required
                             />
                             <input
@@ -254,35 +256,38 @@ export default function UserManagementPage() {
                                 placeholder="Phone Number"
                                 value={formData.phone_number || ""}
                                 onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                                className="border rounded-lg px-3 py-2 w-full"
+                                className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
                             />
-                            <select
-                                value={formData.role || "STUDENT"}
-                                onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                                className="border rounded-lg px-3 py-2 w-full"
-                            >
-                                <option value="STUDENT">Student</option>
-                                <option value="EXPERT">Expert</option>
-                                <option value="ADMIN">Admin</option>
-                            </select>
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Account Role</label>
+                                <select
+                                    value={formData.role || "STUDENT"}
+                                    onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light appearance-none"
+                                >
+                                    <option value="STUDENT" className="bg-white">Student</option>
+                                    <option value="EXPERT" className="bg-white">Expert</option>
+                                    <option value="ADMIN" className="bg-white">Admin</option>
+                                </select>
+                            </div>
                             <input
                                 type="number"
-                                placeholder="Credits"
+                                placeholder="Initial Credits"
                                 value={formData.credits || 0}
                                 onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })}
-                                className="border rounded-lg px-3 py-2 w-full"
+                                className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
                             />
                         </div>
-                        <div className="mt-6 flex justify-end space-x-2">
+                        <div className="mt-10 flex justify-end gap-4">
                             <button
                                 onClick={() => { setShowCreateModal(false); setFormData({}); }}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                className="px-6 py-2 text-[#0F0C17]/50 hover:text-[#0F0C17] uppercase tracking-widest text-[10px] font-medium transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCreate}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                className="bg-transparent border border-[#0F0C17]/10 text-[#0F0C17] uppercase tracking-[0.15em] text-[10px] px-8 py-2.5 rounded-sm hover:bg-[#0046EA]/5 transition-all duration-300 font-medium"
                             >
                                 Create
                             </button>
@@ -293,71 +298,88 @@ export default function UserManagementPage() {
 
             {/* Edit Modal */}
             {showEditModal && selectedUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-2xl font-bold mb-4">Edit User #{selectedUser.id}</h2>
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Full Name"
-                                value={formData.full_name || ""}
-                                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                className="border rounded-lg px-3 py-2 w-full"
-                            />
-                            <input
-                                type="text"
-                                placeholder="Phone Number"
-                                value={formData.phone_number || ""}
-                                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                                className="border rounded-lg px-3 py-2 w-full"
-                            />
-                            <select
-                                value={formData.role || selectedUser.role}
-                                onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                                className="border rounded-lg px-3 py-2 w-full"
-                            >
-                                <option value="STUDENT">Student</option>
-                                <option value="EXPERT">Expert</option>
-                                <option value="ADMIN">Admin</option>
-                            </select>
-                            <input
-                                type="number"
-                                placeholder="Credits"
-                                value={formData.credits !== undefined ? formData.credits : selectedUser.credits}
-                                onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })}
-                                className="border rounded-lg px-3 py-2 w-full"
-                            />
-                            <select
-                                value={formData.account_status || selectedUser.account_status}
-                                onChange={(e) => setFormData({ ...formData, account_status: e.target.value as any })}
-                                className="border rounded-lg px-3 py-2 w-full"
-                            >
-                                <option value="ACTIVE">Active</option>
-                                <option value="SUSPENDED">Suspended</option>
-                                <option value="BANNED">Banned</option>
-                            </select>
-                            <label className="flex items-center space-x-2">
+                <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-white border border-[#0F0C17]/10 rounded-sm p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <h2 className="text-2xl font-serif italic text-[#0F0C17] mb-6">Modify Account <span className="text-[#0046EA] not-italic text-sm ml-2">#{selectedUser.id}</span></h2>
+                        <div className="space-y-5">
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    placeholder="Full Name"
+                                    value={formData.full_name || ""}
+                                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Phone Number</label>
+                                <input
+                                    type="text"
+                                    placeholder="Phone Number"
+                                    value={formData.phone_number || ""}
+                                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Role</label>
+                                    <select
+                                        value={formData.role || selectedUser.role}
+                                        onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                                        className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light appearance-none"
+                                    >
+                                        <option value="STUDENT" className="bg-white">Student</option>
+                                        <option value="EXPERT" className="bg-white">Expert</option>
+                                        <option value="ADMIN" className="bg-white">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Status</label>
+                                    <select
+                                        value={formData.account_status || selectedUser.account_status}
+                                        onChange={(e) => setFormData({ ...formData, account_status: e.target.value as any })}
+                                        className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light appearance-none"
+                                    >
+                                        <option value="ACTIVE" className="bg-white">Active</option>
+                                        <option value="SUSPENDED" className="bg-white">Suspended</option>
+                                        <option value="BANNED" className="bg-white">Banned</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Credits</label>
+                                <input
+                                    type="number"
+                                    placeholder="Credits"
+                                    value={formData.credits !== undefined ? formData.credits : selectedUser.credits}
+                                    onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })}
+                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
+                                />
+                            </div>
+                            <label className="flex items-center space-x-3 group cursor-pointer pt-2">
                                 <input
                                     type="checkbox"
                                     checked={formData.is_active !== undefined ? formData.is_active : selectedUser.is_active}
                                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                                    className="rounded"
+                                    className="rounded-sm bg-transparent border-[#0F0C17]/20 text-[#0046EA] focus:ring-0 focus:ring-offset-0"
                                 />
-                                <span>Is Active</span>
+                                <span className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 group-hover:text-[#0F0C17]/70 transition-colors">Mark as Active</span>
                             </label>
                         </div>
-                        <div className="mt-6 flex justify-end space-x-2">
+                        <div className="mt-10 flex justify-end gap-4">
                             <button
                                 onClick={() => { setShowEditModal(false); setFormData({}); setSelectedUser(null); }}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                className="px-6 py-2 text-[#0F0C17]/50 hover:text-[#0F0C17] uppercase tracking-widest text-[10px] font-medium transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleUpdate}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                className="bg-transparent border border-[#0F0C17]/10 text-[#0F0C17] uppercase tracking-[0.15em] text-[10px] px-8 py-2.5 rounded-sm hover:bg-[#0046EA]/5 transition-all duration-300 font-medium"
                             >
-                                Update
+                                Update Account
                             </button>
                         </div>
                     </div>
@@ -366,31 +388,31 @@ export default function UserManagementPage() {
 
             {/* Delete Modal */}
             {showDeleteModal && selectedUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h2 className="text-2xl font-bold mb-4 text-red-600">Delete User</h2>
-                        <p className="mb-4 text-gray-700">
-                            Are you sure you want to delete user <strong>{selectedUser.email}</strong>?
+                <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-white border border-[#0F0C17]/10 rounded-sm p-8 max-w-md w-full shadow-2xl">
+                        <h2 className="text-2xl font-serif italic text-red-500 mb-4">Terminate Account</h2>
+                        <p className="mb-8 text-[#0F0C17]/70 font-sans text-sm leading-relaxed">
+                            Are you certain you wish to remove <strong>{selectedUser.email}</strong>? This action may have irreversible consequences depending on the method.
                         </p>
-                        <div className="space-y-2 mb-4">
+                        <div className="space-y-3 mb-8">
                             <button
                                 onClick={() => handleDelete(false)}
-                                className="w-full px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-medium"
+                                className="w-full px-4 py-3 bg-white border border-[#0F0C17]/10 text-[#0F0C17] rounded-sm hover:border-[var(--color-gold-dim)] hover:text-[#0046EA] transition-all uppercase tracking-widest text-[10px] font-medium"
                             >
                                 Soft Delete (Deactivate)
                             </button>
                             <button
                                 onClick={() => handleDelete(true)}
-                                className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                                className="w-full px-4 py-3 bg-[var(--color-burgundy)] text-[#0F0C17] rounded-sm hover:opacity-90 transition-all uppercase tracking-widest text-[10px] font-medium"
                             >
                                 Hard Delete (Permanent)
                             </button>
                         </div>
                         <button
                             onClick={() => { setShowDeleteModal(false); setSelectedUser(null); }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                            className="w-full px-4 py-2 text-[#0F0C17]/50 hover:text-[#0F0C17] text-[10px] uppercase tracking-widest font-medium transition-colors"
                         >
-                            Cancel
+                            Retain Account
                         </button>
                     </div>
                 </div>

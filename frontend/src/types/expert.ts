@@ -11,6 +11,7 @@ export interface ExpertUser {
     email: string;
     full_name: string;
     avatar_url?: string;
+    role?: string;   // MENTOR | EXPERT | STUDENT
 }
 
 export interface Review {
@@ -39,6 +40,7 @@ export interface Expert {
     bank_name?: string;
     bank_account?: string;
     bank_holder_name?: string;
+    qr_code_url?: string;           // MENTOR: QR code for direct bank transfer
     user?: ExpertUser;
     availabilities: ExpertAvailability[];
     reviews: Review[];

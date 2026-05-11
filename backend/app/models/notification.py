@@ -11,6 +11,7 @@ class NotificationType(str, enum.Enum):
     CHAT = "chat"
     SYSTEM = "system"
     MARKETING = "marketing"
+    ADMIN_ALERT = "admin_alert"
 
 class NotificationPriority(str, enum.Enum):
     HIGH = "high"
@@ -29,7 +30,7 @@ class Notification(Base):
     priority = Column(SqlEnum(NotificationPriority), default=NotificationPriority.LOW)
     
     is_read = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     # Deep Link for BR-38.2
     link = Column(String, nullable=True)

@@ -1,4 +1,4 @@
-export type NotificationType = 'booking' | 'payment' | 'chat' | 'system' | 'marketing';
+export type NotificationType = 'booking' | 'payment' | 'chat' | 'system' | 'marketing' | 'admin_alert';
 export type NotificationPriority = 'high' | 'low';
 
 export interface Notification {

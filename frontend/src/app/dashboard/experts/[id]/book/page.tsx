@@ -3,21 +3,21 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar as CalendarIcon, Clock, ChevronRight, CheckCircle2, AlertCircle, Home, ShieldCheck, Award, MessageSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ChevronRight, CheckCircle2, AlertCircle, Home, ShieldCheck, Award, MessageSquare, Zap, Heart } from 'lucide-react';
 import api from '@/lib/api';
 import { Expert } from '@/types/expert';
 import { useAuthStore } from '@/store/useAuthStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from '@/store/useToastStore';
+import { getAvatarUrl } from '@/utils/url-utils';
 
 interface TimeSlot { start: string; end: string; }
 
-const DAY_NAMES = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
 const DAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 const MONTH_NAMES = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
 
 const EASING: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-/** Build next-14-days calendar entries */
 function buildCalendar(availabilities: Expert['availabilities']) {
     const availableDays = new Set((availabilities || []).map(a => a.day_of_week));
     const entries: { dateStr: string; day: number; label: string; month: string; available: boolean }[] = [];
@@ -69,7 +69,6 @@ export default function BookingPage() {
         }
     };
 
-    /* Build time slots when date selected */
     useEffect(() => {
         if (!expert || !selectedDate) { setAvailableSlots([]); return; }
         const dateObj = new Date(selectedDate);
@@ -102,202 +101,189 @@ export default function BookingPage() {
                 student_note: note,
             });
             setSuccess(true);
+            const isMentor = expert?.user?.role === 'MENTOR';
+            toast.success(isMentor ? "Đặt lịch thành công! Hãy ủng hộ Cố vấn sau buổi học." : "Booking confirmed successfully!");
             setTimeout(() => router.push('/dashboard/manage/bookings'), 2500);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Đặt lịch thất bại. Vui lòng thử lại.');
+            const msg = err.response?.data?.detail || 'Đặt lịch thất bại. Vui lòng thử lại.';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    /* ─── Loading ─── */
+    const isMentor = expert?.user?.role === 'MENTOR';
+
     if (isLoading) return (
-        <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">
+        <div className="min-h-screen bg-white flex items-center justify-center">
             <div className="flex flex-col items-center gap-8">
-                <div className="w-12 h-12 border border-[#C9A84C]/20 border-t-[#C9A84C] rounded-full animate-spin" />
-                <p className="text-[#0A1018]/20 font-normal uppercase tracking-[0.4em] text-[10px] font-sans">Đang chuẩn bị lịch…</p>
+                <div className="w-12 h-12 border-2 border-[#00A4FD]/10 border-t-[#00A4FD] rounded-full animate-spin" />
+                <p className="text-[#00A4FD] font-black uppercase tracking-[0.4em] text-[10px]">ACCESSING SCHEDULE REGISTRY...</p>
             </div>
         </div>
     );
 
     if (!expert) return (
-        <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center text-center p-8">
-            <div className="bg-[#FAF7F2]/40 backdrop-blur-3xl border border-[#C9A84C]/10 p-12 max-w-sm rounded-[2px] shadow-2xl">
-                <div className="text-4xl mb-8 grayscale opacity-20">😕</div>
-                <p className="text-[#0A1018] font-serif italic text-xl mb-10">{error || 'Không tìm thấy chuyên gia'}</p>
+        <div className="min-h-screen bg-white flex items-center justify-center p-8">
+            <div className="bg-[#00A4FD] border-[6px] border-[#00A4FD] p-12 max-w-sm rounded-none text-center shadow-2xl text-white">
+                <div className="text-4xl mb-6 font-garamond italic font-bold opacity-30 tracking-widest">404_VOID</div>
+                <p className="text-2xl font-garamond italic font-bold mb-8">{error || 'Chuyên gia không tồn tại'}</p>
                 <Link href="/dashboard/experts">
-                    <button className="w-full bg-[#0A1018] text-[#F5F0E8] py-4 rounded-[2px] font-sans text-[11px] uppercase tracking-[0.2em] transition-all hover:bg-[#C9A84C] hover:text-[#0A1018]">
-                        Quay lại
+                    <button className="w-full bg-white text-[#00A4FD] py-4 rounded-none font-black text-[11px] uppercase tracking-widest hover:bg-[#FFE900] hover:text-[#0046EA] transition-all duration-500">
+                        RETURN TO MARKETPLACE
                     </button>
                 </Link>
             </div>
         </div>
     );
 
-    /* ─── Success ─── */
     if (success) return (
-        <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-white flex items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-[2px] shadow-[0_64px_128px_-16px_rgba(10,16,24,0.1)] border border-[#C9A84C]/10 p-16 text-center max-w-md w-full relative overflow-hidden"
+                className="bg-[#00A4FD] rounded-none shadow-[0_0_100px_rgba(0,164,253,0.3)] border-[6px] border-[#00A4FD] p-16 text-center max-w-md w-full relative overflow-hidden text-white"
             >
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#C9A84C]" />
-                <div className="w-20 h-20 rounded-full border border-[#C9A84C]/20 flex items-center justify-center mx-auto mb-10 shadow-sm">
-                    <CheckCircle2 className="w-8 h-8 text-[#C9A84C]" strokeWidth={1} />
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#FFE900]" />
+                <div className="w-20 h-20 rounded-none bg-white/20 flex items-center justify-center mx-auto mb-10 border border-white/30">
+                    <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={1.5} />
                 </div>
-                <h2 className="text-3xl font-serif italic text-[#0A1018] mb-4">Đã tiếp nhận yêu cầu</h2>
-                <div className="bg-[#FAF7F2]/60 p-8 rounded-[1px] mb-10 border border-[#C9A84C]/5">
-                    <p className="text-[#0A1018]/60 text-sm font-sans italic leading-relaxed">
-                        Bạn đã đặt lịch tư vấn cùng <span className="font-bold text-[#0A1018]">{expert.user?.full_name}</span> thành công vào lúc:
+                <h2 className="text-4xl font-garamond italic font-bold mb-4 uppercase tracking-tight">Booking Secured</h2>
+                <div className="bg-white/10 p-8 rounded-none mb-10 border border-white/20">
+                    <p className="text-white/60 text-sm italic mb-6 leading-relaxed font-dm-sans">
+                        Buổi tư vấn chiến lược cùng <span className="text-[#FFE900] font-black not-italic">{expert.user?.full_name}</span> đã được ghi nhận:
                     </p>
-                    <div className="mt-6 flex flex-col items-center gap-2">
-                        <span className="text-[#C9A84C] font-serif italic text-2xl">{selectedTime}</span>
-                        <span className="text-[#0A1018]/20 font-sans font-bold uppercase text-[9px] tracking-[0.4em]">{selectedDate}</span>
+                    <div className="flex flex-col items-center gap-2">
+                        <span className="text-4xl font-garamond italic font-bold text-[#FFE900]">{selectedTime}</span>
+                        <span className="text-white/40 font-black uppercase text-[10px] tracking-widest">{selectedDate}</span>
                     </div>
                 </div>
-                <p className="text-[10px] text-[#0A1018]/20 font-sans uppercase tracking-[0.4em] animate-pulse">Đang chuyển hướng…</p>
+                <p className="text-[10px] text-[#FFE900] font-black uppercase tracking-[0.4em] animate-pulse">Initializing strategic alignment...</p>
             </motion.div>
         </div>
     );
 
     const calendar = buildCalendar(expert.availabilities);
-    const avatarSrc = expert.user?.avatar_url
-        || `https://ui-avatars.com/api/?name=${encodeURIComponent(expert.user?.full_name || 'Expert')}&background=0F172A&color=fff&size=128`;
-
-    const today = new Date();
-    const minDate = today.toISOString().split('T')[0];
+    const avatarSrc = getAvatarUrl(expert.user?.avatar_url, expert.user?.full_name);
+    const minDate = new Date().toISOString().split('T')[0];
 
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="min-h-screen bg-[#F5F0E8] selection:bg-[#C9A84C]/20 pb-44"
+            className="min-h-screen bg-white pb-44 selection:bg-[#00A4FD]/10"
         >
-            {/* ── Breadcrumbs ── */}
-            <div className="bg-[#0A1018] border-b border-white/5">
+            {/* Header / Breadcrumb */}
+            <div className="bg-white border-b border-black/5 sticky top-0 z-50">
                 <nav className="max-w-[1400px] mx-auto px-8 py-6 flex items-center gap-4">
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="flex items-center gap-2 text-[10px] font-black text-black/40 hover:text-[#00A4FD] transition-all uppercase tracking-[0.2em]"
                     >
-                        <Home size={12} strokeWidth={1.5} />
+                        <Home size={12} strokeWidth={2} />
                         Trang chủ
                     </Link>
-                    <ChevronRight size={10} className="text-white/20" />
+                    <ChevronRight size={10} className="text-black/20" />
                     <Link
                         href="/dashboard"
-                        className="flex items-center gap-2 text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="text-[10px] font-black text-black/40 hover:text-[#00A4FD] transition-all uppercase tracking-[0.2em]"
                     >
                         Bàn làm việc
                     </Link>
-                    <ChevronRight size={10} className="text-white/20" />
+                    <ChevronRight size={10} className="text-black/20" />
                     <Link
                         href="/dashboard/experts"
-                        className="flex items-center gap-2 text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans"
+                        className="text-[10px] font-black text-black/40 hover:text-[#00A4FD] transition-all uppercase tracking-[0.2em]"
                     >
-                        Cố vấn
+                        Sàn Chuyên gia
                     </Link>
-                    <ChevronRight size={10} className="text-white/20" />
-                    <Link
-                        href={`/dashboard/experts/${expert.id}`}
-                        className="text-[10px] font-normal text-white/50 hover:text-[#C9A84C] transition-all uppercase tracking-[0.2em] font-sans truncate max-w-[150px]"
-                    >
-                        {expert.user?.full_name}
-                    </Link>
-                    <ChevronRight size={10} className="text-white/20" />
-                    <span className="text-[10px] font-normal text-[#C9A84C] uppercase tracking-[0.2em] font-sans">Đặt lịch tư vấn</span>
+                    <ChevronRight size={10} className="text-black/20" />
+                    <span className="text-[10px] font-black text-[#00A4FD] uppercase tracking-[0.2em]">Đặt lịch tư vấn</span>
                 </nav>
             </div>
 
-            <main className="max-w-[1400px] mx-auto px-8 py-32">
-                <div className="grid lg:grid-cols-12 gap-16 items-start">
+            <main className="max-w-[1400px] mx-auto px-6 py-20">
+                <div className="grid lg:grid-cols-12 gap-12 items-start">
 
-                    {/* ── Forms (Left) ── */}
-                    <div className="lg:col-span-8 space-y-16">
+                    {/* Booking Form (Left) */}
+                    <div className="lg:col-span-8 space-y-12">
                         <header className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-[2px] bg-[#00A4FD]" />
+                                <span className="text-[10px] text-[#00A4FD] tracking-[0.5em] font-black uppercase">Booking Protocol</span>
+                            </div>
                             <motion.h1
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 1.2, ease: EASING }}
-                                className="text-[clamp(40px,5vw,68px)] font-serif italic text-[#0A1018] tracking-tight leading-[1.20] font-light"
+                                transition={{ duration: 0.8, ease: EASING }}
+                                className="text-[clamp(40px,5vw,72px)] font-garamond italic font-bold text-[#171716] tracking-tight leading-none"
                             >
-                                Đặt lịch tư vấn
+                                Tư vấn Chiến lược
                             </motion.h1>
-                            <p className="text-[#0A1018]/80 font-normal text-[17px] font-sans max-w-xl leading-[1.85] tracking-[0.02em]">
-                                Chọn thời điểm phù hợp nhất cho buổi kết nối tinh hoa của bạn.
+                            <p className="text-black/40 text-lg max-w-xl font-dm-sans font-light leading-relaxed">
+                                Khởi tạo buổi tư vấn chuyên sâu cùng các cố vấn hàng đầu trong lĩnh vực của bạn.
                             </p>
                         </header>
 
                         {error && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-start gap-5 bg-red-50/50 border border-red-100/20 text-red-900 rounded-[2px] p-8"
-                            >
-                                <AlertCircle className="w-6 h-6 flex-shrink-0 text-red-600" strokeWidth={1.5} />
-                                <div className="font-sans text-[11px] uppercase tracking-[0.1em] leading-relaxed font-bold">{error}</div>
+                            <motion.div className="flex items-center gap-4 bg-red-50 border-[6px] border-red-500 text-red-600 p-8 rounded-none font-black text-[10px] uppercase tracking-wider">
+                                <AlertCircle className="w-5 h-5" />
+                                {error}
                             </motion.div>
                         )}
 
-                        {/* Step 1: Date */}
-                        <div className="bg-[#FAF7F2]/40 backdrop-blur-3xl border border-[#C9A84C]/10 rounded-[2px] p-12 space-y-12">
-                            <div className="flex items-center gap-6">
-                                <span className="w-10 h-10 rounded-full border border-[#C9A84C]/20 flex items-center justify-center text-[11px] font-sans font-normal text-[#C9A84C] uppercase tracking-[0.14em]">01</span>
-                                <h3 className="text-[10px] font-normal text-[#0A1018]/80 uppercase tracking-[0.4em] font-sans">Chọn thời điểm</h3>
+                        {/* Date Selection */}
+                        <section className="bg-void-90/50 backdrop-blur-xl border border-void-80 rounded-2xl p-10 space-y-8 shadow-xl">
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="w-8 h-8 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan font-mono text-xs">01</div>
+                                <h3 className="text-xs font-bold text-text-primary uppercase tracking-widest">Select Timeline</h3>
                             </div>
 
-                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-4">
+                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
                                 {calendar.map(entry => (
                                     <button
                                         key={entry.dateStr}
                                         disabled={!entry.available}
                                         onClick={() => { setSelectedDate(entry.dateStr); setSelectedTime(''); }}
-                                        className={`flex flex-col items-center py-6 px-3 rounded-[1px] transition-all duration-700 relative overflow-hidden group
+                                        className={`flex flex-col items-center py-5 rounded-xl transition-all duration-300 border
                                             ${selectedDate === entry.dateStr
-                                                ? 'bg-[#0A1018] text-[#F5F0E8] shadow-xl'
+                                                ? 'bg-[var(--color-neon-cyan)]/20 border-[var(--color-neon-cyan)] text-[var(--color-neon-cyan)]'
                                                 : entry.available
-                                                    ? 'bg-white border border-[#C9A84C]/5 text-[#0A1018] hover:border-[#C9A84C]/40'
+                                                    ? 'bg-void-80/40 border-void-70 text-text-dim hover:border-neon-cyan/40 hover:text-text-primary'
                                                     : 'opacity-10 grayscale pointer-events-none'
                                             }`}
                                     >
-                                        <span className={`text-[10px] font-normal uppercase tracking-[0.14em] mb-3 ${selectedDate === entry.dateStr ? 'text-[#C9A84C]' : 'text-[#0A1018]/40'}`}>{entry.label}</span>
-                                        <span className="text-xl font-serif italic tabular-nums">{entry.day}</span>
-                                        {entry.available && selectedDate !== entry.dateStr && (
-                                            <span className="absolute bottom-2 w-1 h-1 rounded-full bg-[#C9A84C]/20 group-hover:bg-[#C9A84C]" />
-                                        )}
+                                        <span className="text-[9px] font-bold uppercase tracking-widest mb-2">{entry.label}</span>
+                                        <span className="text-xl font-display font-light">{entry.day}</span>
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="pt-10 border-t border-[#C9A84C]/5 flex items-center gap-6">
-                                <span className="text-[10px] font-normal text-[#0A1018]/40 uppercase tracking-[0.4em] font-sans">Hoặc chọn thủ công</span>
+                            <div className="pt-8 border-t border-void-80 flex items-center justify-between">
+                                <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Manual Date Override</span>
                                 <input
                                     type="date"
                                     min={minDate}
-                                    className="flex-1 bg-transparent border-b border-[#0A1018]/10 text-sm font-serif italic text-[#0A1018] py-2 focus:outline-none focus:border-[#C9A84C] transition-all cursor-pointer"
+                                    className="bg-void-80 border-void-70 text-sm font-mono text-text-primary px-4 py-2 rounded-md focus:outline-none focus:border-neon-cyan transition-all"
                                     value={selectedDate}
                                     onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(''); }}
                                 />
                             </div>
+                        </section>
 
-                            {selectedDate && availableSlots.length === 0 && (
-                                <p className="text-[11px] text-[#C97B3A] italic font-serif">Chuyên gia hiện không có lịch trống vào ngày này.</p>
-                            )}
-                        </div>
-
-                        {/* Step 2: Time */}
+                        {/* Time Selection */}
                         <AnimatePresence>
                             {selectedDate && availableSlots.length > 0 && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
+                                <motion.section
+                                    initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.98 }}
-                                    className="bg-[#FAF7F2]/40 backdrop-blur-3xl border border-[#C9A84C]/10 rounded-[2px] p-12 space-y-12"
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="bg-[#00A4FD] border-[6px] border-[#00A4FD] rounded-none p-12 space-y-12 shadow-2xl text-white"
                                 >
                                     <div className="flex items-center gap-6">
-                                        <span className="w-10 h-10 rounded-full border border-[#C9A84C]/20 flex items-center justify-center text-[11px] font-sans font-normal text-[#C9A84C] uppercase tracking-[0.14em]">02</span>
-                                        <h3 className="text-[10px] font-normal text-[#0A1018]/80 uppercase tracking-[0.4em] font-sans">Chọn khung giờ</h3>
+                                        <div className="w-10 h-10 rounded-none bg-white flex items-center justify-center text-[#00A4FD] font-black text-xs">02</div>
+                                        <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em]">Chọn Khung giờ</h3>
                                     </div>
 
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -305,117 +291,147 @@ export default function BookingPage() {
                                             <button
                                                 key={slot.start}
                                                 onClick={() => setSelectedTime(slot.start)}
-                                                className={`py-5 px-4 text-[14px] font-sans tracking-[0.02em] font-light rounded-[2px] border transition-all duration-700 text-center tabular-nums shadow-sm
+                                                className={`py-5 px-4 text-sm font-black tracking-widest rounded-none border-[3px] transition-all duration-500
                                                 ${selectedTime === slot.start
-                                                        ? 'bg-[#0A1018] text-[#F5F0E8] border-[#0A1018] shadow-lg'
-                                                        : 'bg-white border-[#C9A84C]/5 text-[#0A1018]/80 hover:border-[#C9A84C]/40 hover:text-[#0A1018]'
+                                                        ? 'bg-white border-white text-[#00A4FD] shadow-xl'
+                                                        : 'bg-white/10 border-white/20 text-white/60 hover:border-white hover:text-white'
                                                     }`}
                                             >
                                                 {slot.start}
                                             </button>
                                         ))}
                                     </div>
-                                </motion.div>
+                                </motion.section>
                             )}
                         </AnimatePresence>
 
-                        {/* Step 3: Note */}
-                        <div className={`bg-[#FAF7F2]/40 backdrop-blur-3xl border border-[#C9A84C]/10 rounded-[2px] p-12 space-y-12 transition-all duration-700 ${!selectedTime ? 'opacity-20 pointer-events-none' : ''}`}>
+                        {/* Context / Notes */}
+                        <section className={`bg-white border-[6px] border-black/5 rounded-none p-12 space-y-12 transition-all duration-700 shadow-sm ${!selectedTime ? 'opacity-30 grayscale pointer-events-none' : 'hover:shadow-2xl'}`}>
                             <div className="flex items-center gap-6">
-                                <span className="w-10 h-10 rounded-full border border-[#C9A84C]/20 flex items-center justify-center text-[11px] font-sans font-normal text-[#C9A84C] uppercase tracking-[0.14em]">03</span>
-                                <h3 className="text-[10px] font-normal text-[#0A1018]/80 uppercase tracking-[0.4em] font-sans">Thông tin bổ sung</h3>
+                                <div className="w-10 h-10 rounded-none bg-[#00A4FD] flex items-center justify-center text-white font-black text-xs">03</div>
+                                <h3 className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em]">Nội dung cần Cố vấn</h3>
                             </div>
                             <textarea
                                 rows={4}
-                                placeholder="Hãy mô tả ngắn gọn vấn đề bạn muốn thảo luận cùng chuyên gia…"
-                                className="w-full bg-transparent border-b border-[#0A1018]/20 text-[15px] font-sans font-light text-[#0A1018] py-4 placeholder:text-[#0A1018]/20 focus:outline-none focus:border-[#A85C1E] transition-all resize-none tracking-[0.02em]"
+                                placeholder="Hãy mô tả ngắn gọn vấn đề bạn cần chuyên gia giải đáp để buổi tư vấn hiệu quả hơn..."
+                                className="w-full bg-[#F5F8FF] border-[3px] border-black/5 rounded-none p-6 text-base text-[#171716] font-dm-sans placeholder:text-black/20 focus:outline-none focus:border-[#00A4FD] transition-all resize-none leading-relaxed"
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
                             />
-                        </div>
+                        </section>
                     </div>
 
-                    {/* ── Sidebar (Right) ── */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-36 h-fit">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="bg-[#0A1018] p-12 rounded-[2px] shadow-2xl relative overflow-hidden border border-white/10"
+                    {/* Order Summary (Right) */}
+                    <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
+                        <motion.aside
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="bg-[#0046EA] border-[6px] border-[#0046EA] p-10 rounded-none shadow-2xl relative overflow-hidden text-white"
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#C9A84C]/5 blur-[60px] rounded-full" />
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 blur-[80px] rounded-full -mr-24 -mt-24" />
 
-                            {/* Mini Profile */}
-                            <div className="flex items-center gap-6 mb-16 relative z-10">
-                                <img src={avatarSrc} alt={expert.user?.full_name}
-                                    className="w-14 h-14 rounded-[2px] object-cover border border-white/10 shadow-xl" />
+                            <div className="flex items-center gap-6 mb-12 relative z-10">
+                                <div className="w-20 h-20 rounded-none border-[3px] border-white/20 overflow-hidden ring-[6px] ring-white/10 group-hover:ring-[#FFE900] transition-all">
+                                    <img src={avatarSrc} alt={expert.user?.full_name} className="w-full h-full object-cover" />
+                                </div>
                                 <div className="space-y-1">
-                                    <p className="text-[#A85C1E] text-[10px] font-normal uppercase tracking-[0.2em] font-sans">Cố vấn đồng hành</p>
-                                    <h3 className="text-white font-serif italic text-xl leading-tight font-light">{expert.user?.full_name}</h3>
+                                    <p className="text-[10px] font-black text-[#FFE900] uppercase tracking-widest">Active Advisor</p>
+                                    <h3 className="text-white font-garamond italic font-bold text-2xl leading-tight">{expert.user?.full_name}</h3>
                                 </div>
                             </div>
 
-                            <div className="space-y-10">
-                                <div className="p-8 border border-white/10 bg-white/[0.04] rounded-[2px] space-y-6">
-                                    <h4 className="text-[10px] font-normal text-white/70 uppercase tracking-[0.4em] font-sans">Phiên tư vấn</h4>
-
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center text-[11px] font-sans uppercase tracking-[0.1em] text-white/60">
-                                            <span>Thời lượng</span>
-                                            <span className="text-white/80">60 Phút</span>
+                            <div className="space-y-8 relative z-10">
+                                {/* MENTOR PWYW notice */}
+                                {isMentor && (
+                                    <div className="flex items-start gap-4 p-6 rounded-none bg-white/10 border border-white/20">
+                                        <Heart className="w-5 h-5 text-[#FFE900] shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-[10px] font-black text-[#FFE900] uppercase tracking-widest mb-1">Chế độ Tùy hỷ</p>
+                                            <p className="text-white/60 text-[10px] leading-relaxed font-dm-sans">Không cần credit. Hãy ủng hộ Cố vấn sau buổi học tùy tâm.</p>
                                         </div>
-                                        {selectedDate && (
-                                            <div className="flex justify-between items-center text-[11px] font-sans uppercase tracking-[0.1em] text-white/60">
-                                                <span>Ngày hẹn</span>
-                                                <span className="text-[#C9A84C] italic font-serif text-[13px] lowercase">{selectedDate}</span>
-                                            </div>
-                                        )}
-                                        {selectedTime && (
-                                            <div className="flex justify-between items-center text-[10px] font-sans uppercase tracking-[0.14em] text-white/70">
-                                                <span>Khung giờ</span>
-                                                <span className="text-[#A85C1E] italic font-serif text-[13px] lowercase">{selectedTime}</span>
-                                            </div>
-                                        )}
                                     </div>
+                                )}
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center py-4 border-b border-white/10">
+                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Dịch vụ</span>
+                                        <span className="text-xs text-white font-black uppercase tracking-wider">
+                                            {isMentor ? 'Cố vấn Cộng đồng' : 'Tư vấn Chiến lược'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-4 border-b border-white/10">
+                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Thời lượng</span>
+                                        <span className="text-xs text-white font-black uppercase tracking-wider">60 Phút</span>
+                                    </div>
+                                    {selectedDate && (
+                                        <div className="flex justify-between items-center py-4 border-b border-white/10">
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Triển khai</span>
+                                            <span className="text-xs text-[#FFE900] font-black uppercase tracking-widest">{selectedDate}</span>
+                                        </div>
+                                    )}
+                                    {selectedTime && (
+                                        <div className="flex justify-between items-center py-4 border-b border-white/10">
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Thời gian</span>
+                                            <span className="text-xs text-[#FFE900] font-black uppercase tracking-widest">{selectedTime}</span>
+                                        </div>
+                                    )}
+                                </div>
 
-                                    <div className="pt-6 border-t border-white/10 flex justify-between items-baseline">
-                                        <span className="text-[10px] font-normal text-white/80 uppercase tracking-[0.2em] font-sans">Đầu tư</span>
+                                <div className="pt-8 flex justify-between items-end">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                                            {isMentor ? 'Chi phí' : 'Khoản đầu tư'}
+                                        </p>
+                                        {!isMentor && <p className="text-[10px] text-white/40 italic font-dm-sans">Ký quỹ an toàn</p>}
+                                    </div>
+                                    {isMentor ? (
+                                        <div className="flex items-center gap-2">
+                                            <Heart className="w-6 h-6 text-[#FFE900]" />
+                                            <span className="text-3xl font-garamond italic font-bold text-[#FFE900]">Tùy hỷ</span>
+                                        </div>
+                                    ) : (
                                         <div className="flex items-baseline gap-2">
-                                            <span className="text-4xl font-serif italic text-[#C9A84C] font-light">{expert.hourly_rate}</span>
-                                            <span className="text-white/70 text-[10px] font-sans uppercase tracking-widest">Xu</span>
+                                            <span className="text-5xl font-garamond italic font-bold text-[#FFE900]">{expert.hourly_rate}</span>
+                                            <span className="text-[9px] text-white/40 font-black uppercase tracking-widest">Credits</span>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 <button
                                     onClick={handleBooking}
                                     disabled={!selectedDate || !selectedTime || isSubmitting}
-                                    className="w-full py-7 bg-[#C9A84C] text-[#0A1018] font-sans text-[11px] font-normal uppercase tracking-[0.14em] rounded-[2px] transition-all duration-700 hover:bg-white hover:shadow-xl active:scale-[0.98] disabled:opacity-20 flex items-center justify-center gap-4"
+                                    className="w-full h-16 bg-[#FFE900] text-[#0046EA] hover:bg-white transition-all duration-700 text-[11px] font-black uppercase tracking-[0.4em] rounded-none shadow-2xl disabled:opacity-20 flex items-center justify-center gap-4"
                                 >
                                     {isSubmitting ? (
-                                        <div className="w-5 h-5 border border-[#0A1018]/20 border-t-[#0A1018] rounded-full animate-spin" />
+                                        <div className="w-5 h-5 border-2 border-[#0046EA]/30 border-t-[#0046EA] rounded-full animate-spin" />
                                     ) : (
-                                        <>Xác nhận đặt lịch <ChevronRight size={14} strokeWidth={1} /></>
+                                        <>
+                                            Xác nhận Đặt lịch <ChevronRight size={16} />
+                                        </>
                                     )}
                                 </button>
 
-                                <div className="mt-14 space-y-7 pt-12 border-t border-white/10 opacity-40">
-                                    {[
-                                        { text: 'Giao dịch Mã hóa', icon: ShieldCheck },
-                                        { text: 'Hỗ trợ Toàn cầu', icon: MessageSquare },
-                                        { text: 'Cam kết Tinh hoa', icon: Award }
-                                    ].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-5 text-[10px] font-normal text-white uppercase tracking-[0.15em] font-sans">
-                                            <item.icon size={13} className="text-[#C9A84C]" strokeWidth={1} />
+                                <div className="mt-8 space-y-4 pt-8 border-t border-white/10">
+                                    {(isMentor ? [
+                                        { text: 'KHÔNG CẦN CREDIT', icon: Heart, color: 'text-[#FFE900]' },
+                                        { text: 'KÊNH TRÒ CHUYỆN BẢO MẬT', icon: MessageSquare, color: 'text-white' },
+                                        { text: 'CỐ VẤN ĐÃ XÁC MINH', icon: Award, color: 'text-[#FFE900]' }
+                                    ] : [
+                                        { text: 'BẢO VỆ KÝ QUỸ TỨC THÌ', icon: ShieldCheck, color: 'text-[#FFE900]' },
+                                        { text: 'KÊNH TRÒ CHUYỆN BẢO MẬT', icon: MessageSquare, color: 'text-white' },
+                                        { text: 'CHUYÊN GIA KIỆT XUẤT', icon: Award, color: 'text-[#FFE900]' }
+                                    ]).map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-4 text-[9px] font-black text-white/40 uppercase tracking-widest">
+                                            <item.icon size={12} className={item.color as any} />
                                             {item.text}
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        </motion.div>
+                        </motion.aside>
                     </div>
                 </div>
             </main>
         </motion.div>
     );
 }
+

@@ -1,0 +1,768 @@
+{
+    "items": [
+        {
+            "bio": "you are a kindness person ",
+            "linkedin_url": "https://www.linkedin.com/",
+            "experience_years": 5,
+            "hourly_rate": 90,
+            "kyc_documents": "https://drive.google.com/drive/",
+            "tags": "IT",
+            "id": 22,
+            "user_id": 40,
+            "rating": 5.0,
+            "total_reviews": 3,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "thuy@gmail.com",
+                "full_name": "th\u00fay",
+                "phone_number": "12345678913",
+                "avatar_url": "/uploads/avatars/5b509f17-6c58-4ce4-aac8-e7e806b5943c.png",
+                "is_active": true,
+                "id": 40,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 270,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 22,
+                    "kyc_status": "APPROVED",
+                    "bio": "you are a kindness person ",
+                    "linkedin_url": "https://www.linkedin.com/",
+                    "experience_years": 5,
+                    "hourly_rate": 90,
+                    "tags": "IT",
+                    "kyc_documents": "https://drive.google.com/drive/"
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 5,
+                    "start_time": "02:03",
+                    "end_time": "21:05",
+                    "id": 108,
+                    "expert_id": 22
+                },
+                {
+                    "day_of_week": 5,
+                    "start_time": "05:00",
+                    "end_time": "06:00",
+                    "id": 109,
+                    "expert_id": 22
+                }
+            ]
+        },
+        {
+            "bio": "Senior AI Research Scientist t\u1ea1i Google DeepMind v\u1edbi 12 n\u0103m kinh nghi\u1ec7m trong Machine Learning v\u00e0 Deep Learning. \u0110\u00e3 publish 30+ b\u00e0i b\u00e1o t\u1ea1i NeurIPS, ICML, ICLR. T\u1eebng l\u00e0 keynote speaker t\u1ea1i VietAI Summit 2023.\n\nChuy\u00ean s\u00e2u: PyTorch, TensorFlow, Computer Vision, NLP, Reinforcement Learning.\nGi\u00fap b\u1ea1n: thi\u1ebft k\u1ebf ki\u1ebfn tr\u00fac model, debug training, career path trong AI/ML, chu\u1ea9n b\u1ecb PhD applications.",
+            "linkedin_url": "https://linkedin.com/in/sarah-nguyen-ml",
+            "experience_years": 12,
+            "hourly_rate": 250,
+            "kyc_documents": "https://www.youtube.com/",
+            "tags": "Machine Learning, Deep Learning, Computer Vision, NLP, Python, PyTorch, Research,HR,GameDeginer",
+            "id": 3,
+            "user_id": 18,
+            "rating": 4.97,
+            "total_reviews": 317,
+            "kyc_status": "APPROVED",
+            "bank_name": "TPBank",
+            "bank_account": "00000102440",
+            "bank_holder_name": "\u0110\u1eb7ng Quang Kh\u1ea3i",
+            "user": {
+                "email": "sarah.ml@careerpath.com",
+                "full_name": "Sarah Nguy\u1ec5n",
+                "phone_number": "0901234501",
+                "avatar_url": "https://cellphones.com.vn/sforum/wp-content/uploads/2024/01/avartar-anime-7.jpg",
+                "is_active": true,
+                "id": 18,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 3,
+                    "kyc_status": "APPROVED",
+                    "bio": "Senior AI Research Scientist t\u1ea1i Google DeepMind v\u1edbi 12 n\u0103m kinh nghi\u1ec7m trong Machine Learning v\u00e0 Deep Learning. \u0110\u00e3 publish 30+ b\u00e0i b\u00e1o t\u1ea1i NeurIPS, ICML, ICLR. T\u1eebng l\u00e0 keynote speaker t\u1ea1i VietAI Summit 2023.\n\nChuy\u00ean s\u00e2u: PyTorch, TensorFlow, Computer Vision, NLP, Reinforcement Learning.\nGi\u00fap b\u1ea1n: thi\u1ebft k\u1ebf ki\u1ebfn tr\u00fac model, debug training, career path trong AI/ML, chu\u1ea9n b\u1ecb PhD applications.",
+                    "linkedin_url": "https://linkedin.com/in/sarah-nguyen-ml",
+                    "experience_years": 12,
+                    "hourly_rate": 250,
+                    "tags": "Machine Learning, Deep Learning, Computer Vision, NLP, Python, PyTorch, Research,HR,GameDeginer",
+                    "kyc_documents": "https://www.youtube.com/"
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 76,
+                    "expert_id": 3
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 77,
+                    "expert_id": 3
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "08:00",
+                    "end_time": "12:00",
+                    "id": 78,
+                    "expert_id": 3
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "03:21",
+                    "end_time": "17:00",
+                    "id": 79,
+                    "expert_id": 3
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 80,
+                    "expert_id": 3
+                }
+            ]
+        },
+        {
+            "bio": "Lead Frontend Architect t\u1ea1i Shopee v\u1edbi 10 n\u0103m x\u00e2y d\u1ef1ng UI h\u00e0ng tri\u1ec7u DAU. Core contributor c\u1ee7a React ecosystem. Chuy\u00ean gia v\u1ec1 Web Performance & Accessibility.\n\nStack: React 19, Next.js 15, TypeScript, GraphQL, Micro-frontends.\nGi\u00fap b\u1ea1n: code review, system design frontend, ph\u1ecfng v\u1ea5n k\u1ef9 thu\u1eadt, t\u1ed1i \u01b0u Core Web Vitals.",
+            "linkedin_url": "https://linkedin.com/in/marcus-tran-frontend",
+            "experience_years": 10,
+            "hourly_rate": 200,
+            "kyc_documents": null,
+            "tags": "React, Next.js, TypeScript, UI/UX, Web Performance, GraphQL, Frontend Architecture",
+            "id": 4,
+            "user_id": 19,
+            "rating": 4.9,
+            "total_reviews": 278,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "marcus.frontend@careerpath.com",
+                "full_name": "Marcus Tr\u1ea7n",
+                "phone_number": "0901234502",
+                "avatar_url": "https://ui-avatars.com/api/?name=Marcus+Tran&background=7c3aed&color=fff&size=128",
+                "is_active": true,
+                "id": 19,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 4,
+                    "kyc_status": "APPROVED",
+                    "bio": "Lead Frontend Architect t\u1ea1i Shopee v\u1edbi 10 n\u0103m x\u00e2y d\u1ef1ng UI h\u00e0ng tri\u1ec7u DAU. Core contributor c\u1ee7a React ecosystem. Chuy\u00ean gia v\u1ec1 Web Performance & Accessibility.\n\nStack: React 19, Next.js 15, TypeScript, GraphQL, Micro-frontends.\nGi\u00fap b\u1ea1n: code review, system design frontend, ph\u1ecfng v\u1ea5n k\u1ef9 thu\u1eadt, t\u1ed1i \u01b0u Core Web Vitals.",
+                    "linkedin_url": "https://linkedin.com/in/marcus-tran-frontend",
+                    "experience_years": 10,
+                    "hourly_rate": 200,
+                    "tags": "React, Next.js, TypeScript, UI/UX, Web Performance, GraphQL, Frontend Architecture",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 0,
+                    "start_time": "19:00",
+                    "end_time": "22:00",
+                    "id": 14,
+                    "expert_id": 4
+                },
+                {
+                    "day_of_week": 2,
+                    "start_time": "19:00",
+                    "end_time": "22:00",
+                    "id": 15,
+                    "expert_id": 4
+                },
+                {
+                    "day_of_week": 4,
+                    "start_time": "19:00",
+                    "end_time": "22:00",
+                    "id": 16,
+                    "expert_id": 4
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 17,
+                    "expert_id": 4
+                }
+            ]
+        },
+        {
+            "bio": "Ex-CTO t\u1ea1i 3 startup unicorn (fintech, edtech, logistics). Angel investor v\u1edbi 15 deal portfolio. Forbes Vietnam 30 Under 30 (2021).\n\nChuy\u00ean gia: Product roadmap, Fundraising Series A-C, Team building, OKR framework, Go-to-market strategy.\nGi\u00fap b\u1ea1n: pitch deck review, co-founder conflicts, scaling engineering team, Vietnam market entry.",
+            "linkedin_url": "https://linkedin.com/in/elena-pham-cto",
+            "experience_years": 9,
+            "hourly_rate": 300,
+            "kyc_documents": null,
+            "tags": "Startup, CTO, Strategy, Fundraising, Product Management, Leadership, SaaS, Fintech",
+            "id": 5,
+            "user_id": 20,
+            "rating": 4.88,
+            "total_reviews": 196,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "elena.startup@careerpath.com",
+                "full_name": "Elena Ph\u1ea1m",
+                "phone_number": "0901234503",
+                "avatar_url": "https://ui-avatars.com/api/?name=Elena+Pham&background=0891b2&color=fff&size=128",
+                "is_active": true,
+                "id": 20,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 300,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 5,
+                    "kyc_status": "APPROVED",
+                    "bio": "Ex-CTO t\u1ea1i 3 startup unicorn (fintech, edtech, logistics). Angel investor v\u1edbi 15 deal portfolio. Forbes Vietnam 30 Under 30 (2021).\n\nChuy\u00ean gia: Product roadmap, Fundraising Series A-C, Team building, OKR framework, Go-to-market strategy.\nGi\u00fap b\u1ea1n: pitch deck review, co-founder conflicts, scaling engineering team, Vietnam market entry.",
+                    "linkedin_url": "https://linkedin.com/in/elena-pham-cto",
+                    "experience_years": 9,
+                    "hourly_rate": 300,
+                    "tags": "Startup, CTO, Strategy, Fundraising, Product Management, Leadership, SaaS, Fintech",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "07:00",
+                    "end_time": "09:00",
+                    "id": 18,
+                    "expert_id": 5
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "07:00",
+                    "end_time": "09:00",
+                    "id": 19,
+                    "expert_id": 5
+                },
+                {
+                    "day_of_week": 5,
+                    "start_time": "07:00",
+                    "end_time": "09:00",
+                    "id": 20,
+                    "expert_id": 5
+                }
+            ]
+        },
+        {
+            "bio": "Principal DevOps Engineer t\u1ea1i AWS Vietnam. AWS Solutions Architect Professional & CKA certified. 8 n\u0103m x\u00e2y h\u1ec7 th\u1ed1ng cloud-native cho 200+ enterprise clients.\n\nStack: Kubernetes, Terraform, GitOps, Observability (Grafana/Prometheus), Multi-cloud.\nGi\u00fap b\u1ea1n: thi\u1ebft k\u1ebf CI/CD pipeline, Kubernetes troubleshooting, cost optimization AWS/GCP, SRE practices.",
+            "linkedin_url": "https://linkedin.com/in/david-le-devops",
+            "experience_years": 8,
+            "hourly_rate": 180,
+            "kyc_documents": null,
+            "tags": "DevOps, Kubernetes, AWS, Terraform, CI/CD, Docker, Cloud Architecture, SRE",
+            "id": 6,
+            "user_id": 21,
+            "rating": 4.8,
+            "total_reviews": 234,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "david.devops@careerpath.com",
+                "full_name": "David L\u00ea",
+                "phone_number": "0901234504",
+                "avatar_url": "https://ui-avatars.com/api/?name=David+Le&background=059669&color=fff&size=128",
+                "is_active": true,
+                "id": 21,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 6,
+                    "kyc_status": "APPROVED",
+                    "bio": "Principal DevOps Engineer t\u1ea1i AWS Vietnam. AWS Solutions Architect Professional & CKA certified. 8 n\u0103m x\u00e2y h\u1ec7 th\u1ed1ng cloud-native cho 200+ enterprise clients.\n\nStack: Kubernetes, Terraform, GitOps, Observability (Grafana/Prometheus), Multi-cloud.\nGi\u00fap b\u1ea1n: thi\u1ebft k\u1ebf CI/CD pipeline, Kubernetes troubleshooting, cost optimization AWS/GCP, SRE practices.",
+                    "linkedin_url": "https://linkedin.com/in/david-le-devops",
+                    "experience_years": 8,
+                    "hourly_rate": 180,
+                    "tags": "DevOps, Kubernetes, AWS, Terraform, CI/CD, Docker, Cloud Architecture, SRE",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 0,
+                    "start_time": "08:00",
+                    "end_time": "12:00",
+                    "id": 21,
+                    "expert_id": 6
+                },
+                {
+                    "day_of_week": 2,
+                    "start_time": "08:00",
+                    "end_time": "12:00",
+                    "id": 22,
+                    "expert_id": 6
+                },
+                {
+                    "day_of_week": 4,
+                    "start_time": "08:00",
+                    "end_time": "12:00",
+                    "id": 23,
+                    "expert_id": 6
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "14:00",
+                    "end_time": "18:00",
+                    "id": 24,
+                    "expert_id": 6
+                }
+            ]
+        },
+        {
+            "bio": "Senior Product Manager t\u1ea1i Meta v\u1edbi 8 n\u0103m kinh nghi\u1ec7m. T\u1eebng PM cho Instagram Reels (200M+ users). MBA t\u1eeb INSEAD.\n\nFramework: RICE scoring, Jobs-to-be-done, Growth loops, A/B testing at scale.\nGi\u00fap b\u1ea1n: chuy\u1ec3n sang PM t\u1eeb engineering/design, PRD writing, stakeholder management, PM interview prep (FAANG level).",
+            "linkedin_url": "https://linkedin.com/in/angela-hoang-pm",
+            "experience_years": 8,
+            "hourly_rate": 220,
+            "kyc_documents": null,
+            "tags": "Product Management, Growth, A/B Testing, FAANG, User Research, Roadmap, Analytics",
+            "id": 7,
+            "user_id": 22,
+            "rating": 4.8,
+            "total_reviews": 167,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "angela.pmgr@careerpath.com",
+                "full_name": "Angela Ho\u00e0ng",
+                "phone_number": "0901234505",
+                "avatar_url": "https://ui-avatars.com/api/?name=Angela+Hoang&background=db2777&color=fff&size=128",
+                "is_active": true,
+                "id": 22,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 7,
+                    "kyc_status": "APPROVED",
+                    "bio": "Senior Product Manager t\u1ea1i Meta v\u1edbi 8 n\u0103m kinh nghi\u1ec7m. T\u1eebng PM cho Instagram Reels (200M+ users). MBA t\u1eeb INSEAD.\n\nFramework: RICE scoring, Jobs-to-be-done, Growth loops, A/B testing at scale.\nGi\u00fap b\u1ea1n: chuy\u1ec3n sang PM t\u1eeb engineering/design, PRD writing, stakeholder management, PM interview prep (FAANG level).",
+                    "linkedin_url": "https://linkedin.com/in/angela-hoang-pm",
+                    "experience_years": 8,
+                    "hourly_rate": 220,
+                    "tags": "Product Management, Growth, A/B Testing, FAANG, User Research, Roadmap, Analytics",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "12:00",
+                    "end_time": "18:00",
+                    "id": 25,
+                    "expert_id": 7
+                },
+                {
+                    "day_of_week": 4,
+                    "start_time": "12:00",
+                    "end_time": "18:00",
+                    "id": 26,
+                    "expert_id": 7
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "09:00",
+                    "end_time": "13:00",
+                    "id": 27,
+                    "expert_id": 7
+                }
+            ]
+        },
+        {
+            "bio": "Blockchain Engineer & DeFi Researcher v\u1edbi 7 n\u0103m. T\u1eebng l\u00e0 Lead Smart Contract dev t\u1ea1i Kyber Network. Audit 50+ protocol on Ethereum, Solana, Sei.\n\nChuy\u00ean m\u00f4n: Solidity, Rust, Gas optimization, MEV, Security audit, Tokenomics design.\nGi\u00fap b\u1ea1n: smart contract review, DeFi protocol design, Web3 career path, audit readiness.",
+            "linkedin_url": "https://linkedin.com/in/kevin-vo-blockchain",
+            "experience_years": 7,
+            "hourly_rate": 200,
+            "kyc_documents": null,
+            "tags": "Blockchain, Solidity, DeFi, Web3, Smart Contracts, Ethereum, Security Audit, Rust",
+            "id": 8,
+            "user_id": 23,
+            "rating": 4.7,
+            "total_reviews": 143,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "kevin.blockchain@careerpath.com",
+                "full_name": "Kevin V\u00f5",
+                "phone_number": "0901234506",
+                "avatar_url": "https://ui-avatars.com/api/?name=Kevin+Vo&background=d97706&color=fff&size=128",
+                "is_active": true,
+                "id": 23,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 8,
+                    "kyc_status": "APPROVED",
+                    "bio": "Blockchain Engineer & DeFi Researcher v\u1edbi 7 n\u0103m. T\u1eebng l\u00e0 Lead Smart Contract dev t\u1ea1i Kyber Network. Audit 50+ protocol on Ethereum, Solana, Sei.\n\nChuy\u00ean m\u00f4n: Solidity, Rust, Gas optimization, MEV, Security audit, Tokenomics design.\nGi\u00fap b\u1ea1n: smart contract review, DeFi protocol design, Web3 career path, audit readiness.",
+                    "linkedin_url": "https://linkedin.com/in/kevin-vo-blockchain",
+                    "experience_years": 7,
+                    "hourly_rate": 200,
+                    "tags": "Blockchain, Solidity, DeFi, Web3, Smart Contracts, Ethereum, Security Audit, Rust",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 0,
+                    "start_time": "20:00",
+                    "end_time": "23:00",
+                    "id": 28,
+                    "expert_id": 8
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "20:00",
+                    "end_time": "23:00",
+                    "id": 29,
+                    "expert_id": 8
+                },
+                {
+                    "day_of_week": 5,
+                    "start_time": "10:00",
+                    "end_time": "16:00",
+                    "id": 30,
+                    "expert_id": 8
+                }
+            ]
+        },
+        {
+            "bio": "Principal UX Designer t\u1ea1i Grab Design. T\u1eebng lead redesign si\u00eau app Grab Vi\u1ec7t Nam (2022). Certified Google UX Design Professional.\n\nExpertise: Design Systems, Figma, UX Research, Accessibility, Motion Design.\nGi\u00fap b\u1ea1n: portfolio critique, design system setup, UX case study cho internship/fresher, chuy\u1ec3n t\u1eeb graphic design sang UX.",
+            "linkedin_url": "https://linkedin.com/in/maya-ngo-ux",
+            "experience_years": 6,
+            "hourly_rate": 140,
+            "kyc_documents": null,
+            "tags": "UX Design, UI Design, Figma, Design System, User Research, Prototyping, Accessibility",
+            "id": 11,
+            "user_id": 26,
+            "rating": 4.6,
+            "total_reviews": 156,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "maya.ux@careerpath.com",
+                "full_name": "Maya Ng\u00f4",
+                "phone_number": "0901234509",
+                "avatar_url": "https://ui-avatars.com/api/?name=Maya+Ngo&background=be185d&color=fff&size=128",
+                "is_active": true,
+                "id": 26,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 11,
+                    "kyc_status": "APPROVED",
+                    "bio": "Principal UX Designer t\u1ea1i Grab Design. T\u1eebng lead redesign si\u00eau app Grab Vi\u1ec7t Nam (2022). Certified Google UX Design Professional.\n\nExpertise: Design Systems, Figma, UX Research, Accessibility, Motion Design.\nGi\u00fap b\u1ea1n: portfolio critique, design system setup, UX case study cho internship/fresher, chuy\u1ec3n t\u1eeb graphic design sang UX.",
+                    "linkedin_url": "https://linkedin.com/in/maya-ngo-ux",
+                    "experience_years": 6,
+                    "hourly_rate": 140,
+                    "tags": "UX Design, UI Design, Figma, Design System, User Research, Prototyping, Accessibility",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 38,
+                    "expert_id": 11
+                },
+                {
+                    "day_of_week": 4,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 39,
+                    "expert_id": 11
+                }
+            ]
+        },
+        {
+            "bio": "Data Science Lead t\u1ea1i MoMo fintech platform. 7 n\u0103m l\u00e0m vi\u1ec7c v\u1edbi d\u1eef li\u1ec7u th\u1ef1c t\u1ebf \u1edf production scale.\n\nTools: Python, SQL, Spark, dbt, Airflow, Tableau, Looker.\nGi\u00fap b\u1ea1n: x\u00e2y data pipeline, fraud detection models, SQL interview, chuy\u1ec3n t\u1eeb BI sang Data Science, portfolio cho DS job applications.",
+            "linkedin_url": "https://linkedin.com/in/lisa-bui-data",
+            "experience_years": 7,
+            "hourly_rate": 150,
+            "kyc_documents": null,
+            "tags": "Data Science, Python, SQL, Machine Learning, Spark, Analytics, dbt, Fintech",
+            "id": 9,
+            "user_id": 24,
+            "rating": 4.6,
+            "total_reviews": 189,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "lisa.data@careerpath.com",
+                "full_name": "Lisa B\u00f9i",
+                "phone_number": "0901234507",
+                "avatar_url": "https://ui-avatars.com/api/?name=Lisa+Bui&background=7c3aed&color=fff&size=128",
+                "is_active": true,
+                "id": 24,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 9,
+                    "kyc_status": "APPROVED",
+                    "bio": "Data Science Lead t\u1ea1i MoMo fintech platform. 7 n\u0103m l\u00e0m vi\u1ec7c v\u1edbi d\u1eef li\u1ec7u th\u1ef1c t\u1ebf \u1edf production scale.\n\nTools: Python, SQL, Spark, dbt, Airflow, Tableau, Looker.\nGi\u00fap b\u1ea1n: x\u00e2y data pipeline, fraud detection models, SQL interview, chuy\u1ec3n t\u1eeb BI sang Data Science, portfolio cho DS job applications.",
+                    "linkedin_url": "https://linkedin.com/in/lisa-bui-data",
+                    "experience_years": 7,
+                    "hourly_rate": 150,
+                    "tags": "Data Science, Python, SQL, Machine Learning, Spark, Analytics, dbt, Fintech",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "18:00",
+                    "end_time": "21:00",
+                    "id": 31,
+                    "expert_id": 9
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "18:00",
+                    "end_time": "21:00",
+                    "id": 32,
+                    "expert_id": 9
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "08:00",
+                    "end_time": "14:00",
+                    "id": 33,
+                    "expert_id": 9
+                }
+            ]
+        },
+        {
+            "bio": "Staff Backend Engineer t\u1ea1i Tiki v\u1edbi 8 n\u0103m. Architect c\u1ee7a h\u1ec7 th\u1ed1ng order management ch\u1ecbu t\u1ea3i 100K req/s.\n\nTech: Go, Rust, Java/Spring, gRPC, Kafka, PostgreSQL, Redis, Domain-driven Design.\nGi\u00fap b\u1ea1n: system design interview (Google/Amazon level), microservices patterns, database optimization, tech lead roadmap.",
+            "linkedin_url": "https://linkedin.com/in/ryan-dinh-backend",
+            "experience_years": 8,
+            "hourly_rate": 160,
+            "kyc_documents": null,
+            "tags": "Backend, Go, Java, System Design, Microservices, Kafka, PostgreSQL, High Performance",
+            "id": 10,
+            "user_id": 25,
+            "rating": 4.6,
+            "total_reviews": 211,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "ryan.backend@careerpath.com",
+                "full_name": "Ryan \u0110inh",
+                "phone_number": "0901234508",
+                "avatar_url": "https://ui-avatars.com/api/?name=Ryan+Dinh&background=0891b2&color=fff&size=128",
+                "is_active": true,
+                "id": 25,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 10,
+                    "kyc_status": "APPROVED",
+                    "bio": "Staff Backend Engineer t\u1ea1i Tiki v\u1edbi 8 n\u0103m. Architect c\u1ee7a h\u1ec7 th\u1ed1ng order management ch\u1ecbu t\u1ea3i 100K req/s.\n\nTech: Go, Rust, Java/Spring, gRPC, Kafka, PostgreSQL, Redis, Domain-driven Design.\nGi\u00fap b\u1ea1n: system design interview (Google/Amazon level), microservices patterns, database optimization, tech lead roadmap.",
+                    "linkedin_url": "https://linkedin.com/in/ryan-dinh-backend",
+                    "experience_years": 8,
+                    "hourly_rate": 160,
+                    "tags": "Backend, Go, Java, System Design, Microservices, Kafka, PostgreSQL, High Performance",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 0,
+                    "start_time": "07:00",
+                    "end_time": "09:00",
+                    "id": 34,
+                    "expert_id": 10
+                },
+                {
+                    "day_of_week": 2,
+                    "start_time": "07:00",
+                    "end_time": "09:00",
+                    "id": 35,
+                    "expert_id": 10
+                },
+                {
+                    "day_of_week": 4,
+                    "start_time": "07:00",
+                    "end_time": "09:00",
+                    "id": 36,
+                    "expert_id": 10
+                },
+                {
+                    "day_of_week": 5,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 37,
+                    "expert_id": 10
+                }
+            ]
+        },
+        {
+            "bio": "Experienced Career Counselor & IT Mentor v\u1edbi 10 n\u0103m kinh nghi\u1ec7m trong ng\u00e0nh c\u00f4ng ngh\u1ec7 th\u00f4ng tin. T\u1eebng l\u00e0m vi\u1ec7c t\u1ea1i nhi\u1ec1u c\u00f4ng ty trong n\u01b0\u1edbc v\u00e0 n\u01b0\u1edbc ngo\u00e0i. Chuy\u00ean h\u1ed7 tr\u1ee3 \u0111\u1ecbnh h\u01b0\u1edbng ngh\u1ec1 nghi\u1ec7p, ph\u1ecfng v\u1ea5n k\u1ef9 thu\u1eadt v\u00e0 ph\u00e1t tri\u1ec3n b\u1ea3n th\u00e2n cho k\u1ef9 s\u01b0 ph\u1ea7n m\u1ec1m \u1edf m\u1ecdi c\u1ea5p \u0111\u1ed9.",
+            "linkedin_url": "https://linkedin.com/in/dr-expert-careerpath",
+            "experience_years": 10,
+            "hourly_rate": 100,
+            "kyc_documents": null,
+            "tags": "Career Coaching, IT, Mentoring, Interview Prep, Software Engineering, Career Planning",
+            "id": 1,
+            "user_id": 3,
+            "rating": 4.5,
+            "total_reviews": 89,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "expert@careerpath.com",
+                "full_name": "Dr. Expert",
+                "phone_number": "0123456789",
+                "avatar_url": null,
+                "is_active": true,
+                "id": 3,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 100,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 1,
+                    "kyc_status": "APPROVED",
+                    "bio": "Experienced Career Counselor & IT Mentor v\u1edbi 10 n\u0103m kinh nghi\u1ec7m trong ng\u00e0nh c\u00f4ng ngh\u1ec7 th\u00f4ng tin. T\u1eebng l\u00e0m vi\u1ec7c t\u1ea1i nhi\u1ec1u c\u00f4ng ty trong n\u01b0\u1edbc v\u00e0 n\u01b0\u1edbc ngo\u00e0i. Chuy\u00ean h\u1ed7 tr\u1ee3 \u0111\u1ecbnh h\u01b0\u1edbng ngh\u1ec1 nghi\u1ec7p, ph\u1ecfng v\u1ea5n k\u1ef9 thu\u1eadt v\u00e0 ph\u00e1t tri\u1ec3n b\u1ea3n th\u00e2n cho k\u1ef9 s\u01b0 ph\u1ea7n m\u1ec1m \u1edf m\u1ecdi c\u1ea5p \u0111\u1ed9.",
+                    "linkedin_url": "https://linkedin.com/in/dr-expert-careerpath",
+                    "experience_years": 10,
+                    "hourly_rate": 100,
+                    "tags": "Career Coaching, IT, Mentoring, Interview Prep, Software Engineering, Career Planning",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "08:00",
+                    "end_time": "20:00",
+                    "id": 64,
+                    "expert_id": 1
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "08:00",
+                    "end_time": "20:00",
+                    "id": 65,
+                    "expert_id": 1
+                },
+                {
+                    "day_of_week": 5,
+                    "start_time": "08:00",
+                    "end_time": "20:00",
+                    "id": 66,
+                    "expert_id": 1
+                },
+                {
+                    "day_of_week": 6,
+                    "start_time": "09:00",
+                    "end_time": "17:00",
+                    "id": 67,
+                    "expert_id": 1
+                }
+            ]
+        },
+        {
+            "bio": "Growth Marketing Director t\u1ea1i m\u1ed9t startup Series B edtech. 6 n\u0103m t\u0103ng tr\u01b0\u1edfng user base t\u1eeb 0 \u2192 2 tri\u1ec7u. Chuy\u00ean gia Performance Marketing & SEO.\n\nK\u1ef9 n\u0103ng: Facebook/Google Ads, SEO onpage, Content strategy, Email marketing automation, CRO.\nGi\u00fap b\u1ea1n: x\u00e2y marketing funnel, t\u1ed1i \u01b0u ROAS, l\u1eadp k\u1ebf ho\u1ea1ch content, early-stage growth hacking.",
+            "linkedin_url": "https://linkedin.com/in/nina-truong-growth",
+            "experience_years": 6,
+            "hourly_rate": 120,
+            "kyc_documents": null,
+            "tags": "Growth Marketing, SEO, Performance Marketing, Content Strategy, Digital Marketing, CRO",
+            "id": 13,
+            "user_id": 28,
+            "rating": 4.4,
+            "total_reviews": 134,
+            "kyc_status": "APPROVED",
+            "bank_name": null,
+            "bank_account": null,
+            "bank_holder_name": null,
+            "user": {
+                "email": "nina.marketing@careerpath.com",
+                "full_name": "Nina Tr\u01b0\u01a1ng",
+                "phone_number": "0901234511",
+                "avatar_url": "https://ui-avatars.com/api/?name=Nina+Truong&background=9333ea&color=fff&size=128",
+                "is_active": true,
+                "id": 28,
+                "role": "EXPERT",
+                "account_status": "ACTIVE",
+                "credits": 0,
+                "is_superuser": false,
+                "expert_profile": {
+                    "id": 13,
+                    "kyc_status": "APPROVED",
+                    "bio": "Growth Marketing Director t\u1ea1i m\u1ed9t startup Series B edtech. 6 n\u0103m t\u0103ng tr\u01b0\u1edfng user base t\u1eeb 0 \u2192 2 tri\u1ec7u. Chuy\u00ean gia Performance Marketing & SEO.\n\nK\u1ef9 n\u0103ng: Facebook/Google Ads, SEO onpage, Content strategy, Email marketing automation, CRO.\nGi\u00fap b\u1ea1n: x\u00e2y marketing funnel, t\u1ed1i \u01b0u ROAS, l\u1eadp k\u1ebf ho\u1ea1ch content, early-stage growth hacking.",
+                    "linkedin_url": "https://linkedin.com/in/nina-truong-growth",
+                    "experience_years": 6,
+                    "hourly_rate": 120,
+                    "tags": "Growth Marketing, SEO, Performance Marketing, Content Strategy, Digital Marketing, CRO",
+                    "kyc_documents": null
+                }
+            },
+            "availabilities": [
+                {
+                    "day_of_week": 1,
+                    "start_time": "08:00",
+                    "end_time": "17:00",
+                    "id": 43,
+                    "expert_id": 13
+                },
+                {
+                    "day_of_week": 3,
+                    "start_time": "08:00",
+                    "end_time": "17:00",
+                    "id": 44,
+                    "expert_id": 13
+                },
+                {
+                    "day_of_week": 5,
+                    "start_time": "09:00",
+                    "end_time": "12:00",
+                    "id": 45,
+                    "expert_id": 13
+                }
+            ]
+        }
+    ],
+    "total": 21,
+    "page": 1,
+    "page_size": 12,
+    "total_pages": 2
+}

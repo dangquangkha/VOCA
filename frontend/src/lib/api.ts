@@ -1,24 +1,20 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const getBaseURL = () => {
+    // We prefer the environment variable, but fallback to 127.0.0.1 for local dev
+    // We use a trailing slash to ensure consistent path joining
     const envBase = process.env.NEXT_PUBLIC_API_URL;
-    console.log(`DEBUG: process.env.NEXT_PUBLIC_API_URL is: "${envBase}"`);
-    const base = envBase || 'http://127.0.0.1:8000/api/v1';
-    const finalBase = base.endsWith('/') ? base : `${base}/`;
-    console.log(`DEBUG: Final Axios baseURL is: "${finalBase}"`);
-    return finalBase;
+    const base = envBase || 'http://127.0.0.1:8001/api/v1';
+    return base.endsWith('/') ? base : `${base}/`;
 };
 
 const api = axios.create({
     baseURL: getBaseURL(),
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    timeout: 15000,
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    console.log(`AXIOS REQUEST: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     if (typeof window !== 'undefined') {
         const token = useAuthStore.getState().token;
         if (token) {
@@ -26,18 +22,24 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
         }
     }
     return config;
-}, (error) => {
-    console.error('AXIOS REQUEST ERROR:', error);
-    return Promise.reject(error);
 });
 
 api.interceptors.response.use(
-    (response: AxiosResponse) => response,
-    (error: AxiosError) => {
+    (response) => response,
+    (error) => {
+        const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+        const url = error.config?.url || 'UNKNOWN';
+        
+        // Log error for debugging (using warn instead of error to prevent Next.js Dev Error Overlay popup for handled API validation errors like 400 or 422)
+        console.warn(`[API ERROR] ${method} ${url}:`, error.response?.status, error.message);
+
+        // ONLY logout on 401 if we are not already on the login page
+        // and if it's NOT the /me call failing immediately after login
         if (error.response?.status === 401) {
-            if (typeof window !== 'undefined') {
+            const isLoginPage = typeof window !== 'undefined' && window.location.pathname.includes('/login');
+            if (!isLoginPage) {
+                console.warn('[API] Unauthorized access - Logging out');
                 useAuthStore.getState().logout();
-                // Redirect to login
                 window.location.href = '/login';
             }
         }

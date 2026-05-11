@@ -6,7 +6,7 @@ from sqlalchemy import or_, and_, desc, distinct, union_all
 from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
-from backend.app.models.user import User
+from backend.app.domains.identity.models import User
 from backend.app.models.chat import Message
 from backend.app.schemas.user import User as UserSchema
 

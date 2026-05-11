@@ -14,10 +14,20 @@ export const chatService = {
     },
 
     /**
+     * Get chat history (alias for getChatHistory)
+     */
+    getMessages: async (otherUserId: number, limit = 50, skip = 0): Promise<Message[]> => {
+        return chatService.getChatHistory(otherUserId, limit, skip);
+    },
+
+    /**
      * Send a new message
      */
-    sendMessage: async (data: MessageCreate): Promise<Message> => {
-        const response = await api.post('chat/', data);
+    sendMessage: async (receiverId: number, content: string): Promise<Message> => {
+        const response = await api.post('chat/', { 
+            receiver_id: receiverId, 
+            content 
+        });
         return response.data;
     },
 

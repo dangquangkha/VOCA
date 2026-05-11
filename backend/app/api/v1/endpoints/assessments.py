@@ -5,10 +5,10 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, joinedload
 
 from backend.app.api import deps
-from backend.app.models.user import User
+from backend.app.domains.identity.models import User
 from backend.app.models.assessment import Assessment, Question, UserAssessmentResult
 from backend.app.schemas.assessment import AssessmentRead, UserResultCreate, UserResultRead
-from backend.app.models.expert import ExpertProfile
+from backend.app.domains.marketplace.models import ExpertProfile
 
 router = APIRouter()
 

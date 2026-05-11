@@ -87,3 +87,20 @@ htmlcov/
 .codex/
 .opencode/
 READ_COMMAD/
+
+# Test auth/token artifacts (root-level)
+token.json
+login_response*.json
+login_response.json
+
+# Frontend lint output files
+frontend/lint_*.txt
+frontend/*.log
+
+# Backend log files (root-level)
+*.log
+backend.log
+backend_debug.log
+server.log
+frontend_rebuild.log
+frontend_restart.log

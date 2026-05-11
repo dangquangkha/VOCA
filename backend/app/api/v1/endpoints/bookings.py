@@ -5,12 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+# UPDATE (BL-01): Import with_for_update support via select().with_for_update()
+from sqlalchemy import select as sa_select
 
 from backend.app.api import deps
-from backend.app.models.user import User, UserRole
-from backend.app.models.expert import ExpertProfile
-from backend.app.models.booking import Booking, BookingStatus
-from backend.app.models.payment import PaymentTransaction, TransactionType, TransactionStatus
+from backend.app.domains.identity.models import User, UserRole
+from backend.app.domains.marketplace.models import ExpertProfile
+from backend.app.domains.booking.models import Booking, BookingStatus
+from backend.app.domains.payments.models import PaymentTransaction, TransactionType, TransactionStatus
 from backend.app.schemas.booking import Booking as BookingSchema, BookingCreate, BookingUpdate
 from backend.app.services.chat_service import send_system_message
 from backend.app.services.notification_service import create_notification
@@ -19,7 +21,7 @@ from backend.app.models.notification import NotificationType, NotificationPriori
 
 router = APIRouter()
 
-# ─── Helper ───────────────────────────────────────────────────────────────────
+# ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async def _reload_booking(db: AsyncSession, booking_id: int) -> Booking:
     """Reload booking with all relationships for serialization."""
@@ -36,6 +38,61 @@ async def _reload_booking(db: AsyncSession, booking_id: int) -> Booking:
     return result.scalars().first()
 
 
+async def deduct_credits_atomic(
+    db: AsyncSession,
+    user_id: int,
+    amount: int,
+    booking_id: int,
+    description: str,
+) -> PaymentTransaction:
+    """
+    Atomically deduct credits from a user with a PostgreSQL row-level lock.
+
+    Uses SELECT FOR UPDATE to acquire an exclusive lock on the User row before
+    reading the balance, ensuring that concurrent requests for the same user
+    are serialized at the DB level — preventing double-spend / race conditions.
+
+    Raises:
+        HTTPException 400: If balance is insufficient AFTER acquiring the lock.
+
+    Must be called inside an active transaction (before db.commit()).
+    """
+    # UPDATE (BL-01): Acquire row-level lock on User row BEFORE reading credits.
+    # This prevents concurrent requests from both passing the balance check
+    # simultaneously and over-spending the same credit pool.
+    result = await db.execute(
+        sa_select(User)
+        .where(User.id == user_id)
+        .with_for_update()          # ← Row-level lock (NOWAIT not set — will queue)
+    )
+    user: User | None = result.scalars().first()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # UPDATE (BL-01): Balance check happens AFTER lock is held — safe from race.
+    if user.credits < amount:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient credits: balance={user.credits}, required={amount}"
+        )
+
+    # UPDATE (BL-01): Deduct credits and create escrow transaction atomically.
+    user.credits -= amount
+    db.add(user)
+
+    trx = PaymentTransaction(
+        user_id=user_id,
+        booking_id=booking_id,
+        amount=amount,
+        type=TransactionType.BOOKING_HOLD,
+        status=TransactionStatus.COMPLETED,
+        description=description,
+    )
+    db.add(trx)
+    return trx
+
+
 # ─── Create booking ───────────────────────────────────────────────────────────
 
 @router.post("/", response_model=BookingSchema)
@@ -49,25 +106,42 @@ async def create_booking(
     Validates student credits and creates a HOLD transaction.
     """
     try:
-        # Get Expert Profile
+        # Step 1: Validate expert exists
         result = await db.execute(select(ExpertProfile).where(ExpertProfile.id == booking_in.expert_id))
         expert = result.scalars().first()
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
 
+        # Step 2: Validate booking duration
         duration_hours = (booking_in.end_time - booking_in.start_time).total_seconds() / 3600
         if duration_hours <= 0:
             raise HTTPException(status_code=400, detail="Invalid booking duration")
 
         total_cost = int(duration_hours * expert.hourly_rate)
 
-        if current_user.credits < total_cost:
-            raise HTTPException(status_code=400, detail="Insufficient credits")
+        # Step 4b: Grit Incentive — apply 10% discount if student completed ≥ 7 roadmap days
+        try:
+            from backend.app.models.roadmap import DailyProgress, DayStatus as RoadmapDayStatus
+            from sqlalchemy import func as sa_func
+            grit_result = await db.execute(
+                sa_select(sa_func.count(DailyProgress.id))
+                .where(DailyProgress.user_id == current_user.id)
+                .where(DailyProgress.status == RoadmapDayStatus.COMPLETED)
+            )
+            completed_days = grit_result.scalar() or 0
+            if completed_days >= 7:
+                discount_amount = int(total_cost * 0.10)
+                total_cost = total_cost - discount_amount
+        except Exception:
+            pass  # Non-critical — don't block booking if grit check fails
 
-        # Deduct credits (Hold)
-        current_user.credits -= total_cost
-        db.add(current_user)
+        # Step 3b: Check for Expert Quiz
+        from backend.app.domains.marketplace.models import ExpertQuiz
+        from backend.app.domains.booking.models import QuizStatus
+        quiz_result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.expert_id == expert.id))
+        has_quiz = quiz_result.scalars().first() is not None
 
+        # Step 3: Create booking shell
         booking = Booking(
             student_id=current_user.id,
             expert_id=expert.id,
@@ -76,22 +150,27 @@ async def create_booking(
             status=BookingStatus.PENDING,
             total_amount=total_cost,
             student_note=booking_in.student_note,
+            quiz_status=QuizStatus.PENDING if has_quiz else QuizStatus.NONE
         )
         db.add(booking)
-        await db.flush()
+        await db.flush()  # Assign booking.id without committing
 
-        trx = PaymentTransaction(
+        # Step 4: Atomically deduct credits with row-level lock (BL-01 fix)
+        # This call acquires SELECT FOR UPDATE on the User row, re-checks the
+        # balance under lock, deducts, and writes the HOLD transaction.
+        # Any concurrent request for the same user will block here until this
+        # transaction commits or rolls back — no double-spend possible.
+        await deduct_credits_atomic(
+            db=db,
             user_id=current_user.id,
-            booking_id=booking.id,
             amount=total_cost,
-            type=TransactionType.BOOKING_HOLD,
-            status=TransactionStatus.COMPLETED,
+            booking_id=booking.id,
             description=f"Hold for booking #{booking.id}",
         )
-        db.add(trx)
+
         await db.commit()
 
-        # UC-38.0: Notify Expert of new booking
+        # UC-38.0: Notify Expert of new booking (non-critical, fire-and-forget)
         try:
             await create_notification(
                 recipient_id=expert.user_id,
@@ -100,7 +179,7 @@ async def create_booking(
                 message=f"{current_user.full_name or 'Học viên'} đã gửi cho bạn một yêu cầu đặt lịch tư vấn.",
                 type=NotificationType.BOOKING,
                 priority=NotificationPriority.HIGH,
-                link=f"/dashboard/expert?booking={booking.id}"
+                link=f"/dashboard/manage/bookings?booking={booking.id}"
             )
         except Exception as e:
             print(f"WARNING: create_notification failed (non-critical): {e}")
@@ -108,8 +187,12 @@ async def create_booking(
         return await _reload_booking(db, booking.id)
 
     except HTTPException:
+        # HTTPException (incl. InsufficientCredits) bubbles up cleanly.
+        # SQLAlchemy async session will rollback on context exit.
+        await db.rollback()
         raise
     except Exception as e:
+        await db.rollback()
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,7 +210,7 @@ async def read_bookings(
     query = select(Booking)
     if current_user.role == UserRole.STUDENT:
         query = query.where(Booking.student_id == current_user.id)
-    elif current_user.role == UserRole.EXPERT:
+    elif current_user.role in [UserRole.EXPERT, UserRole.MENTOR]:
         subq = select(ExpertProfile.id).where(ExpertProfile.user_id == current_user.id)
         query = query.where(Booking.expert_id.in_(subq))
 
@@ -362,14 +445,22 @@ async def update_booking_status(
                 message=f"{current_user.full_name or 'Chuyên gia'} đã đồng ý yêu cầu tư vấn của bạn.",
                 type=NotificationType.BOOKING,
                 priority=NotificationPriority.HIGH,
-                link=f"/dashboard/student?booking={booking.id}"
+                link=f"/dashboard/manage/bookings?booking={booking.id}"
             )
         except Exception as e:
             print(f"WARNING: create_notification failed (non-critical): {e}")
 
     elif new_status in [BookingStatus.CANCELLED, BookingStatus.REJECTED]:
-        if current_status in [BookingStatus.COMPLETED, BookingStatus.CANCELLED, BookingStatus.REJECTED]:
+        if current_status in [BookingStatus.COMPLETED, BookingStatus.CANCELLED, BookingStatus.REJECTED,
+                               BookingStatus.CANCELLED_BY_EXPERT]:
             raise HTTPException(status_code=400, detail="Cannot cancel finalized booking")
+
+        # Expert can only REJECT while PENDING; use CANCELLED_BY_EXPERT for confirmed sessions
+        if is_expert and current_status == BookingStatus.CONFIRMED:
+            raise HTTPException(
+                status_code=403,
+                detail="Để hủy lịch đã xác nhận, hãy sử dụng trạng thái CANCELLED_BY_EXPERT."
+            )
 
         booking.status = new_status
 
@@ -393,6 +484,48 @@ async def update_booking_status(
         )
         db.add(trx)
 
+    # ── Expert-initiated cancellation of a CONFIRMED booking (with penalty) ──
+    elif new_status == BookingStatus.CANCELLED_BY_EXPERT:
+        if not is_expert:
+            raise HTTPException(status_code=403, detail="Only the assigned expert can use this cancellation type")
+        if current_status != BookingStatus.CONFIRMED:
+            raise HTTPException(status_code=400, detail="Can only cancel a CONFIRMED booking")
+
+        booking.status = BookingStatus.CANCELLED_BY_EXPERT
+        if booking_update.expert_note:
+            booking.expert_note = booking_update.expert_note
+
+        # Immediate refund to student
+        student_result = await db.execute(select(User).where(User.id == booking.student_id))
+        student = student_result.scalars().first()
+        student.credits += booking.total_amount
+        db.add(student)
+
+        trx = PaymentTransaction(
+            user_id=student.id, booking_id=booking.id,
+            amount=booking.total_amount, type=TransactionType.BOOKING_REFUND,
+            status=TransactionStatus.COMPLETED,
+            description=f"Refund: Expert cancelled booking #{booking.id}",
+        )
+        db.add(trx)
+
+        # Penalty: increment cancellation count, deduct rating if < 12h
+        expert_profile_result = await db.execute(
+            select(ExpertProfile).where(ExpertProfile.id == booking.expert_id)
+        )
+        ep = expert_profile_result.scalars().first()
+        if ep:
+            ep.cancellation_count = (ep.cancellation_count or 0) + 1
+            # Check if late cancellation (< 12 hours before session)
+            now_dt = datetime.now(timezone.utc)
+            start_aware = booking.start_time.replace(tzinfo=timezone.utc) if booking.start_time.tzinfo is None else booking.start_time
+            hours_until_session = (start_aware - now_dt).total_seconds() / 3600
+            if hours_until_session < 12:
+                ep.late_cancellation_count = (ep.late_cancellation_count or 0) + 1
+                # Deduct 0.1 rating per late cancellation (floor at 0)
+                ep.rating = max(0.0, round((ep.rating or 0.0) - 0.1, 2))
+            db.add(ep)
+
     elif new_status == BookingStatus.COMPLETED:
         if not is_student:
             raise HTTPException(status_code=403, detail="Only student can mark booking as complete")
@@ -401,19 +534,36 @@ async def update_booking_status(
 
         booking.status = BookingStatus.COMPLETED
 
-        # Release funds to expert
+        # UPDATE (BL-03): Apply 80/20 commission split.
+        # Expert receives 80% of total_amount; platform retains 20% as revenue.
+        # The 20% commission is NOT credited to any user — it stays in the system
+        # (i.e., it was deducted from student via BOOKING_HOLD but never released).
+        PLATFORM_COMMISSION_RATE = 0.20
+        commission_amount = int(booking.total_amount * PLATFORM_COMMISSION_RATE)
+        expert_payout = booking.total_amount - commission_amount  # 80%
+
         expert_user_result = await db.execute(select(User).where(User.id == expert_profile.user_id))
         expert_user = expert_user_result.scalars().first()
-        expert_user.credits += booking.total_amount
+        expert_user.credits += expert_payout  # UPDATE (BL-03): Was booking.total_amount (100%)
         db.add(expert_user)
 
+        # Expert payout transaction (80%)
         trx = PaymentTransaction(
             user_id=expert_user.id, booking_id=booking.id,
-            amount=booking.total_amount, type=TransactionType.BOOKING_RELEASE,
+            amount=expert_payout, type=TransactionType.BOOKING_RELEASE,
             status=TransactionStatus.COMPLETED,
-            description=f"Payout for booking #{booking.id}",
+            description=f"Expert payout (80%) for booking #{booking.id}",
         )
         db.add(trx)
+
+        # Platform commission record (20%) — for accounting / revenue tracking
+        commission_trx = PaymentTransaction(
+            user_id=expert_user.id, booking_id=booking.id,
+            amount=commission_amount, type=TransactionType.SERVICE_PAYMENT,
+            status=TransactionStatus.COMPLETED,
+            description=f"Platform commission (20%) for booking #{booking.id}",
+        )
+        db.add(commission_trx)
 
     db.add(booking)
     await db.commit()

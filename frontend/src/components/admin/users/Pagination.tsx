@@ -1,3 +1,8 @@
+'use client';
+
+import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 interface PaginationProps {
     currentPage: number;
     totalPages: number;
@@ -5,19 +10,16 @@ interface PaginationProps {
     totalItems: number;
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
+    variant?: 'light' | 'dark';
 }
 
-/**
- * Tạo mảng các trang hiển thị với dấu "..." khi cần.
- * Luôn hiển thị: trang đầu, trang cuối, trang hiện tại và 1 trang lân cận mỗi bên.
- */
 function getPageRange(currentPage: number, totalPages: number): (number | "...")[] {
     if (totalPages <= 7) {
         return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
     const pages: (number | "...")[] = [];
-    const delta = 1; // số trang lân cận mỗi bên của trang hiện tại
+    const delta = 1;
 
     const left = Math.max(2, currentPage - delta);
     const right = Math.min(totalPages - 1, currentPage + delta);
@@ -44,86 +46,91 @@ export default function Pagination({
     totalItems,
     onPageChange,
     onPageSizeChange,
+    variant = 'dark',
 }: PaginationProps) {
-    const pageSizeOptions = [10, 20, 50, 100];
+    const pageSizeOptions = [10, 20, 50];
     const pageRange = getPageRange(currentPage, totalPages);
 
     const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
     const endItem = Math.min(currentPage * pageSize, totalItems);
 
     return (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 flex-wrap gap-3">
-            {/* Thông tin tổng số bản ghi */}
-            <div className="text-sm text-gray-600">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-2 py-4 font-dm-sans">
+            {/* Records Info */}
+            <div className="text-[10px] uppercase tracking-[0.2em] font-black text-black/30">
                 Hiển thị{" "}
-                <span className="font-semibold text-gray-800">{startItem}–{endItem}</span>{" "}
-                trong{" "}
-                <span className="font-semibold text-gray-800">{totalItems}</span>{" "}
+                <span className="text-[#0046EA]">{startItem}–{endItem}</span>{" "}
+                trên{" "}
+                <span className="text-[#0046EA]">{totalItems}</span>{" "}
                 kết quả
             </div>
 
-            <div className="flex items-center gap-4">
-                {/* Chọn số dòng/trang */}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span>Số dòng/trang:</span>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {pageSizeOptions.map((size) => (
-                            <option key={size} value={size}>
-                                {size}
-                            </option>
-                        ))}
-                    </select>
+            <div className="flex flex-col sm:flex-row items-center gap-8">
+                {/* Rows per page */}
+                <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-black text-black/30">
+                    <span>Số dòng:</span>
+                    <div className="relative">
+                        <select
+                            value={pageSize}
+                            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                            className="appearance-none bg-white border border-black/5 rounded-full px-5 py-1.5 text-[10px] font-black text-[#0046EA] focus:outline-none focus:border-[#0046EA] transition-all cursor-pointer pr-10 shadow-sm"
+                        >
+                            {pageSizeOptions.map((size) => (
+                                <option key={size} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-black/20">
+                            <ChevronLeft size={10} className="-rotate-90" />
+                        </div>
+                    </div>
                 </div>
 
-                {/* Các nút phân trang */}
+                {/* Pagination Controls */}
                 {totalPages > 1 && (
-                    <div className="flex items-center gap-1">
-                        {/* Nút < */}
+                    <div className="flex items-center gap-2">
+                        {/* Prev Button */}
                         <button
                             onClick={() => onPageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            aria-label="Trang trước"
-                            className="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                            className="w-10 h-10 flex items-center justify-center rounded-full border border-black/5 bg-white text-black/20 hover:border-[#0046EA] hover:text-[#0046EA] transition-all disabled:opacity-10 disabled:cursor-not-allowed shadow-sm"
                         >
-                            &#8249;
+                            <ChevronLeft size={14} />
                         </button>
 
-                        {pageRange.map((page, idx) =>
-                            page === "..." ? (
-                                <span
-                                    key={`ellipsis-${idx}`}
-                                    className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm select-none"
-                                >
-                                    …
-                                </span>
-                            ) : (
-                                <button
-                                    key={page}
-                                    onClick={() => onPageChange(page)}
-                                    aria-current={page === currentPage ? "page" : undefined}
-                                    className={`w-8 h-8 flex items-center justify-center rounded border text-sm font-medium transition
-                                        ${page === currentPage
-                                            ? "border-gray-800 text-gray-900 font-semibold bg-white ring-1 ring-gray-800"
-                                            : "border-transparent text-gray-600 hover:bg-gray-100"
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            )
-                        )}
+                        <div className="flex items-center gap-1">
+                            {pageRange.map((page, idx) =>
+                                page === "..." ? (
+                                    <span
+                                        key={`ellipsis-${idx}`}
+                                        className="w-8 h-8 flex items-center justify-center text-[10px] font-black text-black/10"
+                                    >
+                                        …
+                                    </span>
+                                ) : (
+                                    <button
+                                        key={page}
+                                        onClick={() => onPageChange(page)}
+                                        className={`w-10 h-10 flex items-center justify-center rounded-full text-[10px] font-black transition-all duration-500
+                                            ${page === currentPage
+                                                ? "bg-[#0046EA] text-[#FFE900] shadow-lg shadow-[#0046EA]/20"
+                                                : "bg-white border border-black/5 text-black/30 hover:border-[#0046EA] hover:text-[#0046EA] shadow-sm"
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                )
+                            )}
+                        </div>
 
-                        {/* Nút > */}
+                        {/* Next Button */}
                         <button
                             onClick={() => onPageChange(currentPage + 1)}
                             disabled={currentPage === totalPages || totalPages === 0}
-                            aria-label="Trang sau"
-                            className="w-8 h-8 flex items-center justify-center rounded border border-gray-300 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                            className="w-10 h-10 flex items-center justify-center rounded-full border border-black/5 bg-white text-black/20 hover:border-[#0046EA] hover:text-[#0046EA] transition-all disabled:opacity-10 disabled:cursor-not-allowed shadow-sm"
                         >
-                            &#8250;
+                            <ChevronRight size={14} />
                         </button>
                     </div>
                 )}

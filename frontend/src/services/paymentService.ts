@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { PaymentTransaction, PaymentDepositResponse, PaginatedPaymentResponse } from '@/types/payment';
+import { PaymentDepositResponse, PaginatedPaymentResponse } from '@/types/payment';
 
 // Local interface removed, imported from types
 

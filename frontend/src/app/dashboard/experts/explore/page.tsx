@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 import { Expert } from '@/types/expert';
 import { EnhancedExpert } from '@/components/experts/explore/ExpertExploreCard';
+import { useAuthStore } from '@/store/useAuthStore';
 import { ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
 
@@ -99,9 +100,13 @@ export default function ExpertExplorePage() {
         }
     }, [searchQuery, priceRange, minRating, currentPage, pageSize, industry, selectedSkills, sortBy]);
 
+    const { _hasHydrated } = useAuthStore();
+
     useEffect(() => {
-        fetchExperts();
-    }, [fetchExperts]);
+        if (_hasHydrated) {
+            fetchExperts();
+        }
+    }, [fetchExperts, _hasHydrated]);
 
     // Handlers
     const handleToggleSkill = (skill: string) => {

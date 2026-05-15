@@ -22,6 +22,7 @@ async def create_notification(
     Create a notification, persist it, and broadcast via WebSocket.
     Reuses existing session if provided, otherwise creates a new one from global pool.
     """
+    print(f"📡 [Notification] START for recipient={recipient_id}, title='{title}', type='{type}'")
     async def _process(session: AsyncSession):
         notification = Notification(
             recipient_id=recipient_id,
@@ -59,8 +60,8 @@ async def create_notification(
             "id": notification.id,
             "title": notification.title,
             "message": notification.message,
-            "type": notification.type,
-            "priority": notification.priority,
+            "type": str(notification.type.value if hasattr(notification.type, 'value') else notification.type),
+            "priority": str(notification.priority.value if hasattr(notification.priority, 'value') else notification.priority),
             "link": notification.link,
             "data": notification.data,
             "created_at": notification.created_at.isoformat() if notification.created_at else datetime.now().isoformat(),
@@ -71,19 +72,19 @@ async def create_notification(
     try:
         if db:
             result = await _process(db)
-            # If a session is passed, we broadcast immediately after flush. 
-            # This still has a small race risk if the caller doesn't commit fast,
-            # but usually the caller commits right after create_notification.
             await _broadcast(result)
             return result
         else:
             async with AsyncSessionLocal() as session:
                 result = await _process(session)
                 await session.commit()
-                # Broadcast ONLY after commit is successful
+                print(f"✅ [Notification] Saved to DB. ID: {result.id} | Recipient: {result.recipient_id}")
                 await _broadcast(result)
+                print(f"📡 [Notification] Broadcasted via WebSocket to User {recipient_id}")
                 return result
 
     except Exception as e:
-        print(f"ERROR: create_notification failed: {e}")
+        print(f"ERROR: create_notification failed for recipient_id={recipient_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return None

@@ -8,6 +8,16 @@ from backend.app.core.config import settings
 from backend.app.core.limiter import limiter
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+@app.on_event("startup")
+async def startup_event():
+    try:
+        from backend.seed_mbti import seed_mbti
+        await seed_mbti()
+        print("MBTI Seeding triggered on startup")
+    except Exception as e:
+        print(f"MBTI Seeding failed: {e}")
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

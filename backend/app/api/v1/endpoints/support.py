@@ -2,13 +2,15 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
-from backend.app.domains.identity.models import User
+from backend.app.domains.identity.models import User, UserRole
 from backend.app.models.support import SupportTicket, SupportStatus
 from backend.app.schemas.support import SupportTicketCreate, SupportTicketRead, SupportTicketUpdate
 from backend.app.services.admin_notification_service import notify_all_admins
 from backend.app.models.notification import NotificationPriority
+from backend.app.schemas.user_crud import UserRead
 
 router = APIRouter()
 
@@ -95,3 +97,53 @@ async def update_support_ticket(
     await db.commit()
     await db.refresh(ticket)
     return ticket
+
+@router.get("/admin-profile", response_model=UserRead)
+async def get_support_admin_profile(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get the profile of the primary support admin.
+    Searches for the first user with ADMIN role or specific admin email.
+    """
+    # 1. Try by role
+    result = await db.execute(
+        select(User)
+        .where(User.role == UserRole.ADMIN)
+        .options(selectinload(User.expert_profile))
+        .order_by(User.id)
+    )
+    admin = result.scalars().first()
+    
+    # 2. Try by known email
+    if not admin:
+        result = await db.execute(
+            select(User)
+            .where(User.email == "admin@careerpath.com")
+            .options(selectinload(User.expert_profile))
+        )
+        admin = result.scalars().first()
+        
+    # 3. Fallback to ID 2 (legacy)
+    if not admin:
+        result = await db.execute(
+            select(User)
+            .where(User.id == 2)
+            .options(selectinload(User.expert_profile))
+        )
+        admin = result.scalars().first()
+        
+    # 4. Fallback to any superuser
+    if not admin:
+        result = await db.execute(
+            select(User)
+            .where(User.is_superuser == True)
+            .options(selectinload(User.expert_profile))
+            .order_by(User.id)
+        )
+        admin = result.scalars().first()
+        
+    if not admin:
+        raise HTTPException(status_code=404, detail="Support Admin not found")
+    return admin

@@ -17,8 +17,10 @@ import {
     Wand2,
     Tag,
     ChevronDown,
+    MessageSquare
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useNotificationStore } from '@/store/useNotificationStore';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { getAvatarUrl } from '@/utils/url-utils';
 
@@ -44,7 +46,8 @@ const SidebarItem = ({ href, icon, label, active, collapsed }: SidebarItemProps)
 );
 
 export default function ExpertDashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user, logout } = useAuthStore();
+    const { user, logout, _hasHydrated } = useAuthStore();
+    const connectionStatus = useNotificationStore(state => state.connectionStatus);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -53,12 +56,14 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
     const [showCreditsDetail, setShowCreditsDetail] = useState(false);
 
     useEffect(() => {
+        if (!_hasHydrated) return;
+
         if (!user) {
             router.push('/login');
         } else if (user.role !== 'EXPERT' && user.role !== 'MENTOR') {
             router.push('/dashboard/student');
         }
-    }, [user, router]);
+    }, [user, router, _hasHydrated]);
 
     const handleLogout = () => {
         logout();
@@ -70,6 +75,7 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
         { href: '/dashboard/expert/availability',  icon: <CalendarDays />,  label: 'Lịch rảnh' },
         { href: '/dashboard/manage/bookings',      icon: <ClipboardList />, label: 'Lịch hẹn' },
         { href: '/dashboard/expert/wallet',        icon: <Wallet />,        label: 'Ví & Doanh thu' },
+        { href: '/dashboard/chat',                 icon: <MessageSquare />, label: 'Tin nhắn' },
         { href: '/dashboard/dispute',              icon: <ShieldAlert />,   label: 'Khiếu nại' },
         { href: '/dashboard/expert/quizzes',       icon: <ClipboardList />, label: 'Khảo sát' },
         { href: '/expert/kyc/form',                icon: <Settings />,      label: 'Hồ sơ & KYC' },
@@ -81,7 +87,7 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
         { href: '/pricing',   icon: <Tag />,   label: 'Bảng giá' },
     ];
 
-    const sidebarWidth = isCollapsed ? 72 : 260;
+    const sidebarWidth = isCollapsed ? 72 : 300;
 
     return (
         <div className="flex h-screen bg-white font-dm-sans overflow-hidden" style={{ fontFamily: 'var(--sans)' }}>
@@ -115,7 +121,7 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
                                 <span style={{ fontSize: 20, fontWeight: 600, color: '#FFFFFF', letterSpacing: '0.15em', textTransform: 'uppercase', display: 'block' }}>
                                     VOCA
                                 </span>
-                                <span style={{ fontSize: 8, fontWeight: 400, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.4em', textTransform: 'uppercase', display: 'block', marginTop: 4 }}>
+                                <span style={{ fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.4em', textTransform: 'uppercase', display: 'block', marginTop: 4 }}>
                                     Expert Portal
                                 </span>
                             </div>
@@ -128,7 +134,7 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
                 {/* Nav */}
                 <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 0' }} className="custom-scrollbar">
                     {!isCollapsed && (
-                        <div style={{ padding: '0 28px 12px', fontSize: 8, fontWeight: 500, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
+                        <div style={{ padding: '0 28px 12px', fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
                             Operations
                         </div>
                     )}
@@ -141,7 +147,7 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
 
                     <div style={{ margin: '20px 0 12px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
                         {!isCollapsed && (
-                            <div style={{ padding: '0 28px 12px', fontSize: 8, fontWeight: 500, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
+                            <div style={{ padding: '0 28px 12px', fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
                                 Platform
                             </div>
                         )}
@@ -244,9 +250,35 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
                             }} />
                             {isOnline ? 'Active' : 'Offline'}
                         </button>
+                        <div style={{ 
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: connectionStatus === 'connected' ? '#4ADE80' : '#EF4444',
+                            opacity: 0.8
+                        }} title={`WS Status: ${connectionStatus}`} />
 
                         {/* Notifications */}
-                        <div style={{ color: '#FFFFFF' }}>
+                        <div style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <button 
+                                onClick={() => {
+                                    const store = (window as any).useNotificationStore;
+                                    if (store) {
+                                        store.getState().addNotification({
+                                            id: Date.now(),
+                                            title: "Test UI Notification",
+                                            message: "This confirms the dashboard UI can display notifications.",
+                                            type: 'system',
+                                            priority: 'low',
+                                            created_at: new Date().toISOString(),
+                                            is_read: false
+                                        });
+                                    } else {
+                                        alert("Store not found in window");
+                                    }
+                                }}
+                                style={{ fontSize: 9, textTransform: 'uppercase', opacity: 0.5, background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
+                            >
+                                Test
+                            </button>
                             <NotificationBell />
                         </div>
 

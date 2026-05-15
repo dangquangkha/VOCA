@@ -27,9 +27,24 @@ export const adminService = {
         return response.data;
     },
 
-    getExperts: async (status?: string): Promise<Expert[]> => {
-        const url = status ? `admin/experts?status=${status}` : 'admin/experts';
-        const response = await api.get(url);
+    getExperts: async (params: { status?: string; search?: string; skip?: number; limit?: number }): Promise<{ items: Expert[], total: number }> => {
+        const queryParams = new URLSearchParams();
+        if (params.status && params.status !== 'ALL') queryParams.append('status', params.status);
+        if (params.search) queryParams.append('search', params.search);
+        if (params.skip !== undefined) queryParams.append('skip', params.skip.toString());
+        if (params.limit !== undefined) queryParams.append('limit', params.limit.toString());
+        
+        const response = await api.get(`admin/experts?${queryParams.toString()}`);
+        return response.data;
+    },
+
+    getExpertFull: async (expertId: number): Promise<{ profile: Expert, stats: any }> => {
+        const response = await api.get(`admin/experts/${expertId}/full`);
+        return response.data;
+    },
+
+    updateExpert: async (expertId: number, payload: Partial<Expert>): Promise<Expert> => {
+        const response = await api.put(`admin/experts/${expertId}`, payload);
         return response.data;
     },
 

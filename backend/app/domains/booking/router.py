@@ -1,7 +1,7 @@
 from typing import Any, List
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -90,6 +90,7 @@ from backend.app.domains.booking.service import booking_service
 @router.post("/", response_model=BookingSchema)
 async def create_booking(
     booking_in: BookingCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -155,19 +156,36 @@ async def create_booking(
             is_pwyw=is_pwyw
         )
 
-        # UC-38.0: Notify Expert
-        try:
-            await create_notification(
-                recipient_id=expert.user_id,
-                sender_id=current_user.id,
-                title="Yêu cầu đặt lịch mới",
-                message=f"{current_user.full_name or 'Học viên'} đã gửi yêu cầu tư vấn.",
-                type=NotificationType.BOOKING,
-                priority=NotificationPriority.HIGH,
-                link=f"/dashboard/manage/bookings?booking={booking.id}"
-            )
-        except Exception as e:
-            print(f"WARNING: Notification failed: {e}")
+        await db.commit()
+
+        # UC-38.0: Notify Expert & Student via Background Tasks
+        # Use background tasks to prevent blocking the response
+        async def send_booking_notifications():
+            try:
+                # 1. Notify Expert
+                await create_notification(
+                    recipient_id=expert.user_id,
+                    sender_id=current_user.id,
+                    title="Yêu cầu đặt lịch mới",
+                    message=f"{current_user.full_name or 'Học viên'} đã gửi yêu cầu tư vấn.",
+                    type=NotificationType.BOOKING,
+                    priority=NotificationPriority.HIGH,
+                    link=f"/dashboard/manage/bookings?booking={booking.id}"
+                )
+                # 2. Notify Student
+                await create_notification(
+                    recipient_id=current_user.id,
+                    title="Đặt lịch thành công",
+                    message=f"Yêu cầu tư vấn với {expert.user.full_name} đã được gửi đi.",
+                    type=NotificationType.BOOKING,
+                    priority=NotificationPriority.LOW,
+                    link=f"/dashboard/student/bookings"
+                )
+                print(f"📡 [BG-TASK] Notifications sent for booking {booking.id}")
+            except Exception as e:
+                print(f"⚠️ [BG-TASK] Notification error: {e}")
+
+        background_tasks.add_task(send_booking_notifications)
 
         return await _reload_booking(db, booking.id)
 

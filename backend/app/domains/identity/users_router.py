@@ -21,6 +21,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import or_, func
+from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
 from backend.app.core import security
@@ -44,6 +45,24 @@ async def read_user_me(
 ) -> Any:
     """Get current user profile."""
     return current_user
+
+
+@router.get("/{user_id}", response_model=UserSchema)
+async def read_user_by_id(
+    user_id: int,
+    current_user: User = Depends(deps.get_current_active_user),
+    db: AsyncSession = Depends(deps.get_db),
+) -> Any:
+    """Get user profile by ID."""
+    result = await db.execute(
+        select(User)
+        .where(User.id == user_id)
+        .options(selectinload(User.expert_profile))
+    )
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 @router.put("/me", response_model=UserSchema)
@@ -151,7 +170,7 @@ async def get_users_admin(
     sort_desc: bool = Query(True),
 ) -> Any:
     """Admin: Retrieve users with pagination, filtering, search, and sorting."""
-    query = select(User)
+    query = select(User).options(selectinload(User.expert_profile))
 
     if role:
         try:
@@ -214,7 +233,7 @@ async def create_user_admin(
     db_user = User(**user_data)
     db.add(db_user)
     await db.commit()
-    await db.refresh(db_user)
+    await db.refresh(db_user, attribute_names=["expert_profile"])
     return db_user
 
 
@@ -241,7 +260,7 @@ async def update_user_admin(
 
     db.add(user)
     await db.commit()
-    await db.refresh(user)
+    await db.refresh(user, attribute_names=["expert_profile"])
     return user
 
 
@@ -283,5 +302,10 @@ async def read_users(
     """Legacy: Retrieve all users. Admin only. Use /admin/users instead."""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="The user doesn't have enough privileges")
-    result = await db.execute(select(User).offset(skip).limit(limit))
+    result = await db.execute(
+        select(User)
+        .offset(skip)
+        .limit(limit)
+        .options(selectinload(User.expert_profile))
+    )
     return result.scalars().all()

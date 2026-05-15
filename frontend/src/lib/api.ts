@@ -37,10 +37,18 @@ api.interceptors.response.use(
         // and if it's NOT the /me call failing immediately after login
         if (error.response?.status === 401) {
             const isLoginPage = typeof window !== 'undefined' && window.location.pathname.includes('/login');
-            if (!isLoginPage) {
+            const hasTokenInRequest = !!error.config?.headers?.Authorization;
+
+            if (!isLoginPage && hasTokenInRequest) {
                 console.warn('[API] Unauthorized access - Logging out');
                 useAuthStore.getState().logout();
                 window.location.href = '/login';
+            } else if (!isLoginPage && !hasTokenInRequest) {
+                // If 401 happened but we didn't even send a token, 
+                // it might be a hydration race or a guest accessing a private route.
+                // We don't call logout() because that would clear the token from localStorage
+                // while it's still being rehydrated by Zustand!
+                console.warn('[API] 401 Unauthorized (No token provided) - Skipping auto-logout');
             }
         }
         return Promise.reject(error);

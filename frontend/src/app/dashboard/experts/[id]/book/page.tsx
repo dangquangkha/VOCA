@@ -234,38 +234,38 @@ export default function BookingPage() {
                         )}
 
                         {/* Date Selection */}
-                        <section className="bg-void-90/50 backdrop-blur-xl border border-void-80 rounded-2xl p-10 space-y-8 shadow-xl">
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="w-8 h-8 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan font-mono text-xs">01</div>
-                                <h3 className="text-xs font-bold text-text-primary uppercase tracking-widest">Select Timeline</h3>
+                        <section className="bg-white border-[6px] border-black/5 rounded-none p-12 space-y-10 shadow-sm hover:shadow-2xl transition-all duration-700">
+                            <div className="flex items-center gap-6 mb-2">
+                                <div className="w-10 h-10 rounded-none bg-[#00A4FD] flex items-center justify-center text-white font-black text-xs">01</div>
+                                <h3 className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em]">Select Timeline</h3>
                             </div>
 
-                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-4">
                                 {calendar.map(entry => (
                                     <button
                                         key={entry.dateStr}
                                         disabled={!entry.available}
                                         onClick={() => { setSelectedDate(entry.dateStr); setSelectedTime(''); }}
-                                        className={`flex flex-col items-center py-5 rounded-xl transition-all duration-300 border
+                                        className={`flex flex-col items-center py-6 rounded-none transition-all duration-700 border-[3px]
                                             ${selectedDate === entry.dateStr
-                                                ? 'bg-[var(--color-neon-cyan)]/20 border-[var(--color-neon-cyan)] text-[var(--color-neon-cyan)]'
+                                                ? 'bg-[#00A4FD]/10 border-[#00A4FD] text-[#00A4FD] shadow-2xl'
                                                 : entry.available
-                                                    ? 'bg-void-80/40 border-void-70 text-text-dim hover:border-neon-cyan/40 hover:text-text-primary'
-                                                    : 'opacity-10 grayscale pointer-events-none'
+                                                    ? 'bg-white border-black/5 text-black/20 hover:border-[#00A4FD]/30 hover:bg-[#F5F8FF] hover:text-[#0046EA] hover:scale-[1.05] hover:shadow-xl'
+                                                    : 'opacity-5 grayscale pointer-events-none'
                                             }`}
                                     >
-                                        <span className="text-[9px] font-bold uppercase tracking-widest mb-2">{entry.label}</span>
-                                        <span className="text-xl font-display font-light">{entry.day}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-2">{entry.label}</span>
+                                        <span className="text-2xl font-garamond italic font-bold">{entry.day}</span>
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="pt-8 border-t border-void-80 flex items-center justify-between">
-                                <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Manual Date Override</span>
+                            <div className="pt-10 border-t-2 border-black/5 flex items-center justify-between">
+                                <span className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em]">Manual Date Override</span>
                                 <input
                                     type="date"
                                     min={minDate}
-                                    className="bg-void-80 border-void-70 text-sm font-mono text-text-primary px-4 py-2 rounded-md focus:outline-none focus:border-neon-cyan transition-all"
+                                    className="bg-[#F5F8FF] border-[3px] border-black/5 text-[10px] font-black uppercase tracking-widest text-[#0046EA] px-6 py-3 rounded-none focus:outline-none focus:border-[#00A4FD] transition-all"
                                     value={selectedDate}
                                     onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(''); }}
                                 />
@@ -291,10 +291,10 @@ export default function BookingPage() {
                                             <button
                                                 key={slot.start}
                                                 onClick={() => setSelectedTime(slot.start)}
-                                                className={`py-5 px-4 text-sm font-black tracking-widest rounded-none border-[3px] transition-all duration-500
+                                                className={`py-6 px-4 text-sm font-black tracking-[0.2em] rounded-none border-[3px] transition-all duration-700
                                                 ${selectedTime === slot.start
-                                                        ? 'bg-white border-white text-[#00A4FD] shadow-xl'
-                                                        : 'bg-white/10 border-white/20 text-white/60 hover:border-white hover:text-white'
+                                                        ? 'bg-white border-white text-[#00A4FD] shadow-2xl scale-[1.02]'
+                                                        : 'bg-white/5 border-white/20 text-white/40 hover:bg-white/10 hover:border-white hover:text-white hover:scale-[1.05] hover:shadow-xl'
                                                     }`}
                                             >
                                                 {slot.start}

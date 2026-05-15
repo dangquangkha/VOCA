@@ -69,8 +69,8 @@ async def send_message(
     # Reload with sender to avoid MissingGreenlet
     from sqlalchemy.orm import selectinload
     query = select(Message).where(Message.id == message.id).options(
-        selectinload(Message.sender),
-        selectinload(Message.receiver)
+        selectinload(Message.sender).selectinload(User.expert_profile),
+        selectinload(Message.receiver).selectinload(User.expert_profile)
     )
     result = await db.execute(query)
     message = result.scalars().first()

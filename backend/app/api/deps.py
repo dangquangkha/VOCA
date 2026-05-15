@@ -12,7 +12,7 @@ from backend.app.db.session import AsyncSessionLocal
 from backend.app.domains.identity.models import User
 from backend.app.schemas.user import TokenData
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/v1/auth/access-token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/api/v1/auth/login/access-token")
 
 
 
@@ -104,13 +104,18 @@ async def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     
-    # TEST ACCOUNT: Auto-refill credits for thanh@email.com
-    if current_user.email == "thanh@email.com" and current_user.credits < 999999:
+    # TEST ACCOUNT: Auto-refill credits for thanh@email.com (Optimized)
+    # Only update if credits are actually low, and avoid commit/refresh inside dependency if possible
+    # or at least make it efficient.
+    if current_user.email == "thanh@email.com" and current_user.credits < 1000:
         current_user.credits = 999999
         db.add(current_user)
-        await db.commit()
-        await db.refresh(current_user)
-        print(f"🔋 Auto-refilled credits for test account: {current_user.email}")
+        try:
+            await db.commit()
+            print(f"🔋 Auto-refilled credits for test account: {current_user.email}")
+        except Exception as e:
+            await db.rollback()
+            print(f"⚠️ Failed to auto-refill credits: {e}")
     
     return current_user
 

@@ -5,6 +5,7 @@ import ExpertDashboardLayout from '@/components/dashboard/ExpertDashboardLayout'
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Plus, Trash2, Save, MessageSquare, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,17 +34,22 @@ export default function ExpertQuizzesPage() {
     const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
+    const { token } = useAuthStore();
+
     useEffect(() => {
+        if (!token) return;
         fetchQuizzes();
-    }, []);
+    }, [token]);
 
     const fetchQuizzes = async () => {
         setLoading(true);
         try {
             const { data } = await api.get('experts/quizzes/me');
             setQuizzes(data);
-        } catch (err) {
-            console.error("Failed to fetch quizzes", err);
+        } catch (err: any) {
+            if (err.response?.status !== 401) {
+                console.error("Failed to fetch quizzes", err);
+            }
         } finally {
             setLoading(false);
         }

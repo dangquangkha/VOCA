@@ -34,9 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={`${dmSans.variable} ${cormorantGaramond.variable}`} suppressHydrationWarning>
-      <body suppressHydrationWarning className={`antialiased font-sans flex flex-col min-h-screen bg-black text-white relative selection:bg-[var(--neon-magenta)] selection:text-black`}>
+      <body suppressHydrationWarning className={`antialiased font-sans flex flex-col min-h-screen text-white relative selection:bg-[var(--neon-magenta)] selection:text-black`}>
         {/* Interactive Water Ripple Effect */}
-        <WaterRipple />
+        {/* <WaterRipple /> */}
 
         {/* Ambient Bloom: Subtle Gold/Navy glows (Z-index -10) */}
         <div className="fixed inset-0 pointer-events-none z-[-10] overflow-hidden">

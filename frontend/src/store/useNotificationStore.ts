@@ -8,6 +8,7 @@ interface NotificationState {
     unreadCount: number;
     isLoading: boolean;
     socket: WebSocket | null;
+    connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
 
     // Actions
     fetchNotifications: () => Promise<void>;
@@ -26,6 +27,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     unreadCount: 0,
     isLoading: false,
     socket: null,
+    connectionStatus: 'disconnected',
 
     fetchNotifications: async () => {
         const { token } = useAuthStore.getState();
@@ -35,8 +37,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         try {
             const data = await notificationService.getNotifications();
             set({ notifications: data, isLoading: false });
-        } catch (error) {
-            console.error('Failed to fetch notifications', error);
+        } catch (error: any) {
+            if (error.response?.status !== 401) {
+                console.error('Failed to fetch notifications', error);
+            }
             set({ isLoading: false });
         }
     },
@@ -48,12 +52,25 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         try {
             const { count } = await notificationService.getUnreadCount();
             set({ unreadCount: count });
-        } catch (error) {
-            console.error('Failed to fetch unread count', error);
+        } catch (error: any) {
+            if (error.response?.status !== 401) {
+                console.error('Failed to fetch unread count', error);
+            }
         }
     },
 
     markAsRead: async (id: number) => {
+        // Handle test notifications (ID > 2000000000) locally only
+        if (id > 2000000000) {
+            set((state) => ({
+                notifications: state.notifications.map((n) =>
+                    n.id === id ? { ...n, is_read: true } : n
+                ),
+                unreadCount: Math.max(0, state.unreadCount - 1),
+            }));
+            return;
+        }
+
         try {
             await notificationService.markAsRead(id);
             set((state) => ({
@@ -84,32 +101,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             notifications: [notification, ...state.notifications],
             unreadCount: state.unreadCount + 1,
         }));
-
-        // Optional: Play sound or show toast
-        if (notification.priority === 'high') {
-            // Logic for high priority alerts could go here
-        }
     },
 
     connectWebSocket: (token: string) => {
         const { socket } = get();
         if (socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) return;
 
-        // Cleanup existing socket if any stale one exists
         if (socket) socket.close();
 
-        // Determine WS protocol and host
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-        // Use a more robust way to derive the WS host from NEXT_PUBLIC_API_URL
         let host = window.location.host;
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001/api/v1';
             const urlObj = new URL(apiUrl);
-            // If API is on a different domain, use that. If it's localhost/127.0.0.1, 
-            // maybe use window.location.host to match browser context
             host = urlObj.host;
-
             if (host.includes('127.0.0.1') && window.location.hostname === 'localhost') {
                 host = host.replace('127.0.0.1', 'localhost');
             }
@@ -118,12 +123,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         }
 
         const wsUrl = `${protocol}//${host}/api/v1/notifications/ws?token=${encodeURIComponent(token)}`;
-        console.log(`🔌 [NotificationStore] Connecting: ${protocol}//${host}/api/v1/notifications/ws (Encoded Token)`);
+        console.log(`🔌 [NotificationStore] Connecting to ${wsUrl}`);
 
         const newSocket = new WebSocket(wsUrl);
+        set({ socket: newSocket, connectionStatus: 'connecting' });
 
         newSocket.onopen = () => {
             console.log('✅ [NotificationStore] WebSocket Connected');
+            set({ connectionStatus: 'connected' });
         };
 
         newSocket.onmessage = (event) => {
@@ -135,11 +142,25 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             }
         };
 
-        newSocket.onclose = (event) => {
-            set({ socket: null });
-            console.log(`📡 [NotificationStore] WebSocket closed (code: ${event.code}). Retrying in 5s...`);
+        // Start fallback polling if not already started
+        let isPolling = false;
+        const pollInterval = setInterval(async () => {
+            if (get().connectionStatus !== 'connected' && !isPolling) {
+                isPolling = true;
+                try {
+                    await get().fetchUnreadCount();
+                } finally {
+                    isPolling = false;
+                }
+            }
+        }, 10000);
 
-            // Adaptive retry logic
+        newSocket.onclose = (event) => {
+            clearInterval(pollInterval);
+            console.log(`📡 [NotificationStore] WebSocket closed (code: ${event.code})`);
+            set({ socket: null, connectionStatus: 'disconnected' });
+
+            // Retry after 5s
             setTimeout(() => {
                 const currentToken = useAuthStore.getState().token;
                 if (currentToken) {
@@ -149,18 +170,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         };
 
         newSocket.onerror = (error) => {
-            console.warn('⚠️ [NotificationStore] WebSocket Connection Attempt Failed. Common causes: Backend down, Invalid token (JWT expired), or Port mismatch.');
-            console.debug('Error Details:', error);
+            console.warn('⚠️ [NotificationStore] WebSocket Connection Attempt Failed.');
+            set({ connectionStatus: 'error' });
         };
-
-        set({ socket: newSocket });
     },
 
     disconnectWebSocket: () => {
         const { socket } = get();
         if (socket) {
             socket.close();
-            set({ socket: null });
+            set({ socket: null, connectionStatus: 'disconnected' });
         }
     }
 }));
+
+if (typeof window !== 'undefined') {
+    (window as any).useNotificationStore = useNotificationStore;
+}

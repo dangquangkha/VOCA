@@ -13,6 +13,7 @@ class TransactionType(str, Enum):
     SERVICE_PAYMENT = "SERVICE_PAYMENT"     # Pay for AI service
     REFUND_REQUEST = "REFUND_REQUEST"       # UC-36: User requests bank withdrawal
     ROADMAP_REWARD = "ROADMAP_REWARD"       # Reward for completing roadmap milestones
+    ROADMAP_REPORT = "ROADMAP_REPORT"       # Pay for roadmap history report
 
 class TransactionStatus(str, Enum):
     PENDING = "PENDING"

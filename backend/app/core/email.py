@@ -49,8 +49,13 @@ async def send_email(
     
     # Send (synchronous call, might block event loop slightly but acceptable for low volume)
     # Ideally should offload to Celery/BackgroundTasks
+    # Send via SMTP using threadpool to avoid blocking the event loop
+    from starlette.concurrency import run_in_threadpool
     try:
-        response = message.send(to=to, smtp=smtp_options)
+        def _send():
+            return message.send(to=to, smtp=smtp_options)
+            
+        response = await run_in_threadpool(_send)
         
         if response.status_code not in [250, 200]:
             print(f"ERROR Sending Email: {response.error}")

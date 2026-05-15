@@ -8,13 +8,15 @@ interface ShinkaiBackgroundProps {
     overlayColor?: string;
     showFish?: boolean;
     fishCount?: number;
+    className?: string;
 }
 
 export default function ShinkaiBackground({ 
     imagePath = '/roadmap-bg.svg', 
     overlayColor = 'rgba(255, 255, 255, 0.1)',
     showFish = true,
-    fishCount = 25
+    fishCount = 25,
+    className = "fixed inset-0"
 }: ShinkaiBackgroundProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -134,7 +136,7 @@ export default function ShinkaiBackground({
     }, [showFish, fishCount]);
 
     return (
-        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className={`${className} z-0 overflow-hidden pointer-events-none`}>
             <img 
                 src={imagePath} 
                 alt="Shinkai Background" 

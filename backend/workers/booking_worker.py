@@ -45,7 +45,13 @@ PLATFORM_COMMISSION_RATE = 0.20
 # ─── DB Session Factory ────────────────────────────────────────────────────────
 
 def _make_session_factory():
-    engine = create_async_engine(settings.DATABASE_URL, echo=False)
+    engine = create_async_engine(
+        settings.DATABASE_URL, 
+        echo=False,
+        pool_size=10,
+        max_overflow=20,
+        pool_timeout=30
+    )
     return async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 

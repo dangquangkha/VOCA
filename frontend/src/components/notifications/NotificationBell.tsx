@@ -24,22 +24,29 @@ export const NotificationBell: React.FC = () => {
         connectWebSocket,
         disconnectWebSocket,
         markAsRead,
-        markAllAsRead
+        markAllAsRead,
+        connectionStatus
     } = useNotificationStore();
 
-    const { token } = useAuthStore();
+    const { token, _hasHydrated } = useAuthStore();
 
     useEffect(() => {
+        if (!_hasHydrated || !token) return;
+
         fetchNotifications();
         fetchUnreadCount();
-
-        // Connect WS if token exists
-        if (token) {
-            connectWebSocket(token);
-        }
+        connectWebSocket(token);
 
         return () => disconnectWebSocket();
-    }, [token, fetchNotifications, fetchUnreadCount, connectWebSocket, disconnectWebSocket]);
+    }, [_hasHydrated, token, fetchNotifications, fetchUnreadCount, connectWebSocket, disconnectWebSocket]);
+
+    // Re-fetch on connection recovery
+    useEffect(() => {
+        if (connectionStatus === 'connected') {
+            fetchNotifications();
+            fetchUnreadCount();
+        }
+    }, [connectionStatus, fetchNotifications, fetchUnreadCount]);
 
     // Close dropdown on click outside
     useEffect(() => {
@@ -81,7 +88,8 @@ export const NotificationBell: React.FC = () => {
                     isOpen 
                     ? 'bg-black border-black text-white' 
                     : 'bg-white border-[#00A4FD]/20 text-[#00A4FD] hover:border-[#00A4FD] hover:bg-[#F5F8FF]'
-                }`}
+                } ${connectionStatus === 'error' ? 'ring-2 ring-red-500' : ''}`}
+                title={`Connection: ${connectionStatus}`}
             >
                 <Bell size={24} strokeWidth={2.5} />
                 {unreadCount > 0 && (

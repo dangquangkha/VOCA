@@ -171,8 +171,8 @@ export default function WaterRipple() {
             ref={canvasRef}
             className="fixed inset-0 pointer-events-none"
             style={{
-                zIndex: 9999,
-                opacity: 0.75, // Increased visibility
+                zIndex: 0,
+                opacity: 1,
                 willChange: 'transform', // GPU compositing layer riêng
             }}
         />

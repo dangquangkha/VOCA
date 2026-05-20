@@ -25,7 +25,8 @@ import {
     Banknote,
     RotateCcw,
     AlertCircle,
-    Home
+    Home,
+    MessageSquare
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
@@ -58,7 +59,7 @@ const SidebarItem = ({ href, icon, label, active, collapsed }: SidebarItemProps)
 );
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user, logout } = useAuthStore();
+    const { user, logout, _hasHydrated } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -66,8 +67,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [showCreditsDetail, setShowCreditsDetail] = useState(false);
 
     useEffect(() => {
-        if (!user) router.push('/login');
-    }, [user, router]);
+        // Wait until the store has rehydrated from localStorage
+        if (!_hasHydrated) return;
+
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+        
+        // Redirect Experts/Mentors away from student dashboard routes
+        const isExpert = user.role === 'EXPERT' || user.role === 'MENTOR';
+        if (isExpert && pathname?.startsWith('/dashboard/student')) {
+            router.replace('/dashboard/expert');
+        }
+    }, [user, router, pathname, _hasHydrated]);
 
     const handleLogout = () => {
         logout();
@@ -75,6 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
 
     const isAdmin = user?.role === 'ADMIN' || user?.is_superuser;
+    const isExpert = user?.role === 'EXPERT' || user?.role === 'MENTOR';
 
     let menuItems = [];
 
@@ -90,6 +104,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             { href: '/dashboard/admin/refunds',      icon: <RotateCcw />,       label: 'Hoàn tiền' },
             { href: '/dashboard/admin/account-actions', icon: <ClipboardList />, label: 'Nhật ký' },
             { href: '/dashboard/admin/emails',       icon: <Mail />,            label: 'Email' },
+            { href: '/dashboard/chat',               icon: <MessageSquare />,   label: 'Tin nhắn' },
+        ];
+    } else if (isExpert) {
+        menuItems = [
+            { href: '/dashboard/expert',               icon: <LayoutDashboard />, label: 'Tổng quan' },
+            { href: '/dashboard/expert/availability',  icon: <Calendar />,        label: 'Lịch rảnh' },
+            { href: '/dashboard/manage/bookings',      icon: <ClipboardList />,   label: 'Lịch hẹn' },
+            { href: '/dashboard/chat',                 icon: <MessageSquare />,   label: 'Tin nhắn' },
+            { href: '/dashboard/expert/wallet',        icon: <Wallet />,          label: 'Ví & Doanh thu' },
+            { href: '/dashboard/expert/quizzes',       icon: <ClipboardList />,   label: 'Khảo sát' },
+            { href: '/dashboard/dispute',              icon: <ShieldAlert />,     label: 'Hỗ trợ' },
         ];
     } else {
         menuItems = [
@@ -98,6 +123,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             { href: '/dashboard/experts',          icon: <Users />,        label: 'Chuyên gia' },
             { href: '/dashboard/ai-assistant',     icon: <Bot />,          label: 'Trợ lý AI' },
             { href: '/dashboard/manage/bookings',  icon: <Calendar />,     label: 'Lịch trình' },
+            { href: '/dashboard/chat',             icon: <MessageSquare />, label: 'Tin nhắn' },
             { href: '/dashboard/wallet',           icon: <Wallet />,       label: 'Ví Credits' },
             { href: '/dashboard/dispute',          icon: <ShieldAlert />,  label: 'Hỗ trợ' },
         ];
@@ -193,7 +219,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <button
                         onClick={handleLogout}
                         className="nav-item"
-                        style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', justifyContent: isCollapsed ? 'center' : undefined }}
+                        style={{ width: '100%', border: 'none', cursor: 'pointer', justifyContent: isCollapsed ? 'center' : undefined }}
                     >
                         <LogOut size={18} strokeWidth={1.5} />
                         {!isCollapsed && <span>Đăng xuất</span>}

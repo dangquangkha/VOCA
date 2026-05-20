@@ -3,6 +3,7 @@ import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { NavbarWrapper } from "@/components/NavbarWrapper";
 import { FooterWrapper } from "@/components/FooterWrapper";
+import Script from "next/script";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -34,9 +35,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={`${dmSans.variable} ${cormorantGaramond.variable}`} suppressHydrationWarning>
-      <body suppressHydrationWarning className={`antialiased font-sans flex flex-col min-h-screen bg-black text-white relative selection:bg-[var(--neon-magenta)] selection:text-black`}>
+      <body suppressHydrationWarning className={`antialiased font-sans flex flex-col min-h-screen text-white relative selection:bg-[var(--neon-magenta)] selection:text-black`}>
         {/* Interactive Water Ripple Effect */}
-        <WaterRipple />
+        {/* <WaterRipple /> */}
 
         {/* Ambient Bloom: Subtle Gold/Navy glows (Z-index -10) */}
         <div className="fixed inset-0 pointer-events-none z-[-10] overflow-hidden">
@@ -54,6 +55,23 @@ export default function RootLayout({
         </div>
         <ToastContainer />
 
+        {/* Google Analytics (GA4) Integration */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

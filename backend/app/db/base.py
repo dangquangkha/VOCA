@@ -11,3 +11,4 @@ from backend.app.models.roadmap import DailyProgress, RoadmapHistory
 from backend.app.models.review import Review
 from backend.app.models.notification import Notification
 from backend.app.models.email_log import EmailLog
+from backend.app.domains.mbti.models import MBTIQuestion, MBTIType, UserMBTIResult

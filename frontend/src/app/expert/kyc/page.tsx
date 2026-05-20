@@ -144,5 +144,3 @@ export default function ExpertKYCPage() {
         </div>
     );
 }
-    );
-}

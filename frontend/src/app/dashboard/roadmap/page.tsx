@@ -25,12 +25,16 @@ import {
     Sparkles,
     FileCheck,
     ClipboardList,
-    Home
+    Home,
+    Brain
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ExpertQuizzesTab from '@/components/roadmap/ExpertQuizzesTab';
 import { RoadmapCompletionModal } from '@/components/roadmap/RoadmapCompletionModal';
+import MilestoneModal from '@/components/roadmap/MilestoneModal';
 import { useToastStore } from '@/store/useToastStore';
+import MBTISector from '@/components/roadmap/MBTISector';
+import ShinkaiBackground from '@/components/special/ShinkaiBackground';
 
 const EASING = [0.22, 1, 0.36, 1] as any;
 
@@ -59,8 +63,9 @@ export default function RoadmapPage() {
     const [expandedModules, setExpandedModules] = useState<number[]>([1]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     
-    const [activeTab, setActiveTab] = useState<'ikigai' | 'quizzes'>('ikigai');
+    const [activeTab, setActiveTab] = useState<'ikigai' | 'quizzes' | 'mbti'>('ikigai');
     const [showCompletionModal, setShowCompletionModal] = useState(false);
+    const [milestoneInfo, setMilestoneInfo] = useState<{ day: number, reward: number } | null>(null);
     const { addToast } = useToastStore();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -149,13 +154,13 @@ export default function RoadmapPage() {
 
             // Handle Rewards & Completion
             const reward = res.data.reward_earned;
-            if (reward && reward > 0) {
-                addToast(`Chúc mừng! Bạn đã nhận được ${reward} Credits cho cột mốc quan trọng.`, 'success');
-            }
-
+            
+            // ALWAYS show completion modal on day 30, regardless of reward
             if (selectedDay === 30) {
                 setShowCompletionModal(true);
-            } else {
+            } else if (reward && reward > 0) {
+                setMilestoneInfo({ day: selectedDay, reward });
+            } else if (selectedDay < 30) {
                 setSelectedDay(selectedDay + 1);
             }
         } catch (error) {
@@ -190,13 +195,21 @@ export default function RoadmapPage() {
     }
 
     return (
-        <div className="flex flex-col gap-8 font-dm-sans selection:bg-[#0046EA]/20">
-            <div className="flex flex-col gap-8">
+        <div className="relative flex flex-col gap-8 font-dm-sans selection:bg-[#0046EA]/20 min-h-screen">
+            {/* Ambient Light Background */}
+            <ShinkaiBackground 
+                imagePath="/roadmap-bg.svg" 
+                showFish={true} 
+                overlayColor="rgba(255, 255, 255, 0.95)" 
+            />
+            
+            <div className="relative z-10 flex flex-col gap-8 p-8">
                 {/* Top Navigation */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 p-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-full w-fit shadow-lg">
                         {[
                             { id: 'ikigai', label: 'Hành trình Ikigai', icon: <Sparkles size={16} /> },
+                            { id: 'mbti', label: 'Trắc nghiệm MBTI', icon: <Brain size={16} /> },
                             { id: 'quizzes', label: 'Khảo sát Chuyên gia', icon: <ClipboardList size={16} /> }
                         ].map((tab) => (
                             <button
@@ -481,6 +494,16 @@ export default function RoadmapPage() {
                                     </div>
                                 </main>
                             </motion.div>
+                        ) : activeTab === 'mbti' ? (
+                            <motion.div
+                                key="mbti-content"
+                                initial={{ opacity: 0, y: 40 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -40 }}
+                                className="min-h-[600px]"
+                            >
+                                <MBTISector />
+                            </motion.div>
                         ) : (
                             <motion.div
                                 key="quizzes-content"
@@ -499,8 +522,22 @@ export default function RoadmapPage() {
                     isOpen={showCompletionModal}
                     onClose={() => setShowCompletionModal(false)}
                     onGenerateReport={handleGenerateReport}
-                    onViewWallet={() => router.push('/dashboard/wallet')}
-                    totalCreditsEarned={20}
+                    onViewWallet={() => {
+                        setShowCompletionModal(false);
+                        router.push('/dashboard/wallet');
+                    }}
+                    totalCreditsEarned={days.reduce((acc, d) => acc + (d.reward_earned || 0), 0)}
+                />
+
+                <MilestoneModal 
+                    isOpen={!!milestoneInfo}
+                    onClose={() => setMilestoneInfo(null)}
+                    dayNumber={milestoneInfo?.day || 0}
+                    rewardAmount={milestoneInfo?.reward || 0}
+                    onViewWallet={() => {
+                        setMilestoneInfo(null);
+                        router.push('/dashboard/wallet');
+                    }}
                 />
             </div>
         </div>

@@ -111,6 +111,8 @@ async def create_booking(
         expert = result.scalars().first()
         if not expert:
             raise HTTPException(status_code=404, detail="Expert not found")
+        
+        recipient_id = expert.user_id
 
         # Step 2: Validate booking duration
         duration_hours = (booking_in.end_time - booking_in.start_time).total_seconds() / 3600
@@ -168,21 +170,32 @@ async def create_booking(
             description=f"Hold for booking #{booking.id}",
         )
 
-        await db.commit()
-
-        # UC-38.0: Notify Expert of new booking (non-critical, fire-and-forget)
+        # UC-38.0: Notify Expert of new booking (non-critical, within transaction)
         try:
             await create_notification(
-                recipient_id=expert.user_id,
+                recipient_id=recipient_id,
                 sender_id=current_user.id,
                 title="Bạn có yêu cầu đặt lịch mới",
                 message=f"{current_user.full_name or 'Học viên'} đã gửi cho bạn một yêu cầu đặt lịch tư vấn.",
                 type=NotificationType.BOOKING,
                 priority=NotificationPriority.HIGH,
-                link=f"/dashboard/manage/bookings?booking={booking.id}"
+                link=f"/dashboard/manage/bookings?booking={booking.id}",
+                db=db
             )
         except Exception as e:
             print(f"WARNING: create_notification failed (non-critical): {e}")
+
+        # UC-38.3: Chat fallback for Expert (more reliable channel)
+        try:
+            await send_system_message(
+                sender_id=current_user.id,
+                receiver_id=recipient_id,
+                content=f"🔔 Yêu cầu đặt lịch mới: {current_user.full_name or 'Học viên'} đã gửi cho bạn một yêu cầu đặt lịch tư vấn vào lúc {booking_in.start_time.strftime('%H:%M %d/%m/%Y')}. Vui lòng kiểm tra lịch trình của bạn.",
+            )
+        except Exception as e:
+            print(f"WARNING: send_system_message fallback failed: {e}")
+
+        await db.commit()
 
         return await _reload_booking(db, booking.id)
 

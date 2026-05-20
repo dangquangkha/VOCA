@@ -7,8 +7,6 @@ import { Check, Shield, Zap, Star, Rocket, ChevronRight, Info, Crown, ShieldChec
 import ShootingStarVisual from '@/components/special/ShootingStarVisual';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
-
 type Segment = 'HS' | 'SV';
 
 const EASING: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -331,7 +329,6 @@ const PricingPage = () => {
                         </div>
                     </div>
                 </main>
-                <Footer />
             </div>
         </div>
     );
@@ -340,14 +337,14 @@ const PricingPage = () => {
 function FAQItem({ q, a }: { q: string; a: string }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-700 hover:border-[#00A4FD]/40 rounded-[32px] shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] group">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden transition-all duration-500 hover:bg-white/15 hover:border-[#00A4FD]/80 hover:shadow-[0_12px_40px_rgba(0,164,253,0.3)] hover:-translate-y-1 rounded-[32px] group">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
                 className="w-full px-12 py-10 flex items-center justify-between text-left focus:outline-none"
             >
-                <span className="font-garamond italic text-2xl text-white/90 group-hover:text-[#00A4FD] transition-colors duration-700 font-bold drop-shadow-sm">{q}</span>
-                <ChevronDown className={`w-5 h-5 text-[#00A4FD] transition-transform duration-700 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={1.5} />
+                <span className="font-garamond italic text-3xl text-white group-hover:text-[#FFE900] transition-colors duration-500 font-bold drop-shadow-md">{q}</span>
+                <ChevronDown className={`w-6 h-6 text-[#00A4FD] group-hover:text-[#FFE900] transition-all duration-500 ${isOpen ? 'rotate-180' : ''}`} strokeWidth={2} />
             </button>
             <AnimatePresence>
                 {isOpen && (
@@ -355,9 +352,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     >
-                        <div className="px-12 pb-12 text-[16px] text-white/50 leading-relaxed font-dm-sans font-medium">
+                        <div className="px-12 pb-12 text-[17px] text-white/90 leading-relaxed font-dm-sans font-medium">
                             {a}
                         </div>
                     </motion.div>

@@ -100,7 +100,7 @@ export function Navbar() {
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     className="flex items-center gap-4 focus:outline-none group"
                                 >
-                                    <div className="h-10 w-10 border border-white/30 p-0.5 group-hover:border-white/60 transition-colors">
+                                    <div className="h-10 w-10 border-[2px] border-[#D20048] p-0.5 group-hover:border-white transition-colors" style={{ animation: 'crimson-glow-pulse 2s ease-in-out infinite' }}>
                                         <div className="h-full w-full bg-white/10 flex items-center justify-center text-white text-[11px] font-medium overflow-hidden">
                                             <Image
                                                 className="h-full w-full object-cover"
@@ -116,7 +116,7 @@ export function Navbar() {
                                         </div>
                                     </div>
                                     <div className="hidden sm:flex flex-col items-start leading-none gap-1.5">
-                                        <span className="text-[13px] font-medium text-white tracking-wide">
+                                        <span className="text-[14px] font-semibold text-white tracking-wide">
                                             {user.full_name}
                                         </span>
                                     </div>
@@ -143,10 +143,10 @@ export function Navbar() {
                                         className="absolute right-0 mt-4 w-56 bg-[#29B6F6] border border-white/20 shadow-2xl overflow-hidden z-50 backdrop-blur-xl"
                                     >
                                         <div className="px-6 py-4 bg-white/10 border-b border-white/10">
-                                            <p className="text-[9px] text-white/60 uppercase tracking-[0.2em] mb-1">
+                                            <p className="text-[10px] font-semibold text-white/80 uppercase tracking-[0.2em] mb-1">
                                                 Session
                                             </p>
-                                            <p className="text-[11px] font-medium text-white truncate">
+                                            <p className="text-[13px] font-bold text-white truncate">
                                                 {user.email}
                                             </p>
                                         </div>
@@ -156,7 +156,7 @@ export function Navbar() {
                                                     key={item.href}
                                                     href={item.href}
                                                     onClick={() => setIsMenuOpen(false)}
-                                                    className="flex items-center px-4 py-2.5 text-[10px] font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all tracking-[0.1em] uppercase"
+                                                    className="flex items-center px-4 py-3 text-[12px] font-semibold text-white/90 hover:text-[#00A4FD] hover:bg-[#FFE900] transition-all tracking-[0.1em] uppercase"
                                                 >
                                                     {item.label}
                                                 </Link>
@@ -164,7 +164,7 @@ export function Navbar() {
                                             <div className="h-[1px] bg-white/10 my-1.5 mx-3" />
                                             <button
                                                 onClick={handleLogout}
-                                                className="flex items-center w-full px-4 py-2.5 text-[10px] font-medium text-white hover:bg-red-500/20 transition-all tracking-[0.1em] uppercase"
+                                                className="flex items-center w-full px-4 py-3 text-[12px] font-semibold text-white/90 hover:text-white hover:bg-red-500/20 transition-all tracking-[0.1em] uppercase"
                                             >
                                                 Đăng xuất
                                             </button>

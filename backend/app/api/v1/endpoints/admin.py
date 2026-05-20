@@ -10,7 +10,7 @@ from backend.app.domains.marketplace.models import ExpertProfile, KYCStatus
 from backend.app.domains.booking.models import Booking
 from backend.app.domains.payments.models import PaymentTransaction
 from backend.app.schemas.user import User as UserSchema, PaginatedUserResponse
-from backend.app.schemas.expert import ExpertProfileRead, ExpertProfileShort, AdminExpertCreate
+from backend.app.schemas.expert import ExpertProfileRead, ExpertProfileShort, AdminExpertCreate, PaginatedExpertResponse, ExpertProfileUpdate
 from backend.app.models.email_log import EmailLog
 from backend.app.schemas.email_log import EmailLogRead
 from pydantic import BaseModel
@@ -252,29 +252,174 @@ async def create_expert_admin(
     )
     return result.scalars().first()
 
-@router.get("/experts", response_model=List[ExpertProfileShort])
+class ExpertStats(BaseModel):
+    total_bookings: int
+    completed_bookings: int
+    total_revenue: float
+    average_rating: float
+
+class AdminExpertFull(BaseModel):
+    profile: ExpertProfileShort
+    stats: ExpertStats
+
+@router.get("/experts", response_model=PaginatedExpertResponse)
 async def list_experts(
     db: AsyncSession = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
     status: KYCStatus | None = None,
+    search: str | None = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 20,
 ) -> Any:
     """
-    List experts (optionally filter by KYC status). Requires Superuser.
+    List experts with pagination and search. Requires Superuser.
     """
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough privileges")
     
-    query = select(ExpertProfile).options(
-        selectinload(ExpertProfile.user).selectinload(User.expert_profile), # Deep load for circular schema
-        selectinload(ExpertProfile.availabilities)
-    )
+    # Base query
+    query = select(ExpertProfile).join(User)
+    
+    # Filters
     if status:
         query = query.where(ExpertProfile.kyc_status == status)
+    if search:
+        query = query.where(
+            (User.full_name.ilike(f"%{search}%")) |
+            (User.email.ilike(f"%{search}%"))
+        )
         
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+    # Count Total
+    count_query = select(func.count()).select_from(query.subquery())
+    total = await db.scalar(count_query)
+    
+    # Pagination & Relations
+    query = query.options(
+        selectinload(ExpertProfile.user).selectinload(User.expert_profile),
+        selectinload(ExpertProfile.availabilities)
+    ).order_by(ExpertProfile.id.desc()).offset(skip).limit(limit)
+    
+    result = await db.execute(query)
+    experts = result.scalars().all()
+    
+    return {
+        "items": experts,
+        "total": total or 0,
+        "page": (skip // limit) + 1,
+        "page_size": limit,
+        "total_pages": ((total or 0) + limit - 1) // limit
+    }
+
+@router.get("/experts/{expert_id}/full")
+async def get_expert_full(
+    expert_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    try:
+        expert = await db.execute(
+            select(ExpertProfile)
+            .where(ExpertProfile.id == expert_id)
+            .options(
+                selectinload(ExpertProfile.user)
+            )
+        )
+        expert = expert.scalars().first()
+        if not expert:
+            raise HTTPException(status_code=404, detail="Expert not found")
+            
+        # Stats calculation using raw SQL for maximum stability
+        from sqlalchemy import text
+        
+        # 1. Total bookings (including fallbacks for ID)
+        total_bookings_q = await db.execute(
+            text("SELECT count(id) FROM bookings WHERE expert_id = :eid OR expert_id = :uid"),
+            {"eid": expert_id, "uid": expert.user_id}
+        )
+        total_bookings_val = total_bookings_q.scalar() or 0
+        
+        # 2. Completed bookings
+        completed_bookings_q = await db.execute(
+            text("SELECT count(id) FROM bookings WHERE (expert_id = :eid OR expert_id = :uid) AND status IN ('COMPLETED', 'RATED')"),
+            {"eid": expert_id, "uid": expert.user_id}
+        )
+        completed_bookings_val = completed_bookings_q.scalar() or 0
+        
+        # 3. Revenue
+        total_revenue_q = await db.execute(
+            text("SELECT sum(total_amount) FROM bookings WHERE (expert_id = :eid OR expert_id = :uid) AND status IN ('COMPLETED', 'RATED')"),
+            {"eid": expert_id, "uid": expert.user_id}
+        )
+        total_revenue_val = total_revenue_q.scalar() or 0
+        
+        # 4. Average Rating
+        avg_rating_q = await db.execute(
+            text("SELECT avg(rating) FROM reviews WHERE expert_id = :eid OR expert_id = :uid"),
+            {"eid": expert_id, "uid": expert.user_id}
+        )
+        avg_rating_val = avg_rating_q.scalar() or expert.rating or 0.0
+
+        return {
+            "profile": {
+                "id": expert.id,
+                "user_id": expert.user_id,
+                "bio": expert.bio,
+                "kyc_status": expert.kyc_status,
+                "hourly_rate": float(expert.hourly_rate) if expert.hourly_rate else 0.0,
+                "experience_years": expert.experience_years,
+                "rating": float(expert.rating) if expert.rating else 0.0,
+                "user": {
+                    "id": expert.user.id,
+                    "full_name": expert.user.full_name,
+                    "email": expert.user.email,
+                    "avatar_url": expert.user.avatar_url
+                }
+            },
+            "stats": {
+                "total_bookings": int(total_bookings_val),
+                "completed_bookings": int(completed_bookings_val),
+                "total_revenue": float(total_revenue_val),
+                "average_rating": float(avg_rating_val)
+            }
+        }
+    except Exception as e:
+        print(f"Error in get_expert_full: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/experts/{expert_id}", response_model=ExpertProfileShort)
+async def update_expert_admin(
+    expert_id: int,
+    expert_in: ExpertProfileUpdate,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update expert profile information. Requires Superuser.
+    """
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough privileges")
+        
+    expert = await db.get(ExpertProfile, expert_id)
+    if not expert:
+        raise HTTPException(status_code=404, detail="Expert not found")
+        
+    update_data = expert_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(expert, field, value)
+        
+    db.add(expert)
+    await db.commit()
+    
+    # Reload
+    result = await db.execute(
+        select(ExpertProfile)
+        .where(ExpertProfile.id == expert_id)
+        .options(
+            selectinload(ExpertProfile.user),
+            selectinload(ExpertProfile.availabilities)
+        )
+    )
+    return result.scalars().first()
 
 @router.put("/experts/{expert_id}/kyc", response_model=ExpertProfileShort)
 async def update_kyc_status(

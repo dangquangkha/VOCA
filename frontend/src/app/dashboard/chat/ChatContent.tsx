@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import {
     Send, MessageSquare, ArrowLeft, Search,
     Smile, MoreVertical, Check, CheckCheck,
@@ -18,6 +19,17 @@ import { useToast } from '@/hooks/useToast';
 import { getAvatarUrl } from '@/utils/url-utils';
 
 const EMOJIS = ['😊', '😂', '🤣', '😍', '😒', '👍', '🙌', '✨', '🔥', '💡', '💯', '🙏', '❤️', '💙', '✅', '🚀', '🤔', '👀', '👋', '🎉', '💪', '📍', '📞', '📧', '💼', '🎓', '🌟', '🍀', '🌈', '🎁'];
+
+const QUICK_REPLIES = [
+    { text: "Chào bạn!", roles: ["STUDENT", "EXPERT", "ADMIN"] },
+    { text: "Tôi cần tư vấn về lộ trình này.", roles: ["STUDENT"] },
+    { text: "Lịch hẹn tiếp theo của chúng ta là khi nào?", roles: ["STUDENT", "EXPERT"] },
+    { text: "Cảm ơn chuyên gia rất nhiều!", roles: ["STUDENT"] },
+    { text: "Chào bạn, tôi có thể giúp gì cho bạn?", roles: ["EXPERT"] },
+    { text: "Hãy xem qua lộ trình tôi đã chuẩn bị.", roles: ["EXPERT"] },
+    { text: "Tôi đã nhận được thông tin, sẽ phản hồi sớm.", roles: ["EXPERT", "ADMIN"] },
+    { text: "Hẹn gặp lại bạn!", roles: ["STUDENT", "EXPERT", "ADMIN"] },
+];
 
 export default function ChatContent() {
     const { user, token } = useAuthStore();
@@ -88,6 +100,25 @@ export default function ChatContent() {
                 }
             }
 
+            // 1.5. Ensure Support Admin is in contacts
+            console.log('🔍 Fetching Support Admin for contact list...');
+            try {
+                const { data: adminUser } = await api.get('support/admin-profile');
+                if (adminUser) {
+                    uniqueUsers.set(adminUser.id, { ...adminUser, role: 'ADMIN' } as User);
+                }
+            } catch (err) {
+                console.warn('⚠️ Support admin endpoint failed, trying fallback ID 2:', err);
+                try {
+                    const { data: fallbackAdmin } = await api.get('users/2');
+                    if (fallbackAdmin && fallbackAdmin.id !== user.id) {
+                        uniqueUsers.set(fallbackAdmin.id, { ...fallbackAdmin, role: 'ADMIN' } as User);
+                    }
+                } catch (err2) {
+                    console.error('❌ All admin fetch attempts failed');
+                }
+            }
+
             setContacts(Array.from(uniqueUsers.values()));
         } catch (err) {
             error('Không thể tải danh sách liên hệ');
@@ -97,6 +128,7 @@ export default function ChatContent() {
     }, [user, initialOtherUserId, error]);
 
     useEffect(() => { fetchInitialData(); }, [fetchInitialData]);
+
 
     // 2. WebSocket
     const activeContactIdRef = useRef<number | null>(activeContactId);
@@ -259,7 +291,12 @@ export default function ChatContent() {
             >
                 <div className="p-8 border-b-[2px] border-black/5 bg-[#F5F8FF]">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-serif italic text-black tracking-tight font-black uppercase">Tin nhắn</h2>
+                        <div className="flex items-center gap-4">
+                            <Link href="/dashboard" className="p-2 -ml-2 text-black/40 hover:text-[#00A4FD] transition-colors group" title="Trở về Dashboard">
+                                <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                            </Link>
+                            <h2 className="text-2xl font-serif italic text-black tracking-tight font-black uppercase">Tin nhắn</h2>
+                        </div>
                         <div className="w-10 h-10 bg-white border-[2px] border-[#00A4FD] text-[#00A4FD] flex items-center justify-center rounded-0 shadow-lg">
                             <MessageSquare className="w-5 h-5" strokeWidth={3} />
                         </div>
@@ -321,7 +358,7 @@ export default function ChatContent() {
                                         )}
                                     </div>
                                     <p className={`text-[9px] font-black uppercase tracking-widest ${activeContactId === contact.id ? 'text-[#00A4FD]/60' : 'text-black/30'}`}>
-                                        {contact.role === 'EXPERT' ? 'Chuyên gia' : 'Thành viên'}
+                                        {contact.role === 'ADMIN' ? 'Hỗ trợ hệ thống' : (contact.role === 'EXPERT' ? 'Chuyên gia' : 'Thành viên')}
                                     </p>
                                 </div>
                             </button>
@@ -348,7 +385,12 @@ export default function ChatContent() {
                                     }}
                                 />
                                 <div>
-                                    <h3 className="font-serif italic text-black text-2xl font-black uppercase">{activeContact.full_name}</h3>
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="font-serif italic text-black text-2xl font-black uppercase">{activeContact.full_name}</h3>
+                                        {activeContact.role === 'ADMIN' && (
+                                            <span className="bg-[#FFE900] text-[#0046EA] text-[9px] font-black px-2 py-0.5 uppercase tracking-widest">Hỗ trợ</span>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <div className="w-1.5 h-1.5 bg-emerald-500 animate-pulse" />
                                         <span className="text-[9px] font-black uppercase tracking-widest text-black/40">
@@ -419,6 +461,23 @@ export default function ChatContent() {
                         </div>
 
                         <div className="p-8 bg-white border-t border-black/5">
+                            {/* Quick Replies Section */}
+                            <div className="max-w-5xl mx-auto mb-6 flex flex-wrap gap-3">
+                                {QUICK_REPLIES.filter(r => !user?.role || r.roles.includes(user.role)).map((reply, i) => (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => {
+                                            setNewMessage(reply.text);
+                                            // Optional: handleSendMessage() if you want instant send
+                                        }}
+                                        className="px-4 py-2 bg-[#F5F8FF] border border-[#00A4FD]/20 text-[#00A4FD] text-[10px] font-black uppercase tracking-widest hover:bg-[#00A4FD] hover:text-white transition-all rounded-0"
+                                    >
+                                        {reply.text}
+                                    </button>
+                                ))}
+                            </div>
+
                             <form onSubmit={handleSendMessage} className="flex items-end gap-5 max-w-5xl mx-auto">
                                 <div className="relative flex-1 bg-white border-[6px] border-[#00A4FD]/10 rounded-0 transition-all focus-within:border-[#00A4FD] focus-within:shadow-2xl">
                                     <textarea

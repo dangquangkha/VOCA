@@ -16,7 +16,9 @@ export default function UpcomingBooking() {
                 const now = new Date();
                 const upcoming = bookings
                     .filter(b =>
-                        (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.IN_PROGRESS) &&
+                        (b.status === BookingStatus.CONFIRMED || 
+                         b.status === BookingStatus.IN_PROGRESS || 
+                         b.status === BookingStatus.PENDING) &&
                         new Date(b.end_time) > now
                     )
                     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
@@ -86,10 +88,17 @@ export default function UpcomingBooking() {
         <div className="bg-[var(--color-navy-mid)] border border-[var(--color-ivory-10)] p-10 flex flex-col h-full group hover:border-[var(--color-cyan)]/20 transition-all duration-700 shadow-xl font-dm-sans rounded-sm">
             <div className="flex items-center justify-between mb-10">
                 <h3 className="font-serif text-2xl text-[var(--color-ivory)] italic">Lịch hẹn sắp tới</h3>
-                <div className="flex items-center gap-4 bg-[var(--color-cyan)]/5 px-4 py-1.5 border border-[var(--color-cyan)]/20">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-cyan)] animate-pulse" />
-                    <span className="text-[10px] font-bold text-[var(--color-cyan)] uppercase tracking-[0.3em]">Ưu tiên</span>
-                </div>
+                {nextSession.status === BookingStatus.PENDING ? (
+                    <div className="flex items-center gap-4 bg-amber-500/5 px-4 py-1.5 border border-amber-500/20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.3em]">Chờ duyệt</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-4 bg-[var(--color-cyan)]/5 px-4 py-1.5 border border-[var(--color-cyan)]/20">
+                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-cyan)] animate-pulse" />
+                        <span className="text-[10px] font-bold text-[var(--color-cyan)] uppercase tracking-[0.3em]">Ưu tiên</span>
+                    </div>
+                )}
             </div>
 
             <div className="space-y-10 flex-1">
@@ -124,13 +133,23 @@ export default function UpcomingBooking() {
                     </Link>
                 )}
 
-                <div className="bg-[var(--color-obsidian)] p-8 text-center relative overflow-hidden shadow-2xl border border-[var(--color-ivory-10)]">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-cyan)]/5 blur-3xl -mr-16 -mt-16 opacity-50" />
-                    <p className="text-[10px] font-bold text-[var(--color-ivory-40)] uppercase tracking-[0.5em] mb-4">Đếm ngược khởi động</p>
-                    <div className="text-4xl font-serif italic text-[var(--color-cyan)] tracking-[0.3em] tabular-nums font-light">
-                        {formatTime(timeLeft)}
+                {nextSession.status === BookingStatus.PENDING ? (
+                    <div className="bg-[var(--color-obsidian)] p-8 text-center relative overflow-hidden shadow-2xl border border-amber-500/20">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-3xl -mr-16 -mt-16 opacity-50" />
+                        <p className="text-[10px] font-bold text-amber-500/60 uppercase tracking-[0.4em] mb-4">Lịch trình đang được duyệt</p>
+                        <div className="text-sm font-serif italic text-amber-500 leading-relaxed max-w-[280px] mx-auto font-light">
+                            Hệ thống đang chờ Chuyên gia phản hồi xác nhận.
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="bg-[var(--color-obsidian)] p-8 text-center relative overflow-hidden shadow-2xl border border-[var(--color-ivory-10)]">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-cyan)]/5 blur-3xl -mr-16 -mt-16 opacity-50" />
+                        <p className="text-[10px] font-bold text-[var(--color-ivory-40)] uppercase tracking-[0.5em] mb-4">Đếm ngược khởi động</p>
+                        <div className="text-4xl font-serif italic text-[var(--color-cyan)] tracking-[0.3em] tabular-nums font-light">
+                            {formatTime(timeLeft)}
+                        </div>
+                    </div>
+                )}
 
                 <div className="relative group/tooltip">
                     <div className="flex items-center gap-4 py-2 text-[10px] font-bold text-[var(--color-cyan)] uppercase tracking-[0.2em]">
@@ -153,14 +172,14 @@ export default function UpcomingBooking() {
                     rel="noopener noreferrer"
                     className={`
                         flex-1 flex items-center justify-center gap-4 py-4 text-[11px] font-bold tracking-[0.4em] uppercase transition-all duration-700 shadow-xl
-                        ${isReady && nextSession.meeting_url
+                        ${isReady && nextSession.status !== BookingStatus.PENDING && nextSession.meeting_url
                             ? 'bg-[var(--color-cyan)] text-[var(--color-obsidian)] hover:opacity-90'
                             : 'bg-black/20 border border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
                     `}
-                    onClick={(e) => (!isReady || !nextSession.meeting_url) && e.preventDefault()}
+                    onClick={(e) => (!isReady || nextSession.status === BookingStatus.PENDING || !nextSession.meeting_url) && e.preventDefault()}
                 >
                     <Video size={18} strokeWidth={1.25} />
-                    Hành lang họp
+                    {nextSession.status === BookingStatus.PENDING ? 'Chờ xác nhận' : 'Hành lang họp'}
                 </a>
                 <Link href="/dashboard/chat" className="w-16 h-16 border border-[var(--color-ivory-10)] flex items-center justify-center text-[var(--color-ivory-40)] hover:text-[var(--color-cyan)] hover:bg-black/20 hover:border-[var(--color-cyan)]/30 transition-all duration-700 shadow-sm">
                     <ChevronRight size={20} strokeWidth={1.25} />

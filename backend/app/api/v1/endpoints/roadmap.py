@@ -108,7 +108,7 @@ async def get_day_content(
     return DAY_CONTENTS[day_number]
 
 from backend.app.domains.payments.service import credit_service
-from backend.app.domains.payments.models import TransactionType
+from backend.app.domains.payments.models import TransactionType, PaymentTransaction
 
 @router.post("/{day_number}/submit", response_model=DailyProgressSchema)
 async def submit_day_progress(
@@ -218,19 +218,55 @@ async def generate_roadmap_report(
 ) -> Any:
     """
     Take a snapshot of all completed days and create a history report.
+    Costs 50 credits.
     """
+    # Charge credits
+    try:
+        await credit_service.deduct_credits(
+            db=db,
+            user_id=current_user.id,
+            amount=50,
+            trx_type=TransactionType.ROADMAP_REPORT,
+            description="Phí xuất bản báo cáo hành trình Roadmap"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     result = await db.execute(
         select(DailyProgress).where(DailyProgress.user_id == current_user.id).order_by(DailyProgress.day_number)
     )
     progress_list = result.scalars().all()
     
     snapshot = {
-        p.day_number: {
-            "topic": DAY_CONTENTS.get(p.day_number).topic if p.day_number in DAY_CONTENTS else f"Day {p.day_number}",
-            "content": p.content_data,
-            "completed_at": p.completed_at.isoformat() if p.completed_at else None
-        } for p in progress_list if p.status == DayStatus.COMPLETED
+        "days": {
+            p.day_number: {
+                "topic": DAY_CONTENTS.get(p.day_number).topic if p.day_number in DAY_CONTENTS else f"Day {p.day_number}",
+                "content": p.content_data,
+                "completed_at": p.completed_at.isoformat() if p.completed_at else None
+            } for p in progress_list if p.status == DayStatus.COMPLETED
+        }
     }
+    
+    # Include Latest MBTI if available
+    from backend.app.domains.mbti.models import UserMBTIResult, MBTIType
+    mbti_res = await db.execute(
+        select(UserMBTIResult).where(UserMBTIResult.user_id == current_user.id).order_by(UserMBTIResult.id.desc()).limit(1)
+    )
+    last_mbti = mbti_res.scalars().first()
+    if last_mbti:
+        type_res = await db.execute(select(MBTIType).where(MBTIType.code == last_mbti.mbti_code))
+        mbti_type = type_res.scalars().first()
+        snapshot["mbti"] = {
+            "mbti_code": last_mbti.mbti_code,
+            "vietnamese_title": mbti_type.vietnamese_title if mbti_type else "N/A",
+            "description": mbti_type.description if mbti_type else "N/A",
+            "scores": {
+                "E": last_mbti.score_e, "I": last_mbti.score_i,
+                "S": last_mbti.score_s, "N": last_mbti.score_n,
+                "T": last_mbti.score_t, "F": last_mbti.score_f,
+                "J": last_mbti.score_j, "P": last_mbti.score_p
+            }
+        }
     
     history = RoadmapHistory(
         user_id=current_user.id,

@@ -2,12 +2,33 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Facebook, Send, ChevronDown, MessageSquare } from 'lucide-react';
+import { Facebook, Send, ChevronDown, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/useAuthStore';
+import api from '@/lib/api';
 
 // --- Component 1: Floating Contact Menu (FAB Widget) ---
 export const FloatingContactMenu = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const router = useRouter();
+    const { user } = useAuthStore();
+
+    const handleChatWithAdmin = async () => {
+        let adminId = 2; // Default fallback
+        try {
+            const { data } = await api.get('support/admin-profile');
+            if (data?.id) adminId = data.id;
+        } catch (err) {
+            console.warn('Could not fetch admin ID, using fallback:', err);
+        }
+
+        if (!user) {
+            router.push(`/login?redirect=/dashboard/chat?with=${adminId}`);
+        } else {
+            router.push(`/dashboard/chat?with=${adminId}`);
+        }
+        setIsOpen(false);
+    };
 
     return (
         <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end gap-4">
@@ -45,6 +66,17 @@ export const FloatingContactMenu = () => {
                         >
                             <span className="font-black text-[10px]" aria-hidden="true">Zalo</span>
                         </motion.a>
+
+                        {/* Admin Chat Button */}
+                        <motion.button
+                            onClick={handleChatWithAdmin}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            aria-label="Chat với Admin"
+                            className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center shadow-lg hover:bg-slate-900 transition-colors border-2 border-white/20"
+                        >
+                            <ShieldCheck size={24} aria-hidden="true" />
+                        </motion.button>
                     </motion.div>
                 )}
             </AnimatePresence>

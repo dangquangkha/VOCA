@@ -139,27 +139,55 @@ export default function BookingPage() {
     );
 
     if (success) return (
-        <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden success-bg-animate">
+            <style>{`
+                @keyframes successPulse {
+                    0% { background: linear-gradient(135deg, #0046EA 0%, #0077FF 50%, #00A4FD 100%); }
+                    50% { background: linear-gradient(135deg, #00A4FD 0%, #00D2FF 50%, #0046EA 100%); }
+                    100% { background: linear-gradient(135deg, #0046EA 0%, #0077FF 50%, #00A4FD 100%); }
+                }
+                .success-bg-animate {
+                    background-size: 200% 200%;
+                    animation: successPulse 8s ease infinite;
+                }
+                @keyframes cardPulseBorder {
+                    0% { border-color: rgba(255, 255, 255, 0.25); box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); }
+                    50% { border-color: rgba(255, 255, 255, 0.65); box-shadow: 0 0 35px rgba(255, 255, 255, 0.3); }
+                    100% { border-color: rgba(255, 255, 255, 0.25); box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); }
+                }
+                .success-glow-card-blue {
+                    animation: cardPulseBorder 4s ease-in-out infinite;
+                }
+            `}</style>
+
+            {/* Floating glowing bubbles */}
+            <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-white/10 blur-[100px] rounded-full pointer-events-none animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-cyan-400/20 blur-[120px] rounded-full pointer-events-none animate-pulse" />
+
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-[#00A4FD] rounded-none shadow-[0_0_100px_rgba(0,164,253,0.3)] border-[6px] border-[#00A4FD] p-16 text-center max-w-md w-full relative overflow-hidden text-white"
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.8, ease: EASING }}
+                className="success-glow-card-blue rounded-[32px] border-[8px] p-16 text-center max-w-md w-full relative overflow-hidden text-white shadow-2xl backdrop-blur-md bg-white/10"
             >
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#FFE900]" />
-                <div className="w-20 h-20 rounded-none bg-white/20 flex items-center justify-center mx-auto mb-10 border border-white/30">
-                    <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={1.5} />
+                <div className="absolute top-0 left-0 w-full h-[6px] bg-white animate-pulse" />
+                <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mx-auto mb-10 border-[3px] border-white/40 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[light-sweep_3s_infinite]" />
+                    <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={1.5} />
                 </div>
-                <h2 className="text-4xl font-garamond italic font-bold mb-4 uppercase tracking-tight">Booking Secured</h2>
-                <div className="bg-white/10 p-8 rounded-none mb-10 border border-white/20">
-                    <p className="text-white/60 text-sm italic mb-6 leading-relaxed font-dm-sans">
-                        Buổi tư vấn chiến lược cùng <span className="text-[#FFE900] font-black not-italic">{expert.user?.full_name}</span> đã được ghi nhận:
+                <h2 className="text-4xl font-garamond italic font-bold mb-4 uppercase tracking-tight text-white drop-shadow-md">
+                    Đặt lịch thành công
+                </h2>
+                <div className="bg-white/10 backdrop-blur-md p-8 rounded-[24px] mb-10 border border-white/20 shadow-inner">
+                    <p className="text-white/90 text-sm italic mb-6 leading-relaxed font-dm-sans">
+                        Buổi tư vấn chiến lược cùng <span className="text-white font-black not-italic underline decoration-amber-300 underline-offset-4">{expert.user?.full_name}</span> đã được xác nhận:
                     </p>
                     <div className="flex flex-col items-center gap-2">
-                        <span className="text-4xl font-garamond italic font-bold text-[#FFE900]">{selectedTime}</span>
-                        <span className="text-white/40 font-black uppercase text-[10px] tracking-widest">{selectedDate}</span>
+                        <span className="text-4xl font-garamond italic font-bold text-white drop-shadow-sm">{selectedTime}</span>
+                        <span className="text-white/70 font-black uppercase text-[10px] tracking-widest">{selectedDate}</span>
                     </div>
                 </div>
-                <p className="text-[10px] text-[#FFE900] font-black uppercase tracking-[0.4em] animate-pulse">Initializing strategic alignment...</p>
+                <p className="text-[10px] text-white/80 font-black uppercase tracking-[0.4em] animate-pulse">Đang đồng bộ hóa lịch trình...</p>
             </motion.div>
         </div>
     );
@@ -248,9 +276,9 @@ export default function BookingPage() {
                                         onClick={() => { setSelectedDate(entry.dateStr); setSelectedTime(''); }}
                                         className={`flex flex-col items-center py-6 rounded-none transition-all duration-700 border-[3px]
                                             ${selectedDate === entry.dateStr
-                                                ? 'bg-[#00A4FD]/10 border-[#00A4FD] text-[#00A4FD] shadow-2xl'
+                                                ? 'bg-[#00A4FD]/10 border-[#00A4FD] text-[#00A4FD] shadow-2xl font-bold'
                                                 : entry.available
-                                                    ? 'bg-white border-black/5 text-black/20 hover:border-[#00A4FD]/30 hover:bg-[#F5F8FF] hover:text-[#0046EA] hover:scale-[1.05] hover:shadow-xl'
+                                                    ? 'bg-white border-[#00A4FD]/30 text-black/80 hover:border-[#00A4FD] hover:bg-[#F5F8FF] hover:text-[#0046EA] hover:scale-[1.05] hover:shadow-xl font-medium'
                                                     : 'opacity-5 grayscale pointer-events-none'
                                             }`}
                                     >

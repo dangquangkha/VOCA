@@ -219,7 +219,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <button
                         onClick={handleLogout}
                         className="nav-item"
-                        style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', justifyContent: isCollapsed ? 'center' : undefined }}
+                        style={{ width: '100%', border: 'none', cursor: 'pointer', justifyContent: isCollapsed ? 'center' : undefined }}
                     >
                         <LogOut size={18} strokeWidth={1.5} />
                         {!isCollapsed && <span>Đăng xuất</span>}

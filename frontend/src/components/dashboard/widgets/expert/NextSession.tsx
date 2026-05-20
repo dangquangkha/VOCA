@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Calendar, Video, FileText, CheckCircle2, Loader2, XCircle, AlertTriangle } from 'lucide-react';
 import { bookingService } from '@/services/bookingService';
 import { Booking, BookingStatus } from '@/types/booking';
@@ -19,7 +20,9 @@ export default function NextSession() {
                 // Find closest upcoming session
                 const upcoming = bookings
                     .filter(b =>
-                        (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.IN_PROGRESS) &&
+                        (b.status === BookingStatus.CONFIRMED || 
+                         b.status === BookingStatus.IN_PROGRESS || 
+                         b.status === BookingStatus.PENDING) &&
                         new Date(b.end_time) > now
                     )
                     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
@@ -97,10 +100,17 @@ export default function NextSession() {
         <div className="bg-[var(--color-navy-mid)] rounded-sm p-8 border border-[var(--color-ivory-10)] h-full flex flex-col hover:border-[var(--color-gold-line)] transition-all group shadow-2xl font-sans">
             <div className="flex items-center justify-between mb-8">
                 <h3 className="text-[11px] font-medium text-[var(--color-ivory-45)] uppercase tracking-[0.3em]">Lịch hẹn tiếp theo</h3>
-                <span className="flex items-center gap-2 text-[9px] font-medium text-[var(--color-gold)] border border-[var(--color-gold-dim)] px-2.5 py-1 rounded-full uppercase tracking-widest bg-transparent animate-pulse">
-                    <span className="w-1 h-1 rounded-full bg-[var(--color-gold)] shadow-[0_0_8px_var(--color-gold)]"></span>
-                    Sắp diễn ra
-                </span>
+                {nextSession.status === BookingStatus.PENDING ? (
+                    <span className="flex items-center gap-2 text-[9px] font-medium text-amber-500 border border-amber-500/30 px-2.5 py-1 rounded-full uppercase tracking-widest bg-transparent animate-pulse">
+                        <span className="w-1 h-1 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>
+                        Cần phê duyệt
+                    </span>
+                ) : (
+                    <span className="flex items-center gap-2 text-[9px] font-medium text-[var(--color-gold)] border border-[var(--color-gold-dim)] px-2.5 py-1 rounded-full uppercase tracking-widest bg-transparent animate-pulse">
+                        <span className="w-1 h-1 rounded-full bg-[var(--color-gold)] shadow-[0_0_8px_var(--color-gold)]"></span>
+                        Sắp diễn ra
+                    </span>
+                )}
             </div>
 
             <div className="space-y-8 flex-1">
@@ -125,45 +135,65 @@ export default function NextSession() {
                     </div>
 
                     {/* Countdown */}
-                    <div className="bg-[var(--color-obsidian)] rounded-sm p-6 text-center border border-[var(--color-ivory-10)] shadow-inner">
-                        <p className="text-[9px] font-medium text-[var(--color-ivory-20)] uppercase tracking-[0.4em] mb-3">Thời gian đếm ngược</p>
-                        <div className="text-3xl font-mono font-medium text-[var(--color-gold)] tracking-[0.3em]">
-                            {formatTime(timeLeft)}
+                    {nextSession.status === BookingStatus.PENDING ? (
+                        <div className="bg-[var(--color-obsidian)] rounded-sm p-6 text-center border border-amber-500/20 shadow-inner">
+                            <p className="text-[9px] font-medium text-amber-500/60 uppercase tracking-[0.4em] mb-3">Trạng thái yêu cầu</p>
+                            <div className="text-sm font-serif italic text-amber-500 leading-relaxed">
+                                Bạn có yêu cầu đặt lịch hẹn mới từ Học viên này.
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="bg-[var(--color-obsidian)] rounded-sm p-6 text-center border border-[var(--color-ivory-10)] shadow-inner">
+                            <p className="text-[9px] font-medium text-[var(--color-ivory-20)] uppercase tracking-[0.4em] mb-3">Thời gian đếm ngược</p>
+                            <div className="text-3xl font-mono font-medium text-[var(--color-gold)] tracking-[0.3em]">
+                                {formatTime(timeLeft)}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-4">
-                <a
-                    href={nextSession.meeting_url || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`
-                        flex items-center justify-center gap-2 py-3.5 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] transition-all
-                        ${isReady && nextSession.meeting_url
-                            ? 'bg-[var(--color-gold-faint)] text-[var(--color-gold)] border border-[var(--color-gold-line)] hover:bg-[var(--color-gold-dim)] hover:text-[var(--color-ivory)] shadow-lg shadow-[rgba(201,168,76,0.1)]'
-                            : 'bg-transparent border border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
-                    `}
-                    onClick={(e) => (!isReady || !nextSession.meeting_url) && e.preventDefault()}
-                >
-                    <Video size={16} className="opacity-70" />
-                    Tham gia Meet
-                </a>
-                <button
-                    onClick={handleCheckin}
-                    disabled={!isReady || (nextSession.expert_checked_in_at !== null && nextSession.expert_checked_in_at !== undefined)}
-                    className={`
-                        flex items-center justify-center gap-2 py-3.5 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] border transition-all
-                        ${isReady && !nextSession.expert_checked_in_at
-                            ? 'border-[var(--color-gold-line)] text-[var(--color-ivory-70)] hover:bg-[var(--color-gold-faint)] hover:text-[var(--color-gold)]'
-                            : 'border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
-                    `}
-                >
-                    <CheckCircle2 size={16} className="opacity-70" />
-                    {nextSession.expert_checked_in_at ? 'Đã Check-in' : 'Check-in'}
-                </button>
-            </div>
+            {nextSession.status === BookingStatus.PENDING ? (
+                <div className="mt-10">
+                    <Link
+                        href={`/dashboard/manage/bookings?booking=${nextSession.id}`}
+                        className="w-full flex items-center justify-center gap-3 py-4 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] bg-amber-500 text-obsidian hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20"
+                    >
+                        Phê duyệt lịch hẹn ngay
+                    </Link>
+                </div>
+            ) : (
+                <div className="mt-10 grid grid-cols-2 gap-4">
+                    <a
+                        href={nextSession.meeting_url || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`
+                            flex items-center justify-center gap-2 py-3.5 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] transition-all
+                            ${isReady && nextSession.meeting_url
+                                ? 'bg-[var(--color-gold-faint)] text-[var(--color-gold)] border border-[var(--color-gold-line)] hover:bg-[var(--color-gold-dim)] hover:text-[var(--color-ivory)] shadow-lg shadow-[rgba(201,168,76,0.1)]'
+                                : 'bg-transparent border border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
+                        `}
+                        onClick={(e) => (!isReady || !nextSession.meeting_url) && e.preventDefault()}
+                    >
+                        <Video size={16} className="opacity-70" />
+                        Tham gia Meet
+                    </a>
+                    <button
+                        onClick={handleCheckin}
+                        disabled={!isReady || (nextSession.expert_checked_in_at !== null && nextSession.expert_checked_in_at !== undefined)}
+                        className={`
+                            flex items-center justify-center gap-2 py-3.5 rounded-sm font-medium text-[10px] uppercase tracking-[0.3em] border transition-all
+                            ${isReady && !nextSession.expert_checked_in_at
+                                ? 'border-[var(--color-gold-line)] text-[var(--color-ivory-70)] hover:bg-[var(--color-gold-faint)] hover:text-[var(--color-gold)]'
+                                : 'border-[var(--color-ivory-10)] text-[var(--color-ivory-20)] cursor-not-allowed'}
+                        `}
+                    >
+                        <CheckCircle2 size={16} className="opacity-70" />
+                        {nextSession.expert_checked_in_at ? 'Đã Check-in' : 'Check-in'}
+                    </button>
+                </div>
+            )}
 
             {/* UC-Expert Cancellation */}
             <div className="mt-4 pt-4 border-t border-[var(--color-ivory-10)]">

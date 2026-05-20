@@ -161,8 +161,8 @@ export default function ManageBookingsPage() {
     
     // isProvider: dùng cho breadcrumb & label hiển thị (cả EXPERT lẫn MENTOR)
     const isProvider = user?.role === 'EXPERT' || user?.role === 'MENTOR';
-    // isExpert: dùng cho action buttons (Accept/Reject/Meeting URL) — CHỈ EXPERT
-    const isExpert = user?.role === 'EXPERT';
+    // isExpert: dùng cho action buttons (Accept/Reject/Meeting URL)
+    const isExpert = user?.role === 'EXPERT' || user?.role === 'MENTOR';
     const isStudent = user?.role === 'STUDENT';
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [isLoading, setIsLoading] = useState(true);

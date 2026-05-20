@@ -234,38 +234,54 @@ export default function BookingPage() {
                         )}
 
                         {/* Date Selection */}
-                        <section className="bg-void-90/50 backdrop-blur-xl border border-void-80 rounded-2xl p-10 space-y-8 shadow-xl">
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="w-8 h-8 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan font-mono text-xs">01</div>
-                                <h3 className="text-xs font-bold text-text-primary uppercase tracking-widest">Select Timeline</h3>
+                        <section className="bg-white border-[6px] border-black/5 p-12 space-y-12 transition-all duration-700 shadow-sm hover:shadow-2xl">
+                            <div className="flex items-center gap-6">
+                                <div className="w-10 h-10 rounded-none bg-[#00A4FD] flex items-center justify-center text-white font-black text-xs">01</div>
+                                <h3 className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em]">SELECT TIMELINE</h3>
                             </div>
 
-                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                            <div className="grid grid-cols-4 sm:grid-cols-7 gap-4">
                                 {calendar.map(entry => (
                                     <button
                                         key={entry.dateStr}
                                         disabled={!entry.available}
                                         onClick={() => { setSelectedDate(entry.dateStr); setSelectedTime(''); }}
-                                        className={`flex flex-col items-center py-5 rounded-xl transition-all duration-300 border
+                                        className={`group flex flex-col items-center py-6 border-[3px] transition-all duration-300 cursor-pointer
                                             ${selectedDate === entry.dateStr
-                                                ? 'bg-[var(--color-neon-cyan)]/20 border-[var(--color-neon-cyan)] text-[var(--color-neon-cyan)]'
+                                                ? 'bg-[#FFE900] border-[#FFE900] text-[#0046EA] shadow-xl scale-[1.03]'
                                                 : entry.available
-                                                    ? 'bg-void-80/40 border-void-70 text-text-dim hover:border-neon-cyan/40 hover:text-text-primary'
-                                                    : 'opacity-10 grayscale pointer-events-none'
+                                                    ? 'bg-[#00A4FD] border-[#00A4FD] text-white hover:bg-[#0086D4] hover:border-[#0086D4]'
+                                                    : 'bg-[#F9FAFB] border-black/5 text-black/20 cursor-not-allowed pointer-events-none'
                                             }`}
                                     >
-                                        <span className="text-[9px] font-bold uppercase tracking-widest mb-2">{entry.label}</span>
-                                        <span className="text-xl font-display font-light">{entry.day}</span>
+                                        <span className={`text-[10px] font-black uppercase tracking-wider mb-1 transition-all duration-300
+                                            ${selectedDate === entry.dateStr 
+                                                ? 'text-[#0046EA]/80' 
+                                                : entry.available
+                                                    ? 'text-white/80'
+                                                    : 'text-black/30'
+                                            }`}>
+                                            {entry.label}
+                                        </span>
+                                        <span className={`text-2xl font-garamond italic font-bold transition-all duration-300
+                                            ${selectedDate === entry.dateStr
+                                                ? 'text-[#0046EA]'
+                                                : entry.available
+                                                    ? 'text-white'
+                                                    : 'text-black/35'
+                                            }`}>
+                                            {entry.day}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="pt-8 border-t border-void-80 flex items-center justify-between">
-                                <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest">Manual Date Override</span>
+                            <div className="pt-8 border-t border-black/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <span className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">Manual Date Override</span>
                                 <input
                                     type="date"
                                     min={minDate}
-                                    className="bg-void-80 border-void-70 text-sm font-mono text-text-primary px-4 py-2 rounded-md focus:outline-none focus:border-neon-cyan transition-all"
+                                    className="bg-[#F5F8FF] border-[3px] border-black/5 px-6 py-3 text-sm font-black tracking-widest text-[#171716] uppercase focus:outline-none focus:border-[#00A4FD] transition-all"
                                     value={selectedDate}
                                     onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(''); }}
                                 />

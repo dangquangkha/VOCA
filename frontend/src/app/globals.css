@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="cyber"], [data-theme="cyber"] *));
+
 /* ============================================================
    VOCA — DESIGN SYSTEM
    Reference: kiminona.com · tenkinoko.com (Makoto Shinkai)
@@ -40,9 +42,8 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── SQUARE CORNERS ENFORCEMENT ── */
+/* ── BOX SIZING ENFORCEMENT ── */
 *, *::before, *::after {
-  border-radius: 0 !important;
   box-sizing: border-box;
 }
 
@@ -59,14 +60,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+[data-theme="cyber"] body {
+  background: #0A0E1A;
+  color: #FFFFFF;
 }
 
 a, button, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
-  outline: none;
 }
 
-a:focus-visible, button:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--sky);
   outline-offset: 2px;
 }
@@ -121,6 +127,10 @@ a:focus-visible, button:focus-visible {
   100% { top: calc(100% + 2px); opacity: 0; }
 }
 
+* {
+  border-radius: 0 !important;
+}
+
 /* ── UTILITY CLASSES ── */
 
 .border-6 {
@@ -138,7 +148,14 @@ a:focus-visible, button:focus-visible {
   transition: 
     border-color 0.35s var(--ease),
     box-shadow   0.35s var(--ease),
-    transform    0.35s var(--ease);
+    transform    0.35s var(--ease),
+    background-color 0.5s ease;
+}
+
+[data-theme="cyber"] .card {
+  background: rgba(10, 14, 26, 0.6);
+  border-color: rgba(0, 164, 253, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .card:hover {

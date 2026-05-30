@@ -3,12 +3,13 @@ import { persist } from 'zustand/middleware';
 import { User } from '@/types/user';
 
 interface AuthState {
-    token: string | null;
-    user: User | null;
+    token: string | null;       // Access token — memory only, never persisted
+    user: User | null;          // User profile — persisted for UI restore
     _hasHydrated: boolean;
     login: (token: string, user: User) => void;
     logout: () => void;
     updateUser: (user: User) => void;
+    setToken: (token: string | null) => void;
     setHasHydrated: (state: boolean) => void;
 }
 
@@ -19,15 +20,15 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             _hasHydrated: false,
             login: (token, user) => set({ token, user }),
-            logout: () => {
-                localStorage.removeItem('token');
-                set({ token: null, user: null });
-            },
+            logout: () => set({ token: null, user: null }),
             updateUser: (user) => set({ user }),
+            setToken: (token) => set({ token }),
             setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
         {
             name: 'auth-storage',
+            // ⚠️ Chỉ persist user profile, KHÔNG persist token (bảo mật XSS)
+            partialize: (state) => ({ user: state.user }),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             },

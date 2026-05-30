@@ -17,7 +17,8 @@ import {
     Wand2,
     Tag,
     ChevronDown,
-    MessageSquare
+    MessageSquare,
+    FileText
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useNotificationStore } from '@/store/useNotificationStore';
@@ -75,6 +76,7 @@ export default function ExpertDashboardLayout({ children }: { children: React.Re
         { href: '/dashboard/expert/availability',  icon: <CalendarDays />,  label: 'Lịch rảnh' },
         { href: '/dashboard/manage/bookings',      icon: <ClipboardList />, label: 'Lịch hẹn' },
         { href: '/dashboard/expert/wallet',        icon: <Wallet />,        label: 'Ví & Doanh thu' },
+        { href: '/dashboard/expert/portfolio',     icon: <FileText />,      label: 'Bài viết & Tài liệu' },
         { href: '/dashboard/chat',                 icon: <MessageSquare />, label: 'Tin nhắn' },
         { href: '/dashboard/dispute',              icon: <ShieldAlert />,   label: 'Khiếu nại' },
         { href: '/dashboard/expert/quizzes',       icon: <ClipboardList />, label: 'Khảo sát' },

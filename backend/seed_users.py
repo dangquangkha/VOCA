@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.future import select
 
-from backend.app.db.base import Base
-from backend.app.models.user import User, UserRole, UserStatus
-from backend.app.models.expert import ExpertProfile, KYCStatus
+import backend.app.db.base
+from backend.app.domains.identity.models import User, UserRole, UserStatus
+from backend.app.domains.marketplace.models import ExpertProfile, KYCStatus
 from backend.app.core.security import get_password_hash
 from backend.app.core.config import settings
 

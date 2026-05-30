@@ -24,12 +24,14 @@ import {
     BookOpen,
     Sparkles,
     FileCheck,
+    FileText,
     ClipboardList,
     Home,
     Brain
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ExpertQuizzesTab from '@/components/roadmap/ExpertQuizzesTab';
+import ExpertPostsFeed from '@/components/roadmap/ExpertPostsFeed';
 import { RoadmapCompletionModal } from '@/components/roadmap/RoadmapCompletionModal';
 import MilestoneModal from '@/components/roadmap/MilestoneModal';
 import { useToastStore } from '@/store/useToastStore';
@@ -63,7 +65,7 @@ export default function RoadmapPage() {
     const [expandedModules, setExpandedModules] = useState<number[]>([1]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     
-    const [activeTab, setActiveTab] = useState<'ikigai' | 'quizzes' | 'mbti'>('ikigai');
+    const [activeTab, setActiveTab] = useState<'ikigai' | 'mbti' | 'quizzes' | 'posts'>('ikigai');
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const [milestoneInfo, setMilestoneInfo] = useState<{ day: number, reward: number } | null>(null);
     const { addToast } = useToastStore();
@@ -210,7 +212,8 @@ export default function RoadmapPage() {
                         {[
                             { id: 'ikigai', label: 'Hành trình Ikigai', icon: <Sparkles size={16} /> },
                             { id: 'mbti', label: 'Trắc nghiệm MBTI', icon: <Brain size={16} /> },
-                            { id: 'quizzes', label: 'Khảo sát Chuyên gia', icon: <ClipboardList size={16} /> }
+                            { id: 'quizzes', label: 'Khảo sát Chuyên gia', icon: <ClipboardList size={16} /> },
+                            { id: 'posts', label: 'Bài viết Chuyên gia', icon: <FileText size={16} /> }
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -503,6 +506,17 @@ export default function RoadmapPage() {
                                 className="min-h-[600px]"
                             >
                                 <MBTISector />
+                            </motion.div>
+                        ) : activeTab === 'posts' ? (
+                            <motion.div
+                                key="posts-content"
+                                initial={{ opacity: 0, y: 40 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -40 }}
+                                transition={{ duration: 0.8, ease: EASING }}
+                                className="h-full overflow-y-auto custom-scrollbar pr-2"
+                            >
+                                <ExpertPostsFeed />
                             </motion.div>
                         ) : (
                             <motion.div

@@ -1,10 +1,12 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Generic, TypeVar
 from pydantic import BaseModel
 from backend.app.domains.booking.models import BookingStatus
 from backend.app.domains.payments.models import TransactionType, TransactionStatus
 from backend.app.schemas.user import User
 from backend.app.schemas.expert import ExpertProfile, ExpertProfileShort
+
+T = TypeVar("T")
 
 # --- Transaction Schemas ---
 class TransactionBase(BaseModel):
@@ -60,3 +62,11 @@ class Booking(BookingBase):
     class Config:
         from_attributes = True
 
+
+class PaginatedBookingResponse(BaseModel):
+    """Paginated response for booking list endpoints."""
+    items: List[Booking]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

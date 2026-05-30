@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, validator
 from backend.app.domains.identity.models import UserRole, UserStatus
@@ -16,14 +17,29 @@ class UserCreate(BaseModel):
     account_status: UserStatus = UserStatus.ACTIVE
     
     @validator('password')
-    def password_min_length(cls, v):
+    def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters')
+            raise ValueError('Mật khẩu phải có ít nhất 8 ký tự')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ in hoa')
+        if not re.search(r'[^a-zA-Z0-9\s]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 ký tự đặc biệt')
+        if ' ' in v:
+            raise ValueError('Mật khẩu không được chứa dấu cách')
         return v
     
     @validator('email')
-    def email_lowercase(cls, v):
-        return v.lower()
+    def validate_email(cls, v):
+        v = v.lower()
+        if not v.endswith('@gmail.com'):
+            raise ValueError('Email phải có đuôi @gmail.com')
+        return v
+
+    @validator('phone_number')
+    def validate_phone(cls, v):
+        if not re.match(r'^(0|\+84)(3|5|7|8|9)[0-9]{8}$', v):
+            raise ValueError('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam')
+        return v
 
 
 class UserUpdate(BaseModel):
@@ -42,6 +58,8 @@ class UserUpdate(BaseModel):
         return v.lower() if v else v
 
 
+from datetime import datetime
+
 class UserRead(BaseModel):
     """Schema for reading user data"""
     id: int
@@ -53,7 +71,7 @@ class UserRead(BaseModel):
     is_active: bool
     is_superuser: bool
     account_status: UserStatus
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True

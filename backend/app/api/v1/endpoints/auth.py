@@ -1,9 +1,10 @@
 from datetime import timedelta
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+import httpx
 
 from backend.app.api import deps
 from backend.app.core import security
@@ -13,8 +14,9 @@ from backend.app.domains.identity.models import User, UserRole
 from backend.app.domains.marketplace.models import ExpertProfile, KYCStatus
 from backend.app.schemas.user import Token, UserCreate, User as UserSchema, PasswordResetRequest, PasswordResetConfirm
 from jose import jwt
-import requests
 from backend.app.schemas.token import GoogleLoginRequest
+
+router = APIRouter()
 
 @router.post("/google", response_model=Token)
 async def google_login(
@@ -37,21 +39,17 @@ async def google_login(
         email = parts[2] if len(parts) >= 3 and "@" in parts[2] else "google_user@gmail.com"
         print(f"[SEC-02] Using MOCK Google login for: {email}")
     else:
-        # PRODUCTION: Verify with Google API
+        # PRODUCTION: Verify with Google API using async HTTP client
         try:
-            # Use Google's token info endpoint to verify the JWT
-            # In a heavy production environment, it's better to verify locally using google-auth library
-            # and cached certificates, but this is the most reliable "SDK-like" behavior without new deps.
-            response = requests.get(
-                f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}",
-                timeout=5
-            )
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(
+                    f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
+                )
             if response.status_code != 200:
                 raise HTTPException(status_code=400, detail="Invalid Google ID Token")
             
             id_info = response.json()
             
-            # Basic validation
             # Check Audience (Must match our Client ID)
             client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
             if client_id and id_info.get("aud") != client_id:
@@ -63,6 +61,8 @@ async def google_login(
             if not email:
                 raise HTTPException(status_code=400, detail="Email not provided by Google")
                 
+        except httpx.TimeoutException:
+            raise HTTPException(status_code=504, detail="Google authentication timed out")
         except Exception as e:
             if isinstance(e, HTTPException): raise e
             raise HTTPException(status_code=401, detail=f"Google authentication failed: {str(e)}")
@@ -158,44 +158,105 @@ async def reset_password(
 
 @router.post("/login/access-token", response_model=Token)
 async def login_access_token(
+    response: Response,
     db: AsyncSession = Depends(deps.get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
-    OAuth2 compatible token login, get an access token for future requests
+    OAuth2 compatible token login.
+    Returns access_token in body + sets refresh_token as httpOnly cookie.
     """
     from backend.app.domains.identity.models import UserStatus
     
-    # Authenticate via Email
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalars().first()
     
     if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
-    # Check account status (BR-22, BR-24)
     if user.account_status == UserStatus.BANNED:
         raise HTTPException(
             status_code=403, 
             detail="Your account has been permanently banned due to violation of Community Standards. Please contact support if you believe this is an error."
         )
-    
     if user.account_status == UserStatus.SUSPENDED:
         raise HTTPException(
             status_code=403,
             detail="Your account has been temporarily suspended. Please contact admin@careerpath.com to appeal."
         )
-    
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
         
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return {
-        "access_token": security.create_access_token(
-            user.email, expires_delta=access_token_expires
-        ),
-        "token_type": "bearer",
-    }
+    access_token = security.create_access_token(
+        user.email, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    refresh_token = security.create_refresh_token(user.email)
+
+    # Set refresh token as httpOnly cookie (not accessible by JavaScript)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,       # Set True in production (HTTPS only)
+        samesite="lax",
+        max_age=7 * 24 * 3600,  # 7 days
+        path="/api/v1/auth",
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    response: Response,
+    db: AsyncSession = Depends(deps.get_db),
+    refresh_token: str | None = Cookie(default=None),
+) -> Any:
+    """
+    Renew access token using the refresh token stored in httpOnly cookie.
+    Also rotates the refresh token (issues a new one).
+    """
+    from jose import jwt, JWTError
+
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    try:
+        payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        if not email or token_type != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Refresh token expired or invalid")
+
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalars().first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    # Issue new tokens (rotation)
+    new_access_token = security.create_access_token(
+        user.email, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    new_refresh_token = security.create_refresh_token(user.email)
+
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=7 * 24 * 3600,
+        path="/api/v1/auth",
+    )
+    return {"access_token": new_access_token, "token_type": "bearer"}
+
+
+@router.post("/logout")
+async def logout(response: Response) -> Any:
+    """Clear the refresh token cookie to log out."""
+    response.delete_cookie(key="refresh_token", path="/api/v1/auth")
+    return {"msg": "Logged out successfully"}
 
 @router.post("/register", response_model=UserSchema)
 async def register_user(

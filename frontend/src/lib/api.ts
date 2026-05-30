@@ -2,8 +2,6 @@ import axios, { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const getBaseURL = () => {
-    // We prefer the environment variable, but fallback to 127.0.0.1 for local dev
-    // We use a trailing slash to ensure consistent path joining
     const envBase = process.env.NEXT_PUBLIC_API_URL;
     const base = envBase || 'http://127.0.0.1:8001/api/v1';
     return base.endsWith('/') ? base : `${base}/`;
@@ -12,6 +10,7 @@ const getBaseURL = () => {
 const api = axios.create({
     baseURL: getBaseURL(),
     timeout: 15000,
+    withCredentials: true, // ← Required to send/receive httpOnly cookies (refresh token)
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -24,33 +23,66 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     return config;
 });
 
+// Track if a refresh is already in-flight to avoid parallel refresh calls
+let isRefreshing = false;
+let refreshQueue: Array<(token: string) => void> = [];
+
+const processQueue = (token: string) => {
+    refreshQueue.forEach((cb) => cb(token));
+    refreshQueue = [];
+};
+
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
-        const url = error.config?.url || 'UNKNOWN';
-        
-        // Log error for debugging (using warn instead of error to prevent Next.js Dev Error Overlay popup for handled API validation errors like 400 or 422)
-        console.warn(`[API ERROR] ${method} ${url}:`, error.response?.status, error.message);
+    async (error) => {
+        const originalRequest = error.config;
 
-        // ONLY logout on 401 if we are not already on the login page
-        // and if it's NOT the /me call failing immediately after login
-        if (error.response?.status === 401) {
-            const isLoginPage = typeof window !== 'undefined' && window.location.pathname.includes('/login');
-            const hasTokenInRequest = !!error.config?.headers?.Authorization;
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.url?.includes('/auth/refresh') &&
+            !originalRequest.url?.includes('/auth/login')
+        ) {
+            if (isRefreshing) {
+                // Queue this request until refresh is done
+                return new Promise((resolve) => {
+                    refreshQueue.push((token: string) => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        resolve(api(originalRequest));
+                    });
+                });
+            }
 
-            if (!isLoginPage && hasTokenInRequest) {
-                console.warn('[API] Unauthorized access - Logging out');
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // withCredentials sends the httpOnly refresh_token cookie
+                const { data } = await axios.post(
+                    `${getBaseURL()}auth/refresh`,
+                    {},
+                    { withCredentials: true }
+                );
+                const newToken = data.access_token;
+                useAuthStore.getState().setToken(newToken);
+                processQueue(newToken);
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                return api(originalRequest);
+            } catch {
+                // Refresh failed — session truly expired
                 useAuthStore.getState().logout();
-                window.location.href = '/login';
-            } else if (!isLoginPage && !hasTokenInRequest) {
-                // If 401 happened but we didn't even send a token, 
-                // it might be a hydration race or a guest accessing a private route.
-                // We don't call logout() because that would clear the token from localStorage
-                // while it's still being rehydrated by Zustand!
-                console.warn('[API] 401 Unauthorized (No token provided) - Skipping auto-logout');
+                if (typeof window !== 'undefined') {
+                    window.location.href = '/login';
+                }
+                return Promise.reject(error);
+            } finally {
+                isRefreshing = false;
             }
         }
+
+        const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+        const url = error.config?.url || 'UNKNOWN';
+        console.warn(`[API ERROR] ${method} ${url}:`, error.response?.status, error.message);
         return Promise.reject(error);
     }
 );

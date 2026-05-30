@@ -45,8 +45,6 @@ export default function UserManagementPage() {
 
     // Fetch users
     const fetchUsers = useCallback(async () => {
-        if (!token) return;
-
         setLoading(true);
         try {
             const params: UserQueryParams = {
@@ -109,7 +107,8 @@ export default function UserManagementPage() {
             setFormData({});
             fetchUsers();
         } catch (error: any) {
-            toast.error(error.response?.data?.detail || "Failed to create user");
+            const detail = error.response?.data?.detail;
+            toast.error(Array.isArray(detail) ? detail.map((e: any) => e.msg).join(', ') : (detail || "Failed to create user"));
         }
     };
 
@@ -124,7 +123,8 @@ export default function UserManagementPage() {
             setSelectedUser(null);
             fetchUsers();
         } catch (error: any) {
-            toast.error(error.response?.data?.detail || "Failed to update user");
+            const detail = error.response?.data?.detail;
+            toast.error(Array.isArray(detail) ? detail.map((e: any) => e.msg).join(', ') : (detail || "Failed to update user"));
         }
     };
 
@@ -242,6 +242,7 @@ export default function UserManagementPage() {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
                                 required
+                                minLength={8}
                             />
                             <input
                                 type="text"
@@ -253,17 +254,18 @@ export default function UserManagementPage() {
                             />
                             <input
                                 type="text"
-                                placeholder="Phone Number"
+                                placeholder="Phone Number *"
                                 value={formData.phone_number || ""}
                                 onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                                 className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] placeholder-[var(--color-ivory-45)] focus:border-[#0046EA] focus:ring-0 text-sm font-light transition-all"
+                                required
                             />
                             <div className="space-y-1">
                                 <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Account Role</label>
                                 <select
                                     value={formData.role || "STUDENT"}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light appearance-none"
+                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#0046EA] focus:ring-0 text-sm font-light"
                                 >
                                     <option value="STUDENT" className="bg-white">Student</option>
                                     <option value="EXPERT" className="bg-white">Expert</option>

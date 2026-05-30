@@ -123,9 +123,9 @@ export default function NextSession() {
                         <p className="font-serif italic text-[var(--color-ivory)] text-lg leading-tight">{nextSession.student?.full_name}</p>
                         <p className="text-[10px] text-[var(--color-ivory-20)] font-light mt-1 tracking-wide">{nextSession.student?.email}</p>
                     </div>
-                    <button className="p-2.5 rounded-sm bg-transparent border border-[var(--color-ivory-10)] text-[var(--color-ivory-45)] hover:text-[var(--color-gold)] hover:border-[var(--color-gold-line)] transition-all group-hover:scale-105">
+                    <Link href={`/dashboard/expert/student/${nextSession.student_id}`} className="p-2.5 rounded-sm bg-transparent border border-[var(--color-ivory-10)] text-[var(--color-ivory-45)] hover:text-[var(--color-gold)] hover:border-[var(--color-gold-line)] transition-all group-hover:scale-105">
                         <FileText size={18} />
-                    </button>
+                    </Link>
                 </div>
 
                 <div className="space-y-6">

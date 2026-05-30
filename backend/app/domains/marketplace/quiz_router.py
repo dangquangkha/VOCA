@@ -33,7 +33,7 @@ async def get_public_quizzes(
     """Get all public quizzes from all experts — shown on the Roadmap tab."""
     result = await db.execute(
         select(ExpertQuiz)
-        .where(ExpertQuiz.is_public == True, ExpertQuiz.is_active == True)
+        .where(ExpertQuiz.is_public == True, ExpertQuiz.is_active == True, ExpertQuiz.is_deleted == False)
         .options(joinedload(ExpertQuiz.expert).joinedload(ExpertProfile.user))
         .order_by(ExpertQuiz.created_at.desc())
     )
@@ -199,6 +199,7 @@ async def create_quiz(
                 ExpertQuiz.expert_id == expert.id,
                 ExpertQuiz.is_required_for_booking == True,
                 ExpertQuiz.is_active == True,
+                ExpertQuiz.is_deleted == False,
             )
         )
         if existing.scalars().first():
@@ -233,7 +234,7 @@ async def get_my_quizzes(
     if not expert:
         return []
     
-    result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.expert_id == expert.id))
+    result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.expert_id == expert.id, ExpertQuiz.is_deleted == False))
     return result.scalars().all()
 
 
@@ -246,7 +247,7 @@ async def update_quiz(
 ) -> Any:
     """Update a quiz's settings (title, questions, public/required flags)."""
     result = await db.execute(
-        select(ExpertQuiz).where(ExpertQuiz.id == quiz_id)
+        select(ExpertQuiz).where(ExpertQuiz.id == quiz_id, ExpertQuiz.is_deleted == False)
         .options(joinedload(ExpertQuiz.expert))
     )
     quiz = result.scalars().first()
@@ -262,6 +263,7 @@ async def update_quiz(
                 ExpertQuiz.expert_id == quiz.expert_id,
                 ExpertQuiz.is_required_for_booking == True,
                 ExpertQuiz.is_active == True,
+                ExpertQuiz.is_deleted == False,
                 ExpertQuiz.id != quiz_id,
             )
         )
@@ -283,13 +285,35 @@ async def update_quiz(
     await db.refresh(quiz)
     return quiz
 
+@router.delete("/{quiz_id}")
+async def delete_quiz(
+    quiz_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    result = await db.execute(
+        select(ExpertQuiz).where(ExpertQuiz.id == quiz_id)
+        .options(joinedload(ExpertQuiz.expert))
+    )
+    quiz = result.scalars().first()
+    if not quiz or quiz.is_deleted:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    if quiz.expert.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+        
+    quiz.is_deleted = True
+    quiz.is_active = False # Deactivate it as well
+    db.add(quiz)
+    await db.commit()
+    return {"message": "Quiz deleted successfully"}
+
 
 @router.get("/expert/{expert_id}", response_model=List[ExpertQuizSchema])
 async def get_expert_quizzes(
     expert_id: int,
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
-    result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.expert_id == expert_id))
+    result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.expert_id == expert_id, ExpertQuiz.is_deleted == False))
     return result.scalars().all()
 
 @router.get("/{quiz_id}", response_model=ExpertQuizSchema)
@@ -297,7 +321,7 @@ async def get_quiz(
     quiz_id: int,
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
-    result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.id == quiz_id))
+    result = await db.execute(select(ExpertQuiz).where(ExpertQuiz.id == quiz_id, ExpertQuiz.is_deleted == False))
     quiz = result.scalars().first()
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")

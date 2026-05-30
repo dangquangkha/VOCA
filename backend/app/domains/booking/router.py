@@ -138,6 +138,54 @@ async def create_booking(
         if duration_hours <= 0:
             raise HTTPException(status_code=400, detail="Invalid booking duration")
 
+        # Step 2.5: Group Bookings Validation (max_participants)
+        from sqlalchemy import and_, func
+        from backend.app.domains.marketplace.models import ExpertAvailability
+        
+        day_of_week = booking_in.start_time.weekday()
+        time_str = booking_in.start_time.strftime("%H:%M")
+        
+        avail_query = select(ExpertAvailability).where(
+            ExpertAvailability.expert_id == expert.id,
+            ExpertAvailability.day_of_week == day_of_week,
+            ExpertAvailability.start_time == time_str
+        )
+        avail_result = await db.execute(avail_query)
+        availability = avail_result.scalars().first()
+        max_participants = availability.max_participants if availability else 1
+
+        # Count existing bookings
+        count_query = select(func.count(Booking.id)).where(
+            Booking.expert_id == expert.id,
+            Booking.start_time == booking_in.start_time,
+            Booking.end_time == booking_in.end_time,
+            Booking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS])
+        )
+        current_participants = await db.scalar(count_query) or 0
+        
+        if current_participants >= max_participants:
+            raise HTTPException(status_code=400, detail="Lịch hẹn này đã đủ số lượng người tham gia.")
+        
+        # Check if we should auto-confirm and sync meeting_url
+        new_status = BookingStatus.PENDING
+        sync_meeting_url = None
+        
+        if max_participants > 1:
+            new_status = BookingStatus.CONFIRMED  # Auto-confirm group bookings
+            
+        # If there are existing bookings, grab the meeting_url
+        if current_participants > 0:
+            existing_booking_query = select(Booking).where(
+                Booking.expert_id == expert.id,
+                Booking.start_time == booking_in.start_time,
+                Booking.end_time == booking_in.end_time,
+                Booking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS])
+            )
+            existing_booking_result = await db.execute(existing_booking_query)
+            existing_booking = existing_booking_result.scalars().first()
+            if existing_booking:
+                sync_meeting_url = existing_booking.meeting_url
+
         # Step 3: Check if expert is a MENTOR (PWYW)
         expert_user_result = await db.execute(select(User).where(User.id == expert.user_id))
         expert_user = expert_user_result.scalars().first()
@@ -153,7 +201,9 @@ async def create_booking(
             end_time=booking_in.end_time,
             total_cost=total_cost,
             student_note=booking_in.student_note,
-            is_pwyw=is_pwyw
+            is_pwyw=is_pwyw,
+            status=new_status,
+            meeting_url=sync_meeting_url
         )
 
         await db.commit()
@@ -196,6 +246,37 @@ async def create_booking(
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ─── Get Slot Status for Expert ──────────────────────────────────────────────────
+@router.get("/experts/{expert_id}/slots-status")
+async def get_slots_status(
+    expert_id: int,
+    date: str, # YYYY-MM-DD
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Get the occupancy of slots for a specific date."""
+    try:
+        from datetime import datetime, timedelta
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        start_dt = datetime.combine(target_date, datetime.min.time())
+        end_dt = datetime.combine(target_date, datetime.max.time())
+        
+        # 1. Get current bookings for that day
+        from sqlalchemy import func
+        bookings_query = select(Booking.start_time, func.count(Booking.id)).where(
+            Booking.expert_id == expert_id,
+            Booking.start_time >= start_dt,
+            Booking.start_time <= end_dt,
+            Booking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS])
+        ).group_by(Booking.start_time)
+        
+        result = await db.execute(bookings_query)
+        occupancy = {str(row[0]): row[1] for row in result.all()}
+        
+        return occupancy
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # ─── List bookings ────────────────────────────────────────────────────────────
 
@@ -411,6 +492,19 @@ async def update_booking_status(
             if not (url.startswith("http://") or url.startswith("https://")):
                 raise HTTPException(status_code=400, detail="URL must start with http/https")
             booking.meeting_url = booking_update.meeting_url
+            
+            # Sync meeting_url for all group bookings in the same time slot
+            sync_query = select(Booking).where(
+                Booking.expert_id == booking.expert_id,
+                Booking.start_time == booking.start_time,
+                Booking.end_time == booking.end_time,
+                Booking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS]),
+                Booking.id != booking.id
+            )
+            sync_result = await db.execute(sync_query)
+            for group_booking in sync_result.scalars().all():
+                group_booking.meeting_url = booking_update.meeting_url
+                db.add(group_booking)
         if booking_update.expert_note:
             booking.expert_note = booking_update.expert_note
         db.add(booking)

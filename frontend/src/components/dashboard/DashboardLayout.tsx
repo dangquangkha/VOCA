@@ -26,7 +26,8 @@ import {
     RotateCcw,
     AlertCircle,
     Home,
-    MessageSquare
+    MessageSquare,
+    FileText
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
@@ -113,6 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             { href: '/dashboard/manage/bookings',      icon: <ClipboardList />,   label: 'Lịch hẹn' },
             { href: '/dashboard/chat',                 icon: <MessageSquare />,   label: 'Tin nhắn' },
             { href: '/dashboard/expert/wallet',        icon: <Wallet />,          label: 'Ví & Doanh thu' },
+            { href: '/dashboard/expert/portfolio',     icon: <FileText />,        label: 'Bài viết & Tài liệu' },
             { href: '/dashboard/expert/quizzes',       icon: <ClipboardList />,   label: 'Khảo sát' },
             { href: '/dashboard/dispute',              icon: <ShieldAlert />,     label: 'Hỗ trợ' },
         ];

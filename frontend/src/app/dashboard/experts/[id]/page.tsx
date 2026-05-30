@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Star, ShieldCheck, Linkedin, MessageSquare, ChevronRight, ArrowLeft, Quote, Heart, AlertTriangle, Calendar, Award } from 'lucide-react';
+import { Star, ShieldCheck, Linkedin, MessageSquare, ChevronRight, ArrowLeft, Quote, Heart, AlertTriangle, Calendar, Award, BookOpen, FileText } from 'lucide-react';
 import api from '@/lib/api';
 import { Expert } from '@/types/expert';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,13 +21,27 @@ export default function ExpertProfilePage() {
     const [requiredQuiz, setRequiredQuiz] = useState<{ id: number; title: string } | null>(null);
     const [hasCompletedRequired, setHasCompletedRequired] = useState(false);
     const [showQuizModal, setShowQuizModal] = useState(false);
+    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'PORTFOLIO'>('OVERVIEW');
+    const [posts, setPosts] = useState<any[]>([]);
 
     useEffect(() => {
         if (params.id) {
             fetchExpert(params.id as string);
             checkRequiredQuiz(params.id as string);
+            fetchPosts(params.id as string);
         }
     }, [params.id]);
+
+    const fetchPosts = async (id: string) => {
+        try {
+            const { data } = await api.get(`experts/${id}/posts`);
+            if (data && data.items) {
+                setPosts(data.items);
+            }
+        } catch (err) {
+            console.error("Failed to fetch posts", err);
+        }
+    };
 
     const checkRequiredQuiz = async (expertId: string) => {
         try {
@@ -189,11 +203,37 @@ export default function ExpertProfilePage() {
             <div className="max-w-[1400px] mx-auto px-8 -mt-24 relative z-20">
                 <div className="grid lg:grid-cols-12 gap-16">
                     {/* Main Content (Left) */}
-                    <div className="lg:col-span-8 space-y-20">
-                        <motion.div
-                            initial={{ opacity: 0, y: 40 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
+                    <div className="lg:col-span-8 space-y-12">
+                        {/* Custom Tabs */}
+                        <div className="flex flex-wrap gap-4 border-b border-black/5 pb-6">
+                            <button 
+                                onClick={() => setActiveTab('OVERVIEW')}
+                                className={`text-[12px] uppercase tracking-[0.2em] px-6 py-3.5 rounded-xl transition-all duration-300 ${
+                                    activeTab === 'OVERVIEW' 
+                                        ? 'bg-[#FFE900] text-[#0046EA] hover:text-red-600 font-black shadow-lg scale-105 border-2 border-white' 
+                                        : 'bg-[#FFE900]/80 text-[#0046EA] hover:text-red-600 font-bold opacity-90 border-2 border-transparent'
+                                }`}
+                            >
+                                TỔNG QUAN
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('PORTFOLIO')}
+                                className={`text-[12px] uppercase tracking-[0.2em] px-6 py-3.5 rounded-xl transition-all duration-300 ${
+                                    activeTab === 'PORTFOLIO' 
+                                        ? 'bg-[#FFE900] text-[#0046EA] hover:text-red-600 font-black shadow-lg scale-105 border-2 border-white' 
+                                        : 'bg-[#FFE900]/80 text-[#0046EA] hover:text-red-600 font-bold opacity-90 border-2 border-transparent'
+                                }`}
+                            >
+                                BÀI VIẾT & TÀI LIỆU
+                            </button>
+                        </div>
+
+                        {activeTab === 'OVERVIEW' ? (
+                            <div className="space-y-20">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 40 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
                             className="bg-white border border-black/5 p-12 md:p-20 rounded-[64px] shadow-2xl relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#0046EA]/5 blur-[100px] rounded-full -mr-64 -mt-64" />
@@ -291,6 +331,38 @@ export default function ExpertProfilePage() {
                                 )}
                             </div>
                         </div>
+                    </div>
+                    ) : (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {posts.length > 0 ? (
+                                    <div className="grid gap-6">
+                                        {posts.map(post => (
+                                            <Link href={`/dashboard/experts/${expert.id}/post/${post.slug}`} key={post.id}>
+                                                <div className="bg-white border border-black/5 p-8 rounded-2xl hover:border-[#0046EA] hover:shadow-lg transition-all group flex items-start gap-6 cursor-pointer">
+                                                    <div className={`p-4 rounded-xl ${post.type === 'ARTICLE' ? 'bg-blue-50 text-[#0046EA]' : 'bg-purple-50 text-purple-600'}`}>
+                                                        {post.type === 'DOCUMENT' ? <BookOpen size={24} /> : <FileText size={24} />}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h3 className="text-2xl font-serif italic font-bold text-[#171716] group-hover:text-[#0046EA] transition-colors mb-2">{post.title}</h3>
+                                                        <p className="text-gray-500 line-clamp-2 text-sm leading-relaxed">{post.content ? post.content.substring(0, 150) + '...' : 'Không có mô tả'}</p>
+                                                        <div className="flex items-center gap-4 mt-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                            <span>{new Date(post.created_at).toLocaleDateString('vi-VN')}</span>
+                                                            <span>•</span>
+                                                            <span>{post.views_count} LƯỢT XEM</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-24 bg-[#F5F8FF] rounded-[48px] border border-dashed border-black/10">
+                                        <BookOpen className="w-16 h-16 mx-auto mb-6 text-black/10" strokeWidth={1} />
+                                        <p className="text-[11px] font-black text-black/30 uppercase tracking-[0.5em]">CHUYÊN GIA CHƯA ĐĂNG BÀI VIẾT NÀO</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Sidebar Content (Right) */}

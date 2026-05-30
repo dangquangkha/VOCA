@@ -27,9 +27,8 @@ class Settings(BaseSettings):
     EMAILS_FROM_EMAIL: str = "info@careerpathai.com"
     EMAILS_FROM_NAME: str = "CareerPath AI"
 
-    # Google OAuth (SEC-02)
     GOOGLE_CLIENT_ID: str | None = None
-    ALLOW_MOCK_LOGIN: bool = True # Set to False in production
+    ALLOW_MOCK_LOGIN: bool = False  # Set to True ONLY in local dev (.env), never in production
 
     # Telegram
     TELEGRAM_BOT_TOKEN: str | None = None

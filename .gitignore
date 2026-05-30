@@ -64,6 +64,7 @@ desktop.ini
 # Temporary files
 *.tmp
 *.temp
+*.bak
 .cache/
 tmp/
 temp/
@@ -104,3 +105,19 @@ backend_debug.log
 server.log
 frontend_rebuild.log
 frontend_restart.log
+
+# User uploads
+backend/uploads/
+
+# Scratch and test files
+scratch/
+scripts/
+token.txt
+check_locks.sh
+debug_expert_500.py
+restore_experts_from_json.py
+test_create.py
+test_endpoint.py
+backend/complete_pending.py
+backend/get_pending.py
+backend/test_mbti.py

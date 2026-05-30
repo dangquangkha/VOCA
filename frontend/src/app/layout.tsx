@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 
 import { ToastContainer } from "@/components/ui/ToastContainer";
 import WaterRipple from "@/components/special/WaterRipple";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function RootLayout({
   children,
@@ -50,7 +51,11 @@ export default function RootLayout({
 
         <div className="relative z-10 flex flex-col min-h-screen">
           <NavbarWrapper />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1">
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </main>
           <FooterWrapper />
         </div>
         <ToastContainer />

@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/store/useToastStore';
 import { getAvatarUrl } from '@/utils/url-utils';
 
-interface TimeSlot { start: string; end: string; }
+interface TimeSlot { start: string; end: string; max_participants?: number; }
 
 const DAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 const MONTH_NAMES = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
@@ -69,8 +69,20 @@ export default function BookingPage() {
         }
     };
 
+    const [occupancy, setOccupancy] = useState<Record<string, number>>({});
+
     useEffect(() => {
         if (!expert || !selectedDate) { setAvailableSlots([]); return; }
+        const fetchOccupancy = async () => {
+            try {
+                const { data } = await api.get(`bookings/experts/${expert.id}/slots-status?date=${selectedDate}`);
+                setOccupancy(data);
+            } catch (err) {
+                console.error("Failed to fetch occupancy", err);
+            }
+        };
+        fetchOccupancy();
+        
         const dateObj = new Date(selectedDate);
         const avail = expert.availabilities.find(a => a.day_of_week === dateObj.getDay());
         if (avail) {
@@ -78,7 +90,7 @@ export default function BookingPage() {
             let h = parseInt(avail.start_time.split(':')[0]);
             const end = parseInt(avail.end_time.split(':')[0]);
             while (h < end) {
-                slots.push({ start: `${String(h).padStart(2, '0')}:00`, end: `${String(h + 1).padStart(2, '0')}:00` });
+                slots.push({ start: `${String(h).padStart(2, '0')}:00`, end: `${String(h + 1).padStart(2, '0')}:00`, max_participants: avail.max_participants });
                 h++;
             }
             setAvailableSlots(slots);
@@ -315,19 +327,31 @@ export default function BookingPage() {
                                     </div>
 
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {availableSlots.map(slot => (
+                                        {availableSlots.map(slot => {
+                                            const slotKey = `${selectedDate} ${slot.start}:00`;
+                                            const current = occupancy[slotKey] || 0;
+                                            const max = slot.max_participants || 1;
+                                            const isFull = current >= max;
+                                            
+                                            return (
                                             <button
                                                 key={slot.start}
+                                                disabled={isFull}
                                                 onClick={() => setSelectedTime(slot.start)}
-                                                className={`py-6 px-4 text-sm font-black tracking-[0.2em] rounded-none border-[3px] transition-all duration-700
-                                                ${selectedTime === slot.start
+                                                className={`py-4 px-4 flex flex-col items-center justify-center gap-1 font-black tracking-[0.1em] rounded-none border-[3px] transition-all duration-700
+                                                ${isFull 
+                                                    ? 'bg-red-500/10 border-red-500/30 text-white/30 cursor-not-allowed opacity-50'
+                                                    : selectedTime === slot.start
                                                         ? 'bg-white border-white text-[#00A4FD] shadow-2xl scale-[1.02]'
                                                         : 'bg-white/5 border-white/20 text-white/40 hover:bg-white/10 hover:border-white hover:text-white hover:scale-[1.05] hover:shadow-xl'
                                                     }`}
                                             >
-                                                {slot.start}
+                                                <span className="text-sm">{slot.start}</span>
+                                                <span className="text-[10px] uppercase tracking-widest opacity-80">
+                                                    {isFull ? 'HẾT CHỖ' : `${max - current} TRỐNG`}
+                                                </span>
                                             </button>
-                                        ))}
+                                        )})}
                                     </div>
                                 </motion.section>
                             )}

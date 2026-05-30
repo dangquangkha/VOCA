@@ -1,5 +1,6 @@
+import re
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from backend.app.domains.identity.models import UserRole, UserStatus
 
 class UserBase(BaseModel):
@@ -14,6 +15,30 @@ class UserCreate(UserBase):
     phone_number: str
     role: UserRole = UserRole.STUDENT
     years_of_experience: Optional[int] = 0
+
+    @validator('email')
+    def validate_email(cls, v):
+        if not v.endswith('@gmail.com'):
+            raise ValueError('Email phải có đuôi @gmail.com')
+        return v
+    
+    @validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Mật khẩu phải có ít nhất 8 ký tự')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ in hoa')
+        if not re.search(r'[^a-zA-Z0-9\s]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 ký tự đặc biệt')
+        if ' ' in v:
+            raise ValueError('Mật khẩu không được chứa dấu cách')
+        return v
+        
+    @validator('phone_number')
+    def validate_phone(cls, v):
+        if not re.match(r'^(0|\+84)(3|5|7|8|9)[0-9]{8}$', v):
+            raise ValueError('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam')
+        return v
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -41,6 +66,7 @@ class ExpertProfileNested(BaseModel):
     bio: Optional[str] = None
     linkedin_url: Optional[str] = None
     experience_years: Optional[int] = 0
+    specialization: Optional[str] = None
     hourly_rate: Optional[int] = 0
     tags: Optional[str] = None
     kyc_documents: Optional[str] = None
@@ -66,6 +92,18 @@ class PasswordResetRequest(BaseModel):
 class PasswordResetConfirm(BaseModel):
     token: str
     new_password: str
+
+    @validator('new_password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Mật khẩu phải có ít nhất 8 ký tự')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ in hoa')
+        if not re.search(r'[^a-zA-Z0-9\s]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 ký tự đặc biệt')
+        if ' ' in v:
+            raise ValueError('Mật khẩu không được chứa dấu cách')
+        return v
 
 from typing import List
 class PaginatedUserResponse(BaseModel):

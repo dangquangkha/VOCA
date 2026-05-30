@@ -210,10 +210,13 @@ async def get_users_admin(
     page = (skip // page_size) + 1
     total_pages = ceil(total / page_size) if total > 0 else 0
 
-    return PaginatedUserResponse(
-        items=users, total=total, page=page,
-        page_size=page_size, total_pages=total_pages,
-    )
+    return {
+        "items": users,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
+    }
 
 
 @router.post("/admin/users", response_model=UserRead)

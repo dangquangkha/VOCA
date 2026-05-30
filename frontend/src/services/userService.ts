@@ -15,7 +15,7 @@ export interface UserCreateDto {
     email: string;
     password: string;
     full_name: string;
-    phone_number?: string;
+    phone_number: string;
     role?: 'STUDENT' | 'EXPERT' | 'ADMIN';
     credits?: number;
     is_active?: boolean;
@@ -59,7 +59,7 @@ export const userService = {
      * Get users with pagination, filtering, search, and sorting
      */
     getUsers: async (params: UserQueryParams): Promise<PaginatedUserResponse> => {
-        const response = await api.get('admin/users', { params });
+        const response = await api.get('users/admin/users', { params });
         return response.data;
     },
 
@@ -67,7 +67,7 @@ export const userService = {
      * Create a new user
      */
     createUser: async (data: UserCreateDto): Promise<User> => {
-        const response = await api.post('admin/users', data);
+        const response = await api.post('users/admin/users', data);
         return response.data;
     },
 
@@ -75,7 +75,7 @@ export const userService = {
      * Update user by ID
      */
     updateUser: async (id: number, data: UserUpdateDto): Promise<User> => {
-        const response = await api.put(`admin/users/${id}`, data);
+        const response = await api.put(`users/admin/users/${id}`, data);
         return response.data;
     },
 
@@ -83,7 +83,7 @@ export const userService = {
      * Delete user (soft delete by default)
      */
     deleteUser: async (id: number, hardDelete: boolean = false): Promise<void> => {
-        await api.delete(`admin/users/${id}`, {
+        await api.delete(`users/admin/users/${id}`, {
             params: { hard_delete: hardDelete }
         });
     }

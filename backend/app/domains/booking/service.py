@@ -19,13 +19,16 @@ class BookingService:
         total_cost: int,
         student_note: str,
         is_pwyw: bool = False,
+        status: BookingStatus = BookingStatus.PENDING,
+        meeting_url: Optional[str] = None,
     ) -> Booking:
         booking = Booking(
             student_id=student_id,
             expert_id=expert_id,
             start_time=start_time,
             end_time=end_time,
-            status=BookingStatus.PENDING,
+            status=status,
+            meeting_url=meeting_url,
             total_amount=total_cost,
             student_note=student_note,
             is_pwyw=is_pwyw,

@@ -20,3 +20,12 @@ class Review(Base):
     booking = relationship("Booking", backref="review")
     student = relationship("User", foreign_keys=[student_id], backref="reviews_sent")
     expert = relationship("ExpertProfile", foreign_keys=[expert_id], backref="reviews")
+
+    @property
+    def student_full_name(self) -> str:
+        return self.student.full_name if self.student else "Học viên ẩn danh"
+
+    @property
+    def student_avatar_url(self) -> str | None:
+        return self.student.avatar_url if self.student else None
+

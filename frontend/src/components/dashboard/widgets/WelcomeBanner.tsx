@@ -1,7 +1,32 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { Sparkles, Navigation } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
+import { DailyProgress, DayStatus } from '@/types/roadmap';
 
 export default function WelcomeBanner({ userName }: { userName: string }) {
+    const router = useRouter();
+    const [currentDay, setCurrentDay] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const fetchProgress = async () => {
+            try {
+                const { data } = await api.get<DailyProgress[]>('roadmap');
+                const latest = data.find(d => d.status === DayStatus.UNLOCKED)?.day_number || 
+                               data.filter(d => d.status === DayStatus.COMPLETED).length + 1 || 1;
+                setCurrentDay(Math.min(latest, 30));
+            } catch (error) {
+                console.error("Failed to load roadmap progress", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProgress();
+    }, []);
+
     return (
         <div className="relative overflow-hidden p-0 text-black h-full flex flex-col justify-center group transition-all duration-1000 font-dm-sans">
             {/* Background elements (Subtle) */}
@@ -29,6 +54,7 @@ export default function WelcomeBanner({ userName }: { userName: string }) {
 
                     <div className="flex items-center gap-10">
                         <button
+                            onClick={() => router.push('/dashboard/roadmap')}
                             suppressHydrationWarning
                             className="bg-transparent border-[3px] border-[#00A4FD] text-[#00A4FD] uppercase tracking-[0.2em] hover:bg-[#00A4FD] hover:text-white transition-all px-8 py-3 text-[10px] font-black"
                         >
@@ -36,7 +62,7 @@ export default function WelcomeBanner({ userName }: { userName: string }) {
                         </button>
                         <div className="hidden sm:flex items-center gap-5 text-[10px] font-black text-[#00A4FD]/60 tracking-[0.3em] uppercase">
                             <span className="w-12 h-[2px] bg-[#00A4FD]/20" />
-                            BÀI 05 / 30
+                            BÀI {loading ? '--' : currentDay.toString().padStart(2, '0')} / 30
                         </div>
                     </div>
                 </div>

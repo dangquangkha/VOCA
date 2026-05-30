@@ -28,8 +28,6 @@ export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!token) return;
-
         const fetchStats = async () => {
             try {
                 const data = await adminService.getStats();

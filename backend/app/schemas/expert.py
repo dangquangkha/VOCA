@@ -23,6 +23,7 @@ class ExpertProfileBase(BaseModel):
     bio: Optional[str] = None
     linkedin_url: Optional[str] = None
     experience_years: Optional[int] = 0
+    specialization: Optional[str] = None
     hourly_rate: Optional[int] = 50
     kyc_documents: Optional[str] = None
     tags: Optional[str] = None
@@ -34,6 +35,7 @@ class ExpertProfileUpdate(BaseModel):
     bio: Optional[str] = None
     linkedin_url: Optional[str] = None
     experience_years: Optional[int] = None
+    specialization: Optional[str] = None
     hourly_rate: Optional[int] = None
     tags: Optional[str] = None
     kyc_documents: Optional[str] = None

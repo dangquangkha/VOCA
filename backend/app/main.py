@@ -2,21 +2,30 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import os
+import logging
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from backend.app.core.config import settings
 from backend.app.core.limiter import limiter
 
+# ── Logging Configuration ──────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title=settings.PROJECT_NAME)
 
 @app.on_event("startup")
 async def startup_event():
-    try:
-        from backend.seed_mbti import seed_mbti
-        await seed_mbti()
-        print("MBTI Seeding triggered on startup")
-    except Exception as e:
-        print(f"MBTI Seeding failed: {e}")
+    """
+    Application startup.
+    NOTE: Database seeding is NOT run here to avoid slow startups and duplicate data in production.
+    To seed MBTI data manually, run: python -m backend.seed_mbti
+    """
+    pass
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -66,17 +75,17 @@ async def log_requests(request: Request, call_next):
     try:
         response = await call_next(request)
         duration = time.time() - start_time
-        host = request.headers.get('host')
-        origin = request.headers.get('origin')
-        print(f"DEBUG: {request.method} {request.url} [Host: {host}, Origin: {origin}] - Status: {response.status_code}")
+        logger.debug(
+            "%s %s — %d (%.2fms)",
+            request.method, request.url.path,
+            response.status_code, duration * 1000
+        )
         return response
     except Exception as e:
-        print(f"CRITICAL ERROR in middleware or route: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Unhandled error in middleware/route: %s", request.url)
         return JSONResponse(
             status_code=500,
-            content={"detail": "Internal Server Error", "error": str(e)},
+            content={"detail": "Internal Server Error"},
             headers={
                 "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
                 "Access-Control-Allow-Credentials": "true",

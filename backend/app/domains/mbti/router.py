@@ -74,16 +74,30 @@ async def get_my_result(
         
         created_at_str = last_result.created_at.isoformat() if last_result.created_at else None
 
+        type_details_dict = {
+            "code": last_result.mbti_code or "UNKNOWN",
+            "title": "Đang cập nhật...",
+            "vietnamese_title": "Đang cập nhật...",
+            "description": "Kết quả của bạn đã được ghi nhận thành công.",
+            "pros": [], "cons": [], "population_pct": "N/A", "suggested_careers": ""
+        }
+        if mbti_type:
+            type_details_dict = {
+                "code": mbti_type.code,
+                "title": getattr(mbti_type, 'title', mbti_type.vietnamese_title),
+                "vietnamese_title": mbti_type.vietnamese_title,
+                "description": mbti_type.description,
+                "pros": mbti_type.pros or [],
+                "cons": mbti_type.cons or [],
+                "population_pct": mbti_type.population_pct or "N/A",
+                "suggested_careers": mbti_type.suggested_careers or ""
+            }
+
         return {
             "mbti_code": last_result.mbti_code or "UNKNOWN",
             "gender": getattr(last_result, 'gender', 'Other'),
             "created_at": created_at_str,
-            "type_details": mbti_type or {
-                "code": last_result.mbti_code or "UNKNOWN",
-                "vietnamese_title": "Đang cập nhật...",
-                "description": "Kết quả của bạn đã được ghi nhận thành công.",
-                "pros": [], "cons": [], "population_pct": "N/A", "suggested_careers": ""
-            },
+            "type_details": type_details_dict,
             "scores": {
                 "E": getattr(last_result, 'score_e', 0) or 0,
                 "I": getattr(last_result, 'score_i', 0) or 0,
@@ -165,14 +179,28 @@ async def submit_quiz(
         await db.commit()
         await db.refresh(user_result)
         
+        type_details_dict = {
+            "code": mbti_code,
+            "title": "Đang cập nhật...",
+            "vietnamese_title": "Đang cập nhật...",
+            "description": "Kết quả trắc nghiệm của bạn đã được hệ thống ghi nhận.",
+            "pros": [], "cons": [], "population_pct": "N/A", "suggested_careers": ""
+        }
+        if mbti_type:
+            type_details_dict = {
+                "code": mbti_type.code,
+                "title": getattr(mbti_type, 'title', mbti_type.vietnamese_title),
+                "vietnamese_title": mbti_type.vietnamese_title,
+                "description": mbti_type.description,
+                "pros": mbti_type.pros or [],
+                "cons": mbti_type.cons or [],
+                "population_pct": mbti_type.population_pct or "N/A",
+                "suggested_careers": mbti_type.suggested_careers or ""
+            }
+
         return {
             "mbti_code": mbti_code,
-            "type_details": mbti_type or {
-                "code": mbti_code,
-                "vietnamese_title": "Đang cập nhật...",
-                "description": "Kết quả trắc nghiệm của bạn đã được hệ thống ghi nhận.",
-                "pros": [], "cons": [], "population_pct": "N/A", "suggested_careers": ""
-            },
+            "type_details": type_details_dict,
             "scores": scores
         }
     except Exception as e:

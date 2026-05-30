@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
     Send, MessageSquare, ArrowLeft, Search,
     Smile, MoreVertical, Check, CheckCheck,
-    Loader2
+    Loader2, X
 } from 'lucide-react';
 import { chatService } from '@/services/chatService';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -50,6 +50,7 @@ export default function ChatContent() {
     const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [typingUsers, setTypingUsers] = useState<Record<number, boolean>>({});
+    const [showQuickReplies, setShowQuickReplies] = useState(true);
 
     const ws = useRef<WebSocket | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -462,21 +463,37 @@ export default function ChatContent() {
 
                         <div className="p-8 bg-white border-t border-black/5">
                             {/* Quick Replies Section */}
-                            <div className="max-w-5xl mx-auto mb-6 flex flex-wrap gap-3">
-                                {QUICK_REPLIES.filter(r => !user?.role || r.roles.includes(user.role)).map((reply, i) => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        onClick={() => {
-                                            setNewMessage(reply.text);
-                                            // Optional: handleSendMessage() if you want instant send
-                                        }}
-                                        className="px-4 py-2 bg-[#F5F8FF] border border-[#00A4FD]/20 text-[#00A4FD] text-[10px] font-black uppercase tracking-widest hover:bg-[#00A4FD] hover:text-white transition-all rounded-0"
+                            <AnimatePresence>
+                                {showQuickReplies && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
+                                        className="max-w-5xl mx-auto mb-6 flex flex-wrap gap-3 relative pr-8"
                                     >
-                                        {reply.text}
-                                    </button>
-                                ))}
-                            </div>
+                                        {QUICK_REPLIES.filter(r => !user?.role || r.roles.includes(user.role)).map((reply, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => {
+                                                    setNewMessage(reply.text);
+                                                    // Optional: handleSendMessage() if you want instant send
+                                                }}
+                                                className="px-4 py-2 bg-[#F5F8FF] border border-[#00A4FD]/20 text-[#00A4FD] text-[10px] font-black uppercase tracking-widest hover:bg-[#00A4FD] hover:text-white transition-all rounded-0"
+                                            >
+                                                {reply.text}
+                                            </button>
+                                        ))}
+                                        <button 
+                                            onClick={() => setShowQuickReplies(false)}
+                                            className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-black/30 hover:text-red-500 hover:bg-red-50 transition-all rounded-full"
+                                            title="Ẩn gợi ý tin nhắn"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             <form onSubmit={handleSendMessage} className="flex items-end gap-5 max-w-5xl mx-auto">
                                 <div className="relative flex-1 bg-white border-[6px] border-[#00A4FD]/10 rounded-0 transition-all focus-within:border-[#00A4FD] focus-within:shadow-2xl">

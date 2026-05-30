@@ -10,6 +10,7 @@ import PersonalStats from '@/components/dashboard/widgets/PersonalStats';
 import { useAuthStore } from '@/store/useAuthStore';
 import { motion } from 'framer-motion';
 import { Compass } from 'lucide-react';
+import { FloatingContactMenu } from '@/components/support/ContactSupport';
 
 export default function StudentDashboardPage() {
     const { user } = useAuthStore();
@@ -31,6 +32,7 @@ export default function StudentDashboardPage() {
 
     return (
         <DashboardLayout>
+            <FloatingContactMenu />
             <motion.div
                 variants={container}
                 initial="hidden"

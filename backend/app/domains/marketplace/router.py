@@ -20,9 +20,11 @@ from .schemas import (
     PaginatedExpertResponse,
 )
 from .quiz_router import router as quiz_router
+from .portfolio_router import router as portfolio_router
 
 router = APIRouter()
 router.include_router(quiz_router, prefix="/quizzes", tags=["expert-quizzes"])
+router.include_router(portfolio_router, prefix="", tags=["expert-portfolio"])
 
 
 def mask_sensitive_info(text: str) -> str:
@@ -86,10 +88,7 @@ async def update_expert_profile(
         result = await db.execute(query)
         expert_profile = result.scalars().first()
 
-        # Populate student info for reviews
-        for r in expert_profile.reviews:
-            r.student_full_name = r.student.full_name
-            r.student_avatar_url = r.student.avatar_url
+        # Populate student info for reviews handled by @property
             
     except Exception as e:
         print(f"Error updating expert profile: {e}")
@@ -148,10 +147,7 @@ async def submit_kyc(
     result = await db.execute(query)
     expert_profile = result.scalars().first()
 
-    # Populate student info for reviews
-    for r in expert_profile.reviews:
-        r.student_full_name = r.student.full_name
-        r.student_avatar_url = r.student.avatar_url
+    # Populate student info for reviews handled by @property
     
     return expert_profile
 
@@ -196,10 +192,6 @@ async def update_bank_info(
     )
     expert = result.scalars().first()
 
-    for r in expert.reviews:
-        r.student_full_name = r.student.full_name
-        r.student_avatar_url = r.student.avatar_url
-
     return expert
 
 
@@ -238,9 +230,6 @@ async def update_qr_code(
         )
     )
     expert = result.scalars().first()
-    for r in expert.reviews:
-        r.student_full_name = r.student.full_name
-        r.student_avatar_url = r.student.avatar_url
     return expert
 
 
@@ -281,10 +270,7 @@ async def get_current_expert_profile(
         else:
             raise HTTPException(status_code=404, detail="Expert profile not found")
 
-    # Populate student info for reviews
-    for r in expert_profile.reviews:
-        r.student_full_name = r.student.full_name
-        r.student_avatar_url = r.student.avatar_url
+    # Populate student info for reviews handled by @property
 
     return expert_profile
 
@@ -321,7 +307,8 @@ async def update_availability(
             expert_id=expert_profile.id,
             day_of_week=slot.day_of_week,
             start_time=slot.start_time,
-            end_time=slot.end_time
+            end_time=slot.end_time,
+            max_participants=slot.max_participants if slot.max_participants is not None else 1
         )
         db.add(db_slot)
         new_slots.append(db_slot)
@@ -481,11 +468,90 @@ async def get_expert_detail(
     if not expert:
         raise HTTPException(status_code=404, detail="Expert not found.")
         
-    for r in expert.reviews:
-        r.student_full_name = r.student.full_name
-        r.student_avatar_url = r.student.avatar_url
-
     if expert.bio:
         expert.bio = mask_sensitive_info(expert.bio)
         
     return expert
+
+@router.get("/students/{student_id}/profile")
+async def get_student_profile_for_expert(
+    student_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get student profile (MBTI, Roadmap, Survey) for expert to view before a session.
+    Only allows access if the expert has a booking with the student.
+    """
+    if current_user.role not in [UserRole.EXPERT, UserRole.MENTOR]:
+        raise HTTPException(status_code=403, detail="Only experts can access student profiles")
+
+    # Fetch expert profile
+    query = select(ExpertProfile).where(ExpertProfile.user_id == current_user.id)
+    result = await db.execute(query)
+    expert_profile = result.scalars().first()
+    if not expert_profile:
+        raise HTTPException(status_code=404, detail="Expert profile not found")
+
+    # Check if they have a valid booking
+    from backend.app.domains.booking.models import Booking, BookingStatus
+    booking_query = select(Booking).where(
+        and_(
+            Booking.expert_id == expert_profile.id,
+            Booking.student_id == student_id,
+            Booking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS, BookingStatus.COMPLETED])
+        )
+    )
+    booking_result = await db.execute(booking_query)
+    booking = booking_result.scalars().first()
+
+    if not booking:
+        raise HTTPException(status_code=403, detail="You do not have access to this student's profile.")
+
+    # Fetch student User
+    student_query = select(User).where(User.id == student_id)
+    student_res = await db.execute(student_query)
+    student = student_res.scalars().first()
+    
+    if not student:
+         raise HTTPException(status_code=404, detail="Student not found")
+
+    # Fetch Latest Roadmap History
+    from backend.app.models.roadmap import RoadmapHistory
+    from backend.app.schemas.roadmap import RoadmapHistory as HistorySchema
+    history_query = select(RoadmapHistory).where(RoadmapHistory.user_id == student_id).order_by(RoadmapHistory.created_at.desc())
+    history_res = await db.execute(history_query)
+    roadmap_histories = history_res.scalars().all()
+    history_schemas = [HistorySchema.model_validate(h).model_dump() for h in roadmap_histories]
+    
+    # Fetch MBTI Data
+    from backend.app.domains.mbti.models import UserMBTIResult, MBTIType
+    mbti_query = select(UserMBTIResult).where(UserMBTIResult.user_id == student_id).order_by(UserMBTIResult.id.desc()).limit(1)
+    mbti_res = await db.execute(mbti_query)
+    last_mbti = mbti_res.scalars().first()
+    mbti_data = None
+    if last_mbti:
+        type_res = await db.execute(select(MBTIType).where(MBTIType.code == last_mbti.mbti_code))
+        mbti_type = type_res.scalars().first()
+        mbti_data = {
+            "mbti_code": last_mbti.mbti_code,
+            "vietnamese_title": mbti_type.vietnamese_title if mbti_type else "N/A",
+            "description": mbti_type.description if mbti_type else "N/A",
+            "scores": {
+                "E": last_mbti.score_e, "I": last_mbti.score_i,
+                "S": last_mbti.score_s, "N": last_mbti.score_n,
+                "T": last_mbti.score_t, "F": last_mbti.score_f,
+                "J": last_mbti.score_j, "P": last_mbti.score_p
+            }
+        }
+
+    return {
+        "student": {
+            "id": student.id,
+            "full_name": student.full_name,
+            "email": student.email,
+        },
+        "booking_note": booking.student_note,
+        "mbti": mbti_data,
+        "roadmap_histories": history_schemas
+    }

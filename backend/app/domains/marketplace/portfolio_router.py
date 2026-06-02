@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 
 from backend.app.api import deps
 from backend.app.domains.identity.models import User, UserRole, UserStatus
-from backend.app.domains.marketplace.models import ExpertProfile, ExpertPost, PostAttachment, PostStatus, PostType
+from backend.app.domains.marketplace.models import ExpertProfile, ExpertPost, PostAttachment, PostStatus, PostType, PostLike, PostBookmark, PostComment
 from backend.app.domains.marketplace.schemas import (
     ExpertPostCreate,
     ExpertPostUpdate,
@@ -22,6 +22,9 @@ from backend.app.domains.marketplace.schemas import (
     PostAttachmentSchema,
     ExpertPostFeedItem,
     PaginatedFeedResponse,
+    ExpertPostDetailSchema,
+    PostCommentSchema,
+    PostCommentCreate,
 )
 
 router = APIRouter()
@@ -256,9 +259,12 @@ async def get_public_expert_posts(
         "total_pages": (total + limit - 1) // limit if total else 0
     }
 
-@router.get("/posts/slug/{slug}", response_model=ExpertPostSchema)
+from fastapi import Request
+
+@router.get("/posts/slug/{slug}", response_model=ExpertPostDetailSchema)
 async def get_public_post_by_slug(
     slug: str,
+    request: Request,
     db: AsyncSession = Depends(deps.get_db)
 ) -> Any:
     """Get a single published post by its slug (Public)."""
@@ -275,7 +281,65 @@ async def get_public_post_by_slug(
     await db.commit()
     await db.refresh(post)
     
-    return post
+    # Parse optional authentication token from request headers
+    auth_header = request.headers.get("Authorization")
+    current_user = None
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            from jose import jwt
+            from backend.app.core.config import settings
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            email = payload.get("sub")
+            if email:
+                user_res = await db.execute(select(User).where(User.email == email))
+                current_user = user_res.scalars().first()
+        except Exception:
+            pass  # Ignore invalid token and treat as guest
+            
+    # Calculate counts
+    likes_count = await db.scalar(
+        select(func.count(PostLike.id)).where(PostLike.post_id == post.id)
+    )
+    bookmarks_count = await db.scalar(
+        select(func.count(PostBookmark.id)).where(PostBookmark.post_id == post.id)
+    )
+    comments_count = await db.scalar(
+        select(func.count(PostComment.id)).where(PostComment.post_id == post.id)
+    )
+    
+    is_liked = False
+    is_bookmarked = False
+    if current_user:
+        is_liked = await db.scalar(
+            select(func.count(PostLike.id)).where(
+                and_(PostLike.post_id == post.id, PostLike.user_id == current_user.id)
+            )
+        ) > 0
+        is_bookmarked = await db.scalar(
+            select(func.count(PostBookmark.id)).where(
+                and_(PostBookmark.post_id == post.id, PostBookmark.user_id == current_user.id)
+            )
+        ) > 0
+        
+    return ExpertPostDetailSchema(
+        id=post.id,
+        expert_id=post.expert_id,
+        title=post.title,
+        content=post.content,
+        slug=post.slug,
+        type=post.type,
+        status=post.status,
+        views_count=post.views_count,
+        created_at=post.created_at,
+        updated_at=post.updated_at,
+        attachments=post.attachments,
+        likes_count=likes_count or 0,
+        bookmarks_count=bookmarks_count or 0,
+        comments_count=comments_count or 0,
+        is_liked=is_liked,
+        is_bookmarked=is_bookmarked,
+    )
 
 
 # --- PUBLIC FEED --- (All experts' posts)
@@ -346,3 +410,171 @@ async def get_experts_posts_feed(
         "page_size": limit,
         "total_pages": (total + limit - 1) // limit if total else 0,
     }
+
+
+# --- SOCIAL INTERACTIONS ---
+
+@router.post("/posts/{id}/like")
+async def toggle_like_post(
+    id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Toggle like state on a post."""
+    post_res = await db.execute(select(ExpertPost).where(ExpertPost.id == id))
+    post = post_res.scalars().first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    like_res = await db.execute(
+        select(PostLike).where(and_(PostLike.post_id == id, PostLike.user_id == current_user.id))
+    )
+    existing_like = like_res.scalars().first()
+    
+    if existing_like:
+        await db.delete(existing_like)
+        liked = False
+    else:
+        new_like = PostLike(post_id=id, user_id=current_user.id)
+        db.add(new_like)
+        liked = True
+        
+    await db.commit()
+    
+    likes_count = await db.scalar(
+        select(func.count(PostLike.id)).where(PostLike.post_id == id)
+    )
+    return {"liked": liked, "likes_count": likes_count or 0}
+
+
+@router.post("/posts/{id}/bookmark")
+async def toggle_bookmark_post(
+    id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Toggle bookmark state on a post."""
+    post_res = await db.execute(select(ExpertPost).where(ExpertPost.id == id))
+    post = post_res.scalars().first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    bookmark_res = await db.execute(
+        select(PostBookmark).where(and_(PostBookmark.post_id == id, PostBookmark.user_id == current_user.id))
+    )
+    existing_bookmark = bookmark_res.scalars().first()
+    
+    if existing_bookmark:
+        await db.delete(existing_bookmark)
+        bookmarked = False
+    else:
+        new_bookmark = PostBookmark(post_id=id, user_id=current_user.id)
+        db.add(new_bookmark)
+        bookmarked = True
+        
+    await db.commit()
+    return {"bookmarked": bookmarked}
+
+
+@router.get("/posts/{id}/comments", response_model=List[PostCommentSchema])
+async def get_post_comments(
+    id: int,
+    page: int = 1,
+    limit: int = 20,
+    db: AsyncSession = Depends(deps.get_db)
+) -> Any:
+    """Get all comments for a post, paginated. Formatted in 2 levels."""
+    skip = (page - 1) * limit
+    
+    query = (
+        select(PostComment)
+        .where(and_(PostComment.post_id == id, PostComment.parent_id == None))
+        .options(
+            selectinload(PostComment.user),
+            selectinload(PostComment.replies).selectinload(PostComment.user)
+        )
+        .order_by(PostComment.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    result = await db.execute(query)
+    comments = result.scalars().all()
+    return comments
+
+
+@router.post("/posts/{id}/comments", response_model=PostCommentSchema)
+async def create_post_comment(
+    id: int,
+    comment_in: PostCommentCreate,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Create a new comment or reply to an existing top-level comment."""
+    post_res = await db.execute(select(ExpertPost).where(ExpertPost.id == id))
+    post = post_res.scalars().first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    if comment_in.parent_id:
+        parent_res = await db.execute(
+            select(PostComment).where(and_(PostComment.id == comment_in.parent_id, PostComment.post_id == id))
+        )
+        parent = parent_res.scalars().first()
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent comment not found")
+        if parent.parent_id is not None:
+            raise HTTPException(status_code=400, detail="Cannot reply to a sub-comment. 2 levels max.")
+            
+    new_comment = PostComment(
+        post_id=id,
+        user_id=current_user.id,
+        parent_id=comment_in.parent_id,
+        content=comment_in.content
+    )
+    db.add(new_comment)
+    await db.commit()
+    await db.refresh(new_comment)
+    
+    query = (
+        select(PostComment)
+        .where(PostComment.id == new_comment.id)
+        .options(
+            selectinload(PostComment.user),
+            selectinload(PostComment.replies).selectinload(PostComment.user)
+        )
+    )
+    res = await db.execute(query)
+    return res.scalars().first()
+
+
+@router.delete("/comments/{comment_id}")
+async def delete_post_comment(
+    comment_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Delete a comment (Allowed for owner, post expert, or admin)."""
+    query = select(PostComment).where(PostComment.id == comment_id).options(selectinload(PostComment.post))
+    res = await db.execute(query)
+    comment = res.scalars().first()
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+        
+    is_owner = comment.user_id == current_user.id
+    
+    post = comment.post
+    is_post_expert = False
+    if post:
+        expert_res = await db.execute(select(ExpertProfile).where(ExpertProfile.id == post.expert_id))
+        expert = expert_res.scalars().first()
+        if expert and expert.user_id == current_user.id:
+            is_post_expert = True
+            
+    is_admin = current_user.is_superuser or current_user.role == UserRole.ADMIN
+    
+    if not (is_owner or is_post_expert or is_admin):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+        
+    await db.delete(comment)
+    await db.commit()
+    return {"message": "Comment deleted successfully"}

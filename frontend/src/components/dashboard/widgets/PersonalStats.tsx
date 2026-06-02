@@ -51,7 +51,7 @@ export default function PersonalStats() {
                 </div>
                 <h3 className="font-serif text-2xl text-[var(--color-ivory)] italic mb-4">Chưa có dữ liệu</h3>
                 <p className="font-sans text-[10px] text-[var(--color-ivory-45)] uppercase tracking-widest max-w-[260px] leading-relaxed">Hãy khởi tạo bản đồ Ikigai để bắt đầu hành trình vươn tầm.</p>
-                <Link href="/dashboard/assessment" className="w-full mt-14">
+                <Link href="/dashboard/roadmap" className="w-full mt-14">
                     <button
                         suppressHydrationWarning
                         className="w-full bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-teal-mid)] text-[var(--color-navy)] font-bold uppercase tracking-widest text-xs py-4 hover:opacity-90 transition-all border-0"

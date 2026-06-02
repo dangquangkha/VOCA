@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar,
@@ -154,7 +154,7 @@ function RejectModal({
 
 import { useSearchParams } from 'next/navigation';
 
-export default function ManageBookingsPage() {
+function ManageBookingsContent() {
     const { user } = useAuthStore();
     const searchParams = useSearchParams();
     const highlightId = searchParams.get('booking');
@@ -628,5 +628,18 @@ export default function ManageBookingsPage() {
                 />
             )}
         </div>
+    );
+}
+
+export default function ManageBookingsPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-12 h-12 border border-[var(--color-gold-dim)] border-t-[var(--color-gold)] animate-spin mb-8" />
+                <p className="text-[10px] text-[#0046EA] uppercase tracking-[0.5em] font-sans">Đang truy vấn lịch hẹn...</p>
+            </div>
+        }>
+            <ManageBookingsContent />
+        </Suspense>
     );
 }

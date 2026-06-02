@@ -1,6 +1,6 @@
 from enum import Enum
 from datetime import datetime
-from sqlalchemy import Integer, String, ForeignKey, Float, Boolean, Enum as SQLAlchemyEnum, Text, JSON, DateTime
+from sqlalchemy import Integer, String, ForeignKey, Float, Boolean, Enum as SQLAlchemyEnum, Text, JSON, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.db.base_class import Base
 
@@ -151,3 +151,55 @@ class PostAttachment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     
     post = relationship("ExpertPost", back_populates="attachments")
+
+
+class PostLike(Base):
+    __tablename__ = "post_likes"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert_posts.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    
+    post = relationship("ExpertPost", backref="likes")
+    user = relationship("User")
+    
+    __table_args__ = (
+        UniqueConstraint('user_id', 'post_id', name='_user_post_like_uc'),
+    )
+
+
+class PostBookmark(Base):
+    __tablename__ = "post_bookmarks"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert_posts.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    
+    post = relationship("ExpertPost", backref="bookmarks")
+    user = relationship("User")
+    
+    __table_args__ = (
+        UniqueConstraint('user_id', 'post_id', name='_user_post_bookmark_uc'),
+    )
+
+
+class PostComment(Base):
+    __tablename__ = "post_comments"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("expert_posts.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    parent_id: Mapped[int] = mapped_column(Integer, ForeignKey("post_comments.id", ondelete="CASCADE"), nullable=True)
+    
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    post = relationship("ExpertPost", backref="comments")
+    user = relationship("User")
+    parent = relationship("PostComment", remote_side=[id], backref="replies")

@@ -371,14 +371,16 @@ export default function WalletPage() {
                                                     const isDeposit = trx.type === TransactionType.DEPOSIT || trx.type === TransactionType.BOOKING_REFUND || trx.type === TransactionType.BOOKING_RELEASE;
                                                     const isPending = trx.status === TransactionStatus.PENDING || trx.status === TransactionStatus.PENDING_PAYOUT;
 
-                                                    const statusConfig = {
+                                                    const statusConfig: Record<TransactionStatus, { label: string; color: string; icon: React.ReactNode }> = {
                                                         [TransactionStatus.COMPLETED]: { label: 'THÀNH CÔNG', color: 'text-[#0046EA]', icon: <CheckCircle2 size={10} className="mr-2" /> },
                                                         [TransactionStatus.PENDING]: { label: 'ĐANG XỬ LÝ', color: 'text-black/30', icon: <RefreshCw size={10} className="mr-2 animate-spin" /> },
                                                         [TransactionStatus.FAILED]: { label: 'THẤT BẠI', color: 'text-[#D20048]', icon: <X size={10} className="mr-2" /> },
                                                         [TransactionStatus.REFUNDED]: { label: 'ĐÃ HOÀN TIỀN', color: 'text-black/50', icon: <ArrowUpFromLine size={10} className="mr-2" /> },
+                                                        [TransactionStatus.PENDING_PAYOUT]: { label: 'CHỜ CHI TRẢ', color: 'text-black/30', icon: <RefreshCw size={10} className="mr-2 animate-spin" /> },
+                                                        [TransactionStatus.REJECTED_PAYOUT]: { label: 'BỊ TỪ CHỐI', color: 'text-[#D20048]', icon: <X size={10} className="mr-2" /> },
                                                     };
 
-                                                    const config = statusConfig[trx.status as TransactionStatus] || { label: trx.status, color: '' };
+                                                    const config = statusConfig[trx.status as TransactionStatus] || { label: trx.status, color: '', icon: null };
 
                                                     return (
                                                         <li key={trx.id} className="p-8 hover:bg-[#F5F8FF] transition-all duration-500 group">

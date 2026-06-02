@@ -168,3 +168,47 @@ class PaginatedFeedResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+class CommenterUserSchema(BaseModel):
+    id: int
+    full_name: str
+    avatar_url: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class PostCommentSchema(BaseModel):
+    id: int
+    post_id: int
+    user_id: int
+    parent_id: Optional[int] = None
+    content: str
+    created_at: datetime
+    updated_at: datetime
+    user: Optional[CommenterUserSchema] = None
+    replies: List["PostCommentSchema"] = []
+
+    class Config:
+        from_attributes = True
+
+
+class PostCommentCreate(BaseModel):
+    content: str
+    parent_id: Optional[int] = None
+
+
+class ExpertPostDetailSchema(ExpertPostSchema):
+    likes_count: int = 0
+    bookmarks_count: int = 0
+    comments_count: int = 0
+    is_liked: bool = False
+    is_bookmarked: bool = False
+    
+    class Config:
+        from_attributes = True
+
+
+# Resolve self-referencing forward declarations
+PostCommentSchema.model_rebuild()

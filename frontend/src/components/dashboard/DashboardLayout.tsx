@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -59,10 +59,25 @@ const SidebarItem = ({ href, icon, label, active, collapsed }: SidebarItemProps)
     </Link>
 );
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     const { user, logout, _hasHydrated } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const tabParam = searchParams?.get('tab');
+
+    const isActive = (itemHref: string) => {
+        const [path, query] = itemHref.split('?');
+        if (query) {
+            const params = new URLSearchParams(query);
+            const tab = params.get('tab');
+            return pathname === path && tabParam === tab;
+        }
+        if (path === '/dashboard/roadmap' && tabParam) {
+            return false;
+        }
+        return pathname === path || pathname?.startsWith(path + '/');
+    };
 
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showCreditsDetail, setShowCreditsDetail] = useState(false);
@@ -123,6 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             { href: '/dashboard/student',          icon: <LayoutDashboard />, label: 'Tổng quan' },
             { href: '/dashboard/roadmap',          icon: <Compass />,      label: 'Hành trình' },
             { href: '/dashboard/experts',          icon: <Users />,        label: 'Chuyên gia' },
+            { href: '/dashboard/roadmap?tab=posts', icon: <FileText />,     label: 'Bài viết' },
             { href: '/dashboard/ai-assistant',     icon: <Bot />,          label: 'Trợ lý AI' },
             { href: '/dashboard/manage/bookings',  icon: <Calendar />,     label: 'Lịch trình' },
             { href: '/dashboard/chat',             icon: <MessageSquare />, label: 'Tin nhắn' },
@@ -210,7 +226,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <SidebarItem
                             key={item.href}
                             {...item}
-                            active={pathname === item.href || pathname?.startsWith(item.href + '/')}
+                            active={isActive(item.href)}
                             collapsed={isCollapsed}
                         />
                     ))}
@@ -423,5 +439,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </main>
             </div>
         </div>
+    );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <Suspense fallback={
+            <div style={{ display: 'flex', minHeight: '100vh', background: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 40, height: 40, border: '2px solid rgba(0,0,0,0.05)', borderTopColor: '#0046EA', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            </div>
+        }>
+            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+        </Suspense>
     );
 }

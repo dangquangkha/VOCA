@@ -316,7 +316,10 @@ export default function BookingPage() {
 
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         {availableSlots.map(slot => {
-                                            const slotKey = `${selectedDate} ${slot.start}:00`;
+                                            // BUG FIX: Dùng slot.start ("HH:MM") làm key
+                                            // Backend /slots-status giờ trả về key dạng "HH:MM"
+                                            // thay vì full datetime string, nên lookup phải khớp.
+                                            const slotKey = slot.start; // "09:00"
                                             const current = occupancy[slotKey] || 0;
                                             const max = slot.max_participants || 1;
                                             const isFull = current >= max;
@@ -326,7 +329,6 @@ export default function BookingPage() {
                                                 key={slot.start}
                                                 disabled={isFull}
                                                 onClick={() => setSelectedTime(slot.start)}
-<<<<<<< HEAD
                                                 className={`py-4 px-4 flex flex-col items-center justify-center gap-1 font-black tracking-[0.1em] rounded-none border-[3px] transition-all duration-700
                                                 ${isFull 
                                                     ? 'bg-red-500/10 border-red-500/30 text-white/30 cursor-not-allowed opacity-50'

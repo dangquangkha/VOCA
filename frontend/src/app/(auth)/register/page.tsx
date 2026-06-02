@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -16,6 +17,9 @@ export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -207,13 +211,22 @@ export default function RegisterPage() {
                         <label className="block text-[11px] font-black uppercase tracking-widest text-black/40 mb-3 group-focus-within:text-[#0046EA] transition-colors">
                             MẬT KHẨU
                         </label>
-                        <input
-                            name="password"
-                            type="password"
-                            required
-                            placeholder="Tối thiểu 8 ký tự"
-                            className="w-full bg-[#F5F8FF] border border-black/5 px-8 py-5 text-[15px] font-medium text-[#171716] placeholder-black/20 focus:ring-2 focus:ring-[#0046EA]/20 focus:outline-none focus:border-[#0046EA] transition-all duration-500 rounded-3xl"
-                        />
+                        <div className="relative">
+                            <input
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                required
+                                placeholder="Tối thiểu 8 ký tự"
+                                className="w-full bg-[#F5F8FF] border border-black/5 pl-8 pr-16 py-5 text-[15px] font-medium text-[#171716] placeholder-black/20 focus:ring-2 focus:ring-[#0046EA]/20 focus:outline-none focus:border-[#0046EA] transition-all duration-500 rounded-3xl"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-black/30 hover:text-[#0046EA] transition-colors focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Confirm Password */}
@@ -221,13 +234,22 @@ export default function RegisterPage() {
                         <label className="block text-[11px] font-black uppercase tracking-widest text-black/40 mb-3 group-focus-within:text-[#0046EA] transition-colors">
                             XÁC NHẬN MẬT KHẨU
                         </label>
-                        <input
-                            name="confirmPassword"
-                            type="password"
-                            required
-                            placeholder="Lặp lại mật khẩu"
-                            className="w-full bg-[#F5F8FF] border border-black/5 px-8 py-5 text-[15px] font-medium text-[#171716] placeholder-black/20 focus:ring-2 focus:ring-[#0046EA]/20 focus:outline-none focus:border-[#0046EA] transition-all duration-500 rounded-3xl"
-                        />
+                        <div className="relative">
+                            <input
+                                name="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                required
+                                placeholder="Lặp lại mật khẩu"
+                                className="w-full bg-[#F5F8FF] border border-black/5 pl-8 pr-16 py-5 text-[15px] font-medium text-[#171716] placeholder-black/20 focus:ring-2 focus:ring-[#0046EA]/20 focus:outline-none focus:border-[#0046EA] transition-all duration-500 rounded-3xl"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-black/30 hover:text-[#0046EA] transition-colors focus:outline-none"
+                            >
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Expert Specific Fields */}

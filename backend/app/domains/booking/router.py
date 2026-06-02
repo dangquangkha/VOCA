@@ -139,6 +139,11 @@ async def create_booking(
             raise HTTPException(status_code=400, detail="Invalid booking duration")
 
         # Step 2.5: Group Bookings Validation (max_participants)
+        # BUG FIX: Dùng phạm vi [start_time, end_time) thay vì so sánh chính xác start_time.
+        # ExpertAvailability.start_time là thời điểm bắt đầu CA LÀM VIỆC (vd: "08:00"),
+        # không phải thời điểm của từng slot lẻ (09:00, 10:00...). Query cũ dùng
+        # `== time_str` nên không tìm thấy availability khi học sinh đặt slot 09:00
+        # trong ca 08:00-12:00, dẫn đến max_participants mặc định về 1 và báo sai "Đã đầy".
         from sqlalchemy import and_, func
         from backend.app.domains.marketplace.models import ExpertAvailability
         
@@ -148,7 +153,8 @@ async def create_booking(
         avail_query = select(ExpertAvailability).where(
             ExpertAvailability.expert_id == expert.id,
             ExpertAvailability.day_of_week == day_of_week,
-            ExpertAvailability.start_time == time_str
+            ExpertAvailability.start_time <= time_str,   # Ca bắt đầu trước hoặc tại slot đặt
+            ExpertAvailability.end_time > time_str        # Ca kết thúc sau slot đặt
         )
         avail_result = await db.execute(avail_query)
         availability = avail_result.scalars().first()
@@ -272,7 +278,10 @@ async def get_slots_status(
         ).group_by(Booking.start_time)
         
         result = await db.execute(bookings_query)
-        occupancy = {str(row[0]): row[1] for row in result.all()}
+        # BUG FIX: Trả về key dạng "HH:MM" thay vì full datetime string.
+        # Frontend dùng slot.start ("09:00") làm key lookup, nên backend cũng phải
+        # trả về cùng format để occupancy[slotKey] khớp đúng giá trị.
+        occupancy = {row[0].strftime("%H:%M"): row[1] for row in result.all()}
         
         return occupancy
     except Exception as e:

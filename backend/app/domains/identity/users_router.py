@@ -249,7 +249,12 @@ async def update_user_admin(
     current_user: User = Depends(deps.get_current_superuser),
 ) -> Any:
     """Admin: Update user by ID."""
-    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+    result = await db.execute(
+        select(User)
+        .where(User.id == user_id)
+        .with_for_update()
+    )
+    user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -258,8 +263,32 @@ async def update_user_admin(
         if conflict:
             raise HTTPException(status_code=400, detail="A user with this email already exists.")
 
+    old_credits = user.credits
+    new_credits = user_in.credits
+
     for field, value in user_in.dict(exclude_unset=True).items():
         setattr(user, field, value)
+
+    if new_credits is not None and new_credits != old_credits:
+        if new_credits < 0:
+            raise HTTPException(status_code=400, detail="Số dư credits không được phép nhỏ hơn 0")
+        
+        from backend.app.domains.payments.models import PaymentTransaction, TransactionType, TransactionStatus
+        
+        diff = new_credits - old_credits
+        amount = abs(diff)
+        transaction_type = TransactionType.DEPOSIT if diff > 0 else TransactionType.WITHDRAWAL
+        action_text = "tăng" if diff > 0 else "giảm"
+        desc = f"Admin điều chỉnh {action_text} Credits: {diff:+} credits (thực hiện bởi Admin {current_user.email})"
+        
+        db_transaction = PaymentTransaction(
+            user_id=user.id,
+            amount=amount,
+            type=transaction_type,
+            status=TransactionStatus.COMPLETED,
+            description=desc
+        )
+        db.add(db_transaction)
 
     db.add(user)
     await db.commit()

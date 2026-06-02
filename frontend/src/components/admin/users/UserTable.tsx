@@ -8,6 +8,7 @@ interface UserTableProps {
     onSort: (column: string) => void;
     onEdit: (user: User) => void;
     onDelete: (user: User) => void;
+    onAdjustCredits: (user: User) => void;
 }
 
 export default function UserTable({
@@ -17,7 +18,8 @@ export default function UserTable({
     sortDesc,
     onSort,
     onEdit,
-    onDelete
+    onDelete,
+    onAdjustCredits
 }: UserTableProps) {
     const getSortIcon = (column: string) => {
         if (sortBy !== column) return null;
@@ -174,6 +176,12 @@ export default function UserTable({
                                         className="text-[#0F0C17]/50 hover:text-[#0046EA] uppercase tracking-wider font-medium transition-colors duration-200"
                                     >
                                         Edit
+                                    </button>
+                                    <button
+                                        onClick={() => onAdjustCredits(user)}
+                                        className="text-[#0F0C17]/50 hover:text-[#00A4FD] uppercase tracking-wider font-medium transition-colors duration-200"
+                                    >
+                                        Credits
                                     </button>
                                     <button
                                         onClick={() => onDelete(user)}

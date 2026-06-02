@@ -4,6 +4,7 @@ export interface ExpertAvailability {
     day_of_week: number; // 0-6
     start_time: string; // HH:MM
     end_time: string; // HH:MM
+    max_participants?: number;
 }
 
 export interface ExpertUser {

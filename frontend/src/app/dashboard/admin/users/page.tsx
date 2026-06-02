@@ -38,9 +38,11 @@ export default function UserManagementPage() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showAdjustCreditsModal, setShowAdjustCreditsModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     // Form state
+    const [adjustmentAmount, setAdjustmentAmount] = useState<number | string>("");
     const [formData, setFormData] = useState<any>({});
 
     // Fetch users
@@ -142,6 +144,34 @@ export default function UserManagementPage() {
         }
     };
 
+    // Handle adjust credits
+    const handleAdjustCredits = async (relative: boolean) => {
+        if (!selectedUser) return;
+        try {
+            let newCredits = selectedUser.credits;
+            if (relative) {
+                const change = Number(adjustmentAmount) || 0;
+                newCredits = selectedUser.credits + change;
+            } else {
+                newCredits = Number(adjustmentAmount) || 0;
+            }
+
+            if (newCredits < 0) {
+                toast.error("Credits không thể nhỏ hơn 0!");
+                return;
+            }
+
+            await userService.updateUser(selectedUser.id, { credits: newCredits });
+            toast.success(`Credits của người dùng đã được điều chỉnh thành ${newCredits.toLocaleString('vi-VN')} thành công!`);
+            setShowAdjustCreditsModal(false);
+            setAdjustmentAmount("");
+            setSelectedUser(null);
+            fetchUsers();
+        } catch (error: any) {
+            toast.error(error.response?.data?.detail || "Không thể điều chỉnh Credits");
+        }
+    };
+
     // Open edit modal
     const openEditModal = (user: User) => {
         setSelectedUser(user);
@@ -209,6 +239,11 @@ export default function UserManagementPage() {
                 onSort={handleSort}
                 onEdit={openEditModal}
                 onDelete={openDeleteModal}
+                onAdjustCredits={(user) => {
+                    setSelectedUser(user);
+                    setAdjustmentAmount("");
+                    setShowAdjustCreditsModal(true);
+                }}
             />
 
             {/* Pagination */}
@@ -416,6 +451,111 @@ export default function UserManagementPage() {
                         >
                             Retain Account
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Adjust Credits Modal */}
+            {showAdjustCreditsModal && selectedUser && (
+                <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-white border border-[#0F0C17]/10 rounded-sm p-8 max-w-md w-full shadow-2xl space-y-6">
+                        <div>
+                            <h2 className="text-2xl font-serif italic text-[#0F0C17]">Adjust Credits</h2>
+                            <p className="text-sm text-[#0F0C17]/50 mt-1 font-sans font-light">
+                                Modify credits for <strong className="text-[#0046EA]">{selectedUser.full_name}</strong>
+                            </p>
+                            <p className="text-[10px] text-[#0F0C17]/30 uppercase tracking-widest mt-1">
+                                Email: {selectedUser.email}
+                            </p>
+                        </div>
+
+                        {/* Current Balance */}
+                        <div className="p-4 bg-[#F5F8FF] border border-[#0046EA]/10 rounded-sm flex justify-between items-center">
+                            <span className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 font-medium">Current Balance</span>
+                            <span className="text-2xl font-serif italic font-bold text-[#0046EA]">
+                                {selectedUser.credits.toLocaleString('vi-VN')} <span className="text-xs tracking-widest uppercase font-sans not-italic text-[#0F0C17]/30 font-medium ml-1">Credits</span>
+                            </span>
+                        </div>
+
+                        {/* Presets */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Quick Presets (Add / Subtract)</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[
+                                    { label: "+1K", val: 1000 },
+                                    { label: "+5K", val: 5000 },
+                                    { label: "+10K", val: 10000 },
+                                    { label: "+50K", val: 50000 },
+                                    { label: "-1K", val: -1000 },
+                                    { label: "-5K", val: -5000 },
+                                    { label: "-10K", val: -10000 },
+                                    { label: "-50K", val: -50000 }
+                                ].map((p, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => {
+                                            const currentVal = Number(adjustmentAmount) || 0;
+                                            setAdjustmentAmount(currentVal + p.val);
+                                        }}
+                                        className={`py-2 border text-[10px] tracking-widest font-medium rounded-sm uppercase transition-all duration-300
+                                            ${p.val > 0 
+                                                ? "border-emerald-500/10 text-emerald-600 hover:bg-emerald-50"
+                                                : "border-red-500/10 text-red-500 hover:bg-red-50"
+                                            }`}
+                                    >
+                                        {p.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Input adjustment */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest text-[#0F0C17]/50 ml-1">Adjustment Value</label>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    placeholder="Enter positive to add, negative to subtract"
+                                    value={adjustmentAmount}
+                                    onChange={(e) => setAdjustmentAmount(e.target.value)}
+                                    className="bg-transparent border-[0.5px] border-[#0F0C17]/20 rounded-sm px-4 py-3 w-full text-[#0F0C17] focus:border-[#00A4FD] focus:ring-0 text-sm font-light transition-all"
+                                />
+                                <button
+                                    onClick={() => setAdjustmentAmount("")}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xs uppercase tracking-widest font-black text-black/30 hover:text-black"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-4 pt-4">
+                            <button
+                                onClick={() => {
+                                    const val = Number(adjustmentAmount) || 0;
+                                    setAdjustmentAmount(selectedUser.credits + val);
+                                }}
+                                className="flex-1 py-3 border border-[#0F0C17]/10 text-[#0F0C17] text-[10px] uppercase tracking-widest font-medium hover:bg-black/5 transition-all rounded-sm"
+                            >
+                                Calculate Target
+                            </button>
+                            <button
+                                onClick={() => handleAdjustCredits(true)}
+                                className="flex-1 py-3 bg-[#0046EA] text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all rounded-sm shadow-md"
+                            >
+                                Apply Change
+                            </button>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                            <button
+                                onClick={() => { setShowAdjustCreditsModal(false); setAdjustmentAmount(""); setSelectedUser(null); }}
+                                className="px-6 py-2 text-[#0F0C17]/50 hover:text-[#0F0C17] uppercase tracking-widest text-[10px] font-medium transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

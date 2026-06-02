@@ -2,7 +2,7 @@
 from backend.app.db.base_class import Base
 from backend.app.domains.identity.models import User
 from backend.app.models.assessment import Assessment, Question, UserAssessmentResult
-from backend.app.domains.marketplace.models import ExpertProfile, ExpertAvailability, ExpertQuiz, BookingQuizResponse, PublicQuizResponse
+from backend.app.domains.marketplace.models import ExpertProfile, ExpertAvailability, ExpertQuiz, BookingQuizResponse, PublicQuizResponse, ExpertPost, PostAttachment, PostLike, PostBookmark, PostComment
 from backend.app.domains.booking.models import Booking, BookingDispute
 from backend.app.domains.payments.models import PaymentTransaction
 from backend.app.models.ai_service import CVAnalysis, MockInterview

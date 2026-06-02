@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 interface Post {
-    id: int;
+    id: number;
     title: string;
     slug: string;
     type: "ARTICLE" | "RESEARCH_PAPER" | "DOCUMENT";

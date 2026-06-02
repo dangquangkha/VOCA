@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { DailyProgress, DayContent, DayStatus } from '@/types/roadmap';
 import { Button } from '@/components/ui/Button';
@@ -48,7 +48,7 @@ const SYLLABUS_MODULES = [
     { id: 5, title: 'Xác định Ikigai', range: [26, 30], icon: <Calendar className="w-4 h-4" /> },
 ];
 
-export default function RoadmapPage() {
+function RoadmapPageContent() {
     const { token } = useAuthStore();
     const router = useRouter();
 
@@ -66,6 +66,20 @@ export default function RoadmapPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     
     const [activeTab, setActiveTab] = useState<'ikigai' | 'mbti' | 'quizzes' | 'posts'>('ikigai');
+    const searchParams = useSearchParams();
+    const tabParam = searchParams?.get('tab');
+
+    useEffect(() => {
+        if (tabParam === 'posts') {
+            setActiveTab('posts');
+        } else if (tabParam === 'quizzes') {
+            setActiveTab('quizzes');
+        } else if (tabParam === 'mbti') {
+            setActiveTab('mbti');
+        } else if (tabParam === 'ikigai') {
+            setActiveTab('ikigai');
+        }
+    }, [tabParam]);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const [milestoneInfo, setMilestoneInfo] = useState<{ day: number, reward: number } | null>(null);
     const { addToast } = useToastStore();
@@ -555,5 +569,20 @@ export default function RoadmapPage() {
                 />
             </div>
         </div>
+    );
+}
+
+export default function RoadmapPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-[60vh] font-dm-sans">
+                <div className="flex flex-col items-center gap-8">
+                    <div className="w-12 h-12 border-2 border-black/5 border-t-[#0046EA] rounded-full animate-spin" />
+                    <p className="text-[10px] text-black/30 font-black tracking-[0.5em] uppercase">KHỞI TẠO HÀNH TRÌNH...</p>
+                </div>
+            </div>
+        }>
+            <RoadmapPageContent />
+        </Suspense>
     );
 }

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from backend.app.api.v1.endpoints import roadmap, ai, chat, assessments, admin, conversations, moderation, account_actions, reviews, notifications, support
+from backend.app.api.v1.endpoints import roadmap, ai, chat, assessments, admin, conversations, moderation, account_actions, reviews, notifications, support, group_sessions
 from backend.app.domains.identity import router as identity_router
 from backend.app.domains.identity.users_router import router as users_ddd_router  # Task 5: DDD migration
 from backend.app.domains.marketplace import router as marketplace_router
@@ -17,6 +17,7 @@ api_router.include_router(marketplace_router.router, prefix="/experts", tags=["e
 api_router.include_router(marketplace_router.router, prefix="/expert", tags=["experts"])
 api_router.include_router(booking_router.router, prefix="/bookings", tags=["bookings"])
 api_router.include_router(payments_router.router, prefix="/payments", tags=["payments"])
+api_router.include_router(group_sessions.router, prefix="/group-sessions", tags=["group-sessions"])
 
 # --- LEGACY (Migration in progress) ---
 api_router.include_router(roadmap.router, prefix="/roadmap", tags=["roadmap"])

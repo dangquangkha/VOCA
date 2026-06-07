@@ -1,0 +1,1 @@
+"                                                <span className=\"text-sm\">{slot.start}</span>\n                                                <span className=\"text-[10px] uppercase tracking-widest opacity-80\">\n                                                    {isFull ? 'HẾT CHỖ' : 'CÒN TRỐNG'}\n                                                </span>"

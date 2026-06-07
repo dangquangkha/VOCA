@@ -1,33 +1,36 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { FloatingContactMenu } from '../ContactSupport';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 
 // Mock Next.js router
-jest.mock('next/navigation', () => ({
-    useRouter: jest.fn(),
+vi.mock('next/navigation', () => ({
+    useRouter: vi.fn(),
 }));
 
 // Mock Auth Store
-jest.mock('@/store/useAuthStore', () => ({
-    useAuthStore: jest.fn(),
+vi.mock('@/store/useAuthStore', () => ({
+    useAuthStore: vi.fn(),
 }));
 
 describe('FloatingContactMenu', () => {
-    const mockPush = jest.fn();
+    const mockPush = vi.fn();
 
     beforeEach(() => {
-        (useRouter as jest.fn()).mockReturnValue({
+        // @ts-ignore
+        vi.mocked(useRouter).mockReturnValue({
             push: mockPush,
         });
-        (useAuthStore as unknown as jest.Mock).mockReturnValue({
+        // @ts-ignore
+        vi.mocked(useAuthStore).mockReturnValue({
             user: null,
         });
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('renders the toggle button', () => {
@@ -56,7 +59,8 @@ describe('FloatingContactMenu', () => {
     });
 
     it('redirects to chat directly when user is logged in', () => {
-        (useAuthStore as unknown as jest.Mock).mockReturnValue({
+        // @ts-ignore
+        vi.mocked(useAuthStore).mockReturnValue({
             user: { id: 1, full_name: 'Test User' },
         });
 

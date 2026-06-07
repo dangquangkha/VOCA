@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Star, ShieldCheck, Linkedin, MessageSquare, ChevronRight, ArrowLeft, Quote, Heart, AlertTriangle, Calendar, Award, BookOpen, FileText } from 'lucide-react';
+import { Star, ShieldCheck, Linkedin, MessageSquare, ChevronRight, ArrowLeft, Quote, Heart, AlertTriangle, Calendar, Award, BookOpen, FileText, Users, Video } from 'lucide-react';
 import api from '@/lib/api';
 import { Expert } from '@/types/expert';
+import { GroupSession, GroupSessionStatus } from '@/types/group_session';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAvatarUrl } from '@/utils/url-utils';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const DAY_NAMES = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 const EASING: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -23,14 +25,57 @@ export default function ExpertProfilePage() {
     const [showQuizModal, setShowQuizModal] = useState(false);
     const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'PORTFOLIO'>('OVERVIEW');
     const [posts, setPosts] = useState<any[]>([]);
+    const [groupSessions, setGroupSessions] = useState<GroupSession[]>([]);
+    const [selectedSession, setSelectedSession] = useState<GroupSession | null>(null);
+    const [isJoining, setIsJoining] = useState(false);
+    const [joinNote, setJoinNote] = useState('');
 
     useEffect(() => {
         if (params.id) {
             fetchExpert(params.id as string);
             checkRequiredQuiz(params.id as string);
             fetchPosts(params.id as string);
+            fetchGroupSessions(params.id as string);
         }
     }, [params.id]);
+
+    const fetchGroupSessions = async (id: string) => {
+        try {
+            const { data } = await api.get('group-sessions', {
+                params: { expert_id: id, status: 'OPEN' }
+            });
+            setGroupSessions(data);
+        } catch (err) {
+            console.error("Failed to fetch group sessions", err);
+        }
+    };
+
+    const handleJoinSession = async () => {
+        if (!selectedSession) return;
+        setIsJoining(true);
+        try {
+            await api.post(`group-sessions/${selectedSession.id}/join`, {
+                student_note: joinNote
+            });
+            setSelectedSession(null);
+            setJoinNote('');
+            fetchGroupSessions(params.id as string);
+            
+            // Deduct locally to reflect change instantly
+            const authStore = useAuthStore.getState();
+            if (authStore.user) {
+                const updatedCredits = authStore.user.credits - selectedSession.price_per_participant;
+                useAuthStore.setState({ user: { ...authStore.user, credits: updatedCredits } });
+            }
+            alert('Đăng ký lớp học chuyên đề thành công!');
+            router.push('/dashboard/student/group-sessions');
+        } catch (err: any) {
+            const msg = err.response?.data?.detail || 'Đăng ký không thành công. Vui lòng thử lại.';
+            alert(msg);
+        } finally {
+            setIsJoining(false);
+        }
+    };
 
     const fetchPosts = async (id: string) => {
         try {
@@ -461,7 +506,69 @@ export default function ExpertProfilePage() {
                                 </div>
                             )}
                         </div>
-                    </div>
+
+                        {/* Group Sessions (Workshops) */}
+                        {groupSessions.length > 0 && (
+                            <div className="bg-[#F5F8FF] border border-black/5 p-12 rounded-[64px] shadow-sm space-y-8">
+                                <h3 className="text-[11px] font-black text-[#171716] uppercase tracking-[0.5em] flex items-center gap-5">
+                                    <div className="w-2 h-2 rounded-full bg-[#0046EA] shadow-[0_0_10px_#0046EA]" /> LỚP CHUYÊN ĐỀ
+                                </h3>
+
+                                <div className="space-y-6">
+                                    {groupSessions.map(session => {
+                                        const isSessionFull = session.status === GroupSessionStatus.FULL || session.available_slots <= 0;
+                                        const isSessionOpen = session.status === GroupSessionStatus.OPEN;
+
+                                        return (
+                                            <div key={session.id} className="p-8 bg-white border border-black/5 rounded-[40px] hover:border-[#0046EA] hover:shadow-xl transition-all duration-500 space-y-6">
+                                                <div className="space-y-2">
+                                                    <h4 className="text-sm font-black text-black uppercase tracking-wider leading-tight">{session.title}</h4>
+                                                    {session.description && (
+                                                        <p className="text-xs text-black/50 line-clamp-2">{session.description}</p>
+                                                    )}
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4 py-4 border-y border-black/5 text-[10px] uppercase font-black tracking-widest text-black/40">
+                                                    <div className="space-y-1">
+                                                        <span className="block text-[8px] opacity-60">Ngày diễn ra</span>
+                                                        <span className="block text-black font-bold text-xs">{session.session_date}</span>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <span className="block text-[8px] opacity-60">Thời gian</span>
+                                                        <span className="block text-[#0046EA] font-bold text-xs">{session.start_time} - {session.end_time}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-1">
+                                                        <span className="block text-[8px] uppercase font-black tracking-widest text-black/40">Học phí</span>
+                                                        <span className="text-lg font-garamond italic font-black text-[#0046EA]">{session.price_per_participant} CR</span>
+                                                    </div>
+                                                    
+                                                    {isSessionOpen ? (
+                                                        <button
+                                                            onClick={() => setSelectedSession(session)}
+                                                            className="px-6 py-3 bg-[#0046EA] hover:bg-black text-[#FFE900] font-bold text-[9px] uppercase tracking-widest rounded-full transition-all duration-300"
+                                                        >
+                                                            ĐĂNG KÝ ({session.available_slots} chỗ)
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            disabled
+                                                            className="px-6 py-3 bg-black/5 text-black/20 font-bold text-[9px] uppercase tracking-widest rounded-full"
+                                                        >
+                                                            {isSessionFull ? 'HẾT CHỖ' : 'ĐÃ KẾT THÚC'}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        </div>
                 </div>
             </div>
 
@@ -501,6 +608,71 @@ export default function ExpertProfilePage() {
                                     className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em] hover:text-black transition-all py-4"
                                 >
                                     ĐỂ THỰC HIỆN SAU
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Group Session Join Modal */}
+            <AnimatePresence>
+                {selectedSession && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedSession(null)}
+                            className="absolute inset-0 bg-[#0046EA]/20 backdrop-blur-3xl"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ ease: EASING, duration: 0.6 }}
+                            className="relative w-full max-w-2xl bg-white border border-black/5 rounded-[64px] shadow-2xl p-16 overflow-hidden z-10"
+                        >
+                            <h2 className="text-3xl font-garamond italic font-bold text-[#171716] mb-6">Xác nhận đăng ký chuyên đề</h2>
+                            <p className="text-[10px] font-black text-black/30 uppercase tracking-[0.4em] mb-8">LỚP HỌC: {selectedSession.title}</p>
+                            
+                            <div className="space-y-6 p-8 bg-[#F5F8FF] rounded-[40px] border border-black/5 mb-8">
+                                <div className="grid grid-cols-2 gap-8 text-[11px] uppercase font-black tracking-widest text-[#171716]/40">
+                                    <div>
+                                        <span className="block text-[8px] opacity-60">Thời gian diễn ra</span>
+                                        <span className="block text-black font-bold text-sm mt-1">{selectedSession.session_date} | {selectedSession.start_time} - {selectedSession.end_time}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-[8px] opacity-60">Học phí chuyên đề</span>
+                                        <span className="block text-[#0046EA] font-bold text-lg mt-1">{selectedSession.price_per_participant} Credits</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 mb-12">
+                                <label className="block text-[9px] font-black text-black/40 uppercase tracking-[0.3em]">Lời nhắn cho chuyên gia (Tùy chọn)</label>
+                                <textarea
+                                    value={joinNote}
+                                    onChange={(e) => setJoinNote(e.target.value)}
+                                    placeholder="Nêu rõ câu hỏi hoặc kỳ vọng của bạn từ buổi học này..."
+                                    rows={4}
+                                    className="w-full bg-[#F5F8FF] border border-black/5 rounded-[28px] p-6 focus:outline-none focus:border-[#0046EA] transition-all text-sm text-black"
+                                />
+                            </div>
+
+                            <div className="flex gap-6">
+                                <button
+                                    onClick={() => setSelectedSession(null)}
+                                    className="flex-1 py-5 border border-black/10 text-black/40 font-black uppercase tracking-[0.3em] text-[10px] rounded-full hover:bg-black/5 hover:text-black transition-all"
+                                >
+                                    HỦY BỎ
+                                </button>
+                                <button
+                                    onClick={handleJoinSession}
+                                    disabled={isJoining}
+                                    className="flex-1 py-5 bg-[#0046EA] text-[#FFE900] font-black uppercase tracking-[0.3em] text-[10px] rounded-full hover:bg-black hover:text-white transition-all shadow-xl disabled:opacity-50"
+                                >
+                                    {isJoining ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN ĐĂNG KÝ'}
                                 </button>
                             </div>
                         </motion.div>

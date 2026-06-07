@@ -104,6 +104,31 @@ async def get_current_active_user(
     return current_user
 
 
+async def get_current_user_optional(
+    db: AsyncSession = Depends(get_db),
+    token: Optional[str] = Depends(OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login/access-token", auto_error=False)),
+) -> Optional[User]:
+    """
+    Get current user from JWT token if provided, otherwise return None.
+    Used for public endpoints that can optionally use auth context.
+    """
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if not email:
+            return None
+        from sqlalchemy.orm import selectinload
+        result = await db.execute(
+            select(User).where(User.email == email)
+            .options(selectinload(User.expert_profile))
+        )
+        return result.scalars().first()
+    except Exception:
+        return None
+
+
 async def get_current_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:

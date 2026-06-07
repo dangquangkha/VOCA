@@ -27,7 +27,8 @@ import {
     AlertCircle,
     Home,
     MessageSquare,
-    FileText
+    FileText,
+    Video
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
@@ -127,6 +128,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             { href: '/dashboard/expert',               icon: <LayoutDashboard />, label: 'Tổng quan' },
             { href: '/dashboard/expert/availability',  icon: <Calendar />,        label: 'Lịch rảnh' },
             { href: '/dashboard/manage/bookings',      icon: <ClipboardList />,   label: 'Lịch hẹn' },
+            { href: '/dashboard/expert/group-sessions', icon: <Video />,          label: 'Lớp chuyên đề' },
             { href: '/dashboard/chat',                 icon: <MessageSquare />,   label: 'Tin nhắn' },
             { href: '/dashboard/expert/wallet',        icon: <Wallet />,          label: 'Ví & Doanh thu' },
             { href: '/dashboard/expert/portfolio',     icon: <FileText />,        label: 'Bài viết & Tài liệu' },
@@ -141,6 +143,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             { href: '/dashboard/roadmap?tab=posts', icon: <FileText />,     label: 'Bài viết' },
             { href: '/dashboard/ai-assistant',     icon: <Bot />,          label: 'Trợ lý AI' },
             { href: '/dashboard/manage/bookings',  icon: <Calendar />,     label: 'Lịch trình' },
+            { href: '/dashboard/student/group-sessions', icon: <Video />,  label: 'Lớp chuyên đề' },
             { href: '/dashboard/chat',             icon: <MessageSquare />, label: 'Tin nhắn' },
             { href: '/dashboard/wallet',           icon: <Wallet />,       label: 'Ví Credits' },
             { href: '/dashboard/dispute',          icon: <ShieldAlert />,  label: 'Hỗ trợ' },

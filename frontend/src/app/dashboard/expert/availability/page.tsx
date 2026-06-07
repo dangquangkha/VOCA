@@ -73,7 +73,8 @@ export default function AvailabilityPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await api.post('experts/me/availability', slots);
+            const sanitizedSlots = slots.map(s => ({ ...s, max_participants: 1 }));
+            await api.post('experts/me/availability', sanitizedSlots);
             // Re-fetch to get IDs and stable order
             const { data } = await api.get('experts/me/availability');
             setSlots(data);
@@ -177,7 +178,7 @@ export default function AvailabilityPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8 items-end">
+                                            <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-8 items-end">
                                                 <div className="space-y-4">
                                                     <label className="block text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Bắt đầu</label>
                                                     <div className="relative">
@@ -201,20 +202,6 @@ export default function AvailabilityPage() {
                                                             className="w-full bg-white/10 border border-white/20 text-xl font-black text-white px-6 py-4 rounded-none focus:outline-none focus:border-white transition-all cursor-pointer tabular-nums"
                                                         />
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="md:col-span-2 space-y-4">
-                                                <label className="block text-[9px] font-black text-white/40 uppercase tracking-[0.3em]" title="Giới hạn số học viên có thể đăng ký chung khung giờ">Max Số Người</label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        max={100}
-                                                        value={slot.max_participants || 1}
-                                                        onChange={(e) => updateSlot(index, 'max_participants', parseInt(e.target.value) || 1)}
-                                                        className="w-full bg-white/10 border border-white/20 text-xl font-black text-white px-6 py-4 rounded-none focus:outline-none focus:border-white transition-all tabular-nums text-center"
-                                                    />
                                                 </div>
                                             </div>
 

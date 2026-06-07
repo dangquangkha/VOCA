@@ -147,8 +147,11 @@ async def create_booking(
         from sqlalchemy import and_, func
         from backend.app.domains.marketplace.models import ExpertAvailability
         
-        day_of_week = booking_in.start_time.weekday()
-        time_str = booking_in.start_time.strftime("%H:%M")
+        from datetime import timezone, timedelta
+        vietnam_tz = timezone(timedelta(hours=7))
+        local_start_time = booking_in.start_time.astimezone(vietnam_tz)
+        day_of_week = local_start_time.weekday()
+        time_str = local_start_time.strftime("%H:%M")
         
         avail_query = select(ExpertAvailability).where(
             ExpertAvailability.expert_id == expert.id,
@@ -263,10 +266,11 @@ async def get_slots_status(
 ) -> Any:
     """Get the occupancy of slots for a specific date."""
     try:
-        from datetime import datetime, timedelta
+        from datetime import datetime, timezone, timedelta
+        vietnam_tz = timezone(timedelta(hours=7))
         target_date = datetime.strptime(date, "%Y-%m-%d").date()
-        start_dt = datetime.combine(target_date, datetime.min.time())
-        end_dt = datetime.combine(target_date, datetime.max.time())
+        start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=vietnam_tz)
+        end_dt = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=vietnam_tz)
         
         # 1. Get current bookings for that day
         from sqlalchemy import func
@@ -279,9 +283,15 @@ async def get_slots_status(
         
         result = await db.execute(bookings_query)
         # BUG FIX: Trả về key dạng "HH:MM" thay vì full datetime string.
-        # Frontend dùng slot.start ("09:00") làm key lookup, nên backend cũng phải
-        # trả về cùng format để occupancy[slotKey] khớp đúng giá trị.
-        occupancy = {row[0].strftime("%H:%M"): row[1] for row in result.all()}
+        # Chuyển đổi start_time (UTC) sang Vietnam timezone trước khi lấy format "HH:MM".
+        occupancy = {}
+        for row in result.all():
+            booking_time_utc = row[0]
+            if booking_time_utc.tzinfo is None:
+                booking_time_utc = booking_time_utc.replace(tzinfo=timezone.utc)
+            booking_time_local = booking_time_utc.astimezone(vietnam_tz)
+            time_key = booking_time_local.strftime("%H:%M")
+            occupancy[time_key] = row[1]
         
         return occupancy
     except Exception as e:

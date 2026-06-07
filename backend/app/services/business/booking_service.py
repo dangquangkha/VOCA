@@ -103,6 +103,37 @@ class BookingService:
             if duration_hours <= 0:
                 raise HTTPException(status_code=400, detail="Invalid booking duration")
 
+            # Validate max_participants
+            day_of_week = booking_in.start_time.weekday() # 0 is Monday
+            start_time_str = booking_in.start_time.strftime("%H:%M")
+            
+            from backend.app.domains.marketplace.models import ExpertAvailability
+            availability_result = await db.execute(
+                select(ExpertAvailability).where(
+                    ExpertAvailability.expert_id == expert.id,
+                    ExpertAvailability.day_of_week == day_of_week,
+                    ExpertAvailability.start_time == start_time_str
+                )
+            )
+            availability = availability_result.scalars().first()
+            if not availability:
+                raise HTTPException(status_code=400, detail="Khung giờ không hợp lệ hoặc chuyên gia không mở khung giờ này.")
+                
+            max_participants = availability.max_participants
+            
+            # Check how many existing bookings for this exact slot
+            current_bookings_result = await db.execute(
+                sa_select(func.count(Booking.id)).where(
+                    Booking.expert_id == expert.id,
+                    Booking.start_time == booking_in.start_time,
+                    Booking.status.in_([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.IN_PROGRESS])
+                )
+            )
+            current_bookings = current_bookings_result.scalar() or 0
+            
+            if current_bookings >= max_participants:
+                raise HTTPException(status_code=400, detail="Rất tiếc, khung giờ này đã hết chỗ.")
+
             total_cost = int(duration_hours * expert.hourly_rate)
 
             try:

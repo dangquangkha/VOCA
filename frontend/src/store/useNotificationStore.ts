@@ -97,10 +97,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     },
 
     addNotification: (notification: Notification) => {
-        set((state) => ({
-            notifications: [notification, ...state.notifications],
-            unreadCount: state.unreadCount + 1,
-        }));
+        set((state) => {
+            const exists = state.notifications.some((n) => n.id === notification.id);
+            if (exists) return {}; // Trả về object trống để không thay đổi state nếu đã tồn tại
+            
+            return {
+                notifications: [notification, ...state.notifications],
+                unreadCount: state.unreadCount + 1,
+            };
+        });
     },
 
     connectWebSocket: (token: string) => {

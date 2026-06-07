@@ -473,9 +473,17 @@ function ManageBookingsContent() {
                                                                     {isProvider ? 'Học viên' : 'Chuyên gia'}
                                                                 </p>
                                                                 <h4 className="font-garamond italic text-2xl font-bold text-white">
-                                                                    {isProvider
-                                                                        ? booking.student?.full_name || 'Khách hàng'
-                                                                        : booking.expert?.user?.full_name || 'Chuyên gia'}
+                                                                    {isProvider ? (
+                                                                        <Link 
+                                                                            href={`/dashboard/expert/student/${booking.student_id}`}
+                                                                            className="hover:text-[#FFE900] underline decoration-dotted transition-colors"
+                                                                            title="Xem hồ sơ chi tiết học viên"
+                                                                        >
+                                                                            {booking.student?.full_name || 'Khách hàng'}
+                                                                        </Link>
+                                                                    ) : (
+                                                                        booking.expert?.user?.full_name || 'Chuyên gia'
+                                                                    )}
                                                                 </h4>
                                                             </div>
                                                             <div className="h-12 px-5 bg-white/10 border border-white/10 rounded-none flex items-center justify-center gap-3">

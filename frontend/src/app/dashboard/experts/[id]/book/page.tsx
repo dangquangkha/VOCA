@@ -339,7 +339,7 @@ export default function BookingPage() {
                                             >
                                                 <span className="text-sm">{slot.start}</span>
                                                 <span className="text-[10px] uppercase tracking-widest opacity-80">
-                                                    {isFull ? 'HẾT CHỖ' : `${max - current} TRỐNG`}
+                                                    {isFull ? 'HẾT CHỖ' : 'CÒN TRỐNG'}
                                                 </span>
                                             </button>
                                         )})}

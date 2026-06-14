@@ -6,9 +6,10 @@ import os
 sys.path.append(os.getcwd())
 
 from backend.app.db.session import AsyncSessionLocal
-from backend.app.models.user import User
-from backend.app.models.expert import ExpertProfile
-from sqlalchemy import select
+from backend.app.domains.identity.models import User
+from backend.app.domains.marketplace.models import ExpertProfile
+import backend.app.db.base
+from sqlalchemy import select, text
 
 async def list_users():
     async with AsyncSessionLocal() as db:
@@ -24,7 +25,36 @@ async def delete_user(email: str):
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalars().first()
         if user:
-            await db.delete(user)
+            user_id = user.id
+            
+            # Xóa các ràng buộc liên quan để tránh lỗi khóa ngoại và NotNullConstraint
+            await db.execute(text("DELETE FROM booking_quiz_responses WHERE booking_id IN (SELECT id FROM bookings WHERE student_id = :uid OR expert_id = (SELECT id FROM expert_profiles WHERE user_id = :uid))"), {"uid": user_id})
+            await db.execute(text("DELETE FROM booking_disputes WHERE booking_id IN (SELECT id FROM bookings WHERE student_id = :uid OR expert_id = (SELECT id FROM expert_profiles WHERE user_id = :uid))"), {"uid": user_id})
+            await db.execute(text("DELETE FROM transactions WHERE user_id = :uid OR booking_id IN (SELECT id FROM bookings WHERE student_id = :uid OR expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid))"), {"uid": user_id})
+            await db.execute(text("DELETE FROM reviews WHERE student_id = :uid OR booking_id IN (SELECT id FROM bookings WHERE student_id = :uid OR expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid))"), {"uid": user_id})
+            await db.execute(text("DELETE FROM group_session_participants WHERE session_id IN (SELECT id FROM group_sessions WHERE expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid))"), {"uid": user_id})
+            await db.execute(text("DELETE FROM group_session_participants WHERE student_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM group_sessions WHERE expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid)"), {"uid": user_id})
+            await db.execute(text("DELETE FROM bookings WHERE student_id = :uid OR expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid)"), {"uid": user_id})
+            await db.execute(text("DELETE FROM expert_availabilities WHERE expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid)"), {"uid": user_id})
+            await db.execute(text("DELETE FROM expert_quizzes WHERE expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid)"), {"uid": user_id})
+            await db.execute(text("DELETE FROM expert_posts WHERE expert_id IN (SELECT id FROM expert_profiles WHERE user_id = :uid)"), {"uid": user_id})
+            await db.execute(text("DELETE FROM expert_profiles WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM user_assessment_results WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM user_mbti_results WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM notifications WHERE recipient_id = :uid OR sender_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM messages WHERE sender_id = :uid OR receiver_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM cv_analyses WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM mock_interviews WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM roadmap_history WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM daily_progress WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM support_tickets WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM accountaction WHERE target_user_id = :uid OR admin_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM blacklist WHERE banned_user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM public_quiz_responses WHERE user_id = :uid"), {"uid": user_id})
+            await db.execute(text("DELETE FROM email_logs WHERE to_email = :email"), {"email": email})
+            await db.execute(text("DELETE FROM \"user\" WHERE id = :uid"), {"uid": user_id})
+            
             await db.commit()
             print(f"✅ User deleted: {email}")
         else:

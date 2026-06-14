@@ -1,5 +1,6 @@
 import axios, { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
+import { supabase } from './supabase';
 
 const getBaseURL = () => {
     const envBase = process.env.NEXT_PUBLIC_API_URL;
@@ -72,7 +73,11 @@ api.interceptors.response.use(
                 // Refresh failed — session truly expired
                 useAuthStore.getState().logout();
                 if (typeof window !== 'undefined') {
-                    window.location.href = '/login';
+                    supabase.auth.signOut().finally(() => {
+                        if (window.location.pathname !== '/login') {
+                            window.location.href = '/login';
+                        }
+                    });
                 }
                 return Promise.reject(error);
             } finally {

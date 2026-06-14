@@ -42,19 +42,32 @@ async def google_login(
         # PRODUCTION: Verify with Google API using async HTTP client
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(
-                    f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
-                )
-            if response.status_code != 200:
-                raise HTTPException(status_code=400, detail="Invalid Google ID Token")
-            
-            id_info = response.json()
-            
-            # Check Audience (Must match our Client ID)
-            client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
-            if client_id and id_info.get("aud") != client_id:
-                raise HTTPException(status_code=400, detail="Token audience mismatch")
-            
+                # Check if it's a JWT (ID Token) or an Access Token
+                if len(id_token.split(".")) == 3:
+                    # ID Token Verification
+                    response = await client.get(
+                        f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
+                    )
+                    if response.status_code != 200:
+                        raise HTTPException(status_code=400, detail="Invalid Google ID Token")
+                    
+                    id_info = response.json()
+                    
+                    # Check Audience (Must match our Client ID)
+                    client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
+                    if client_id and id_info.get("aud") != client_id:
+                        raise HTTPException(status_code=400, detail="Token audience mismatch")
+                else:
+                    # Access Token Verification
+                    response = await client.get(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        headers={"Authorization": f"Bearer {id_token}"}
+                    )
+                    if response.status_code != 200:
+                        raise HTTPException(status_code=400, detail="Invalid Google Access Token")
+                    
+                    id_info = response.json()
+
             email = id_info.get("email")
             full_name = id_info.get("name", "Google User")
             

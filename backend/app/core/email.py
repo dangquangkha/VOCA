@@ -8,7 +8,8 @@ async def send_email(
     to: str,
     subject: str,
     body: str,
-    db: AsyncSession
+    db: AsyncSession,
+    html_body: str = None
 ) -> None:
     """
     Sends a real email using SMTP settings from config.
@@ -32,12 +33,15 @@ async def send_email(
         return
 
     # 3. Send via SMTP
-    message = emails.Message(
-        subject=subject,
-        text=body, # Plain text body
-        # html=html_body, # Can add HTML support later
-        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL)
-    )
+    message_kwargs = {
+        "subject": subject,
+        "text": body,
+        "mail_from": (settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL)
+    }
+    if html_body:
+        message_kwargs["html"] = html_body
+
+    message = emails.Message(**message_kwargs)
     
     smtp_options = {
         "host": settings.SMTP_HOST,

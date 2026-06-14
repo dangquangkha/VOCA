@@ -40,28 +40,46 @@ async def google_login(
         full_name = "Mock Google User"
         print(f"[SEC-02] Using MOCK Google login for: {email}")
     else:
-        # PRODUCTION: Verify with Google SDK (google-auth)
+        # PRODUCTION: Verify with Google API using async HTTP client
+        import httpx
         try:
-            from google.oauth2 import id_token as google_id_token
-            from google.auth.transport import requests as google_requests
-            
-            # Verify the ID token
-            id_info = google_id_token.verify_oauth2_token(
-                id_token, 
-                google_requests.Request(), 
-                settings.GOOGLE_CLIENT_ID
-            )
-            
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                # Check if it's a JWT (ID Token) or an Access Token
+                if len(id_token.split(".")) == 3:
+                    # ID Token Verification
+                    response = await client.get(
+                        f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
+                    )
+                    if response.status_code != 200:
+                        raise HTTPException(status_code=400, detail="Invalid Google ID Token")
+                    
+                    id_info = response.json()
+                    
+                    # Check Audience (Must match our Client ID)
+                    client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
+                    if client_id and id_info.get("aud") != client_id:
+                        raise HTTPException(status_code=400, detail="Token audience mismatch")
+                else:
+                    # Access Token Verification
+                    response = await client.get(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        headers={"Authorization": f"Bearer {id_token}"}
+                    )
+                    if response.status_code != 200:
+                        raise HTTPException(status_code=400, detail="Invalid Google Access Token")
+                    
+                    id_info = response.json()
+
             email = id_info.get("email")
             full_name = id_info.get("name", "Google User")
             
             if not email:
                 raise HTTPException(status_code=400, detail="Email not provided by Google")
                 
-        except ValueError as e:
-            # Invalid token
-            raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
+        except httpx.TimeoutException:
+            raise HTTPException(status_code=504, detail="Google authentication timed out")
         except Exception as e:
+            if isinstance(e, HTTPException): raise e
             raise HTTPException(status_code=401, detail=f"Google authentication failed: {str(e)}")
 
     # 2. Check if user exists
@@ -99,7 +117,7 @@ async def recover_password(
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
-    Password Recovery (Mock Email).
+    Password Recovery (Official).
     """
     result = await db.execute(select(User).where(User.email == email_in.email))
     user = result.scalars().first()
@@ -113,12 +131,32 @@ async def recover_password(
         subject=user.email, expires_delta=timedelta(minutes=10)
     )
     
-    # Mock sending email (via service)
+    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
+    reset_link = f"{frontend_url}/reset-password?token={password_reset_token}"
+    
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+        <h2 style="color: #0046EA; text-align: center;">CareerPath AI</h2>
+        <p style="color: #333; font-size: 16px;">Xin chào,</p>
+        <p style="color: #333; font-size: 16px;">Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn. Vui lòng bấm vào nút dưới đây để thiết lập mật khẩu mới (Đường dẫn có hiệu lực trong vòng 10 phút):</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{reset_link}" style="background-color: #0046EA; color: #FFE900; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">KHÔI PHỤC MẬT KHẨU</a>
+        </div>
+        <p style="color: #333; font-size: 14px;">Hoặc copy và dán đường dẫn này vào trình duyệt:</p>
+        <p style="color: #0046EA; font-size: 14px; word-break: break-all;">{reset_link}</p>
+        <p style="color: #777; font-size: 12px; margin-top: 40px; border-top: 1px solid #eaeaea; padding-top: 20px;">Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này.</p>
+    </div>
+    """
+    
+    text_content = f"Xin chào,\nVui lòng truy cập đường dẫn sau để khôi phục mật khẩu của bạn:\n{reset_link}"
+
+    # Send official email
     await send_email(
         to=user.email,
-        subject="Password Recovery",
-        body=f"Your recovery token is: {password_reset_token}",
-        db=db
+        subject="Khôi phục mật khẩu - CareerPath AI",
+        body=text_content,
+        db=db,
+        html_body=html_content
     )
     
     return {"msg": "Password recovery email sent"}

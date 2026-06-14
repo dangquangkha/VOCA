@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -22,15 +23,25 @@ export default function LoginPage() {
             const email = formData.get('email') as string;
             const password = formData.get('password') as string;
 
-            const { data } = await api.post('auth/login/access-token',
-                new URLSearchParams({ username: email, password }),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-            );
-            localStorage.setItem('token', data.access_token);
-            const userResponse = await api.get('users/me', {
-                headers: { Authorization: `Bearer ${data.access_token}` },
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
             });
-            loginStore(data.access_token, userResponse.data);
+
+            if (authError) {
+                throw new Error(authError.message);
+            }
+
+            const token = data.session?.access_token;
+            if (!token) {
+                throw new Error("Không thể lấy token xác thực từ Supabase");
+            }
+
+            localStorage.setItem('token', token);
+            const userResponse = await api.get('users/me', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            loginStore(token, userResponse.data);
             window.dispatchEvent(new Event('auth-change'));
             const { role, expert_profile } = userResponse.data;
             if (role === 'ADMIN') router.push('/dashboard/admin');
@@ -40,8 +51,7 @@ export default function LoginPage() {
                 router.push('/dashboard/expert');
             } else router.push('/dashboard');
         } catch (err: any) {
-            const detail = err.response?.data?.detail;
-            setError(typeof detail === 'string' ? detail : Array.isArray(detail) ? detail.map((e: any) => e.msg).join(', ') : 'Đăng nhập không thành công. Vui lòng thử lại.');
+            setError(err.message || 'Đăng nhập không thành công. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
@@ -51,33 +61,16 @@ export default function LoginPage() {
         setIsLoading(true);
         setError('');
         try {
-            // Mock Google Login for development/demo
-            // In production, this would use the Google SDK to get a real id_token
-            const mockToken = `mock_google_user_${Math.floor(Math.random() * 1000)}@gmail.com`;
-
-            const { data } = await api.post('auth/google', {
-                id_token: mockToken
+            const { error: authError } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/dashboard`
+                }
             });
-
-            localStorage.setItem('token', data.access_token);
-            const userResponse = await api.get('users/me', {
-                headers: { Authorization: `Bearer ${data.access_token}` },
-            });
-
-            loginStore(data.access_token, userResponse.data);
-            window.dispatchEvent(new Event('auth-change'));
-
-            const { role, expert_profile } = userResponse.data;
-            if (role === 'ADMIN') router.push('/dashboard/admin');
-            else if (role === 'EXPERT') {
-                router.push(expert_profile?.kyc_status === 'APPROVED' ? '/dashboard/expert' : '/expert/kyc');
-            } else if (role === 'MENTOR') {
-                router.push('/dashboard/expert');
-            } else router.push('/dashboard');
+            if (authError) throw authError;
         } catch (err: any) {
             console.error("Google Login Error:", err);
             setError('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
-        } finally {
             setIsLoading(false);
         }
     };
@@ -185,7 +178,7 @@ export default function LoginPage() {
                 {/* Google Login */}
                 <button
                     type="button"
-                    onClick={handleGoogleLogin}
+                    onClick={() => handleGoogleLogin()}
                     disabled={isLoading}
                     suppressHydrationWarning
                     className="flex items-center justify-center gap-6 w-full py-6 bg-white border-2 border-black/5 text-[#171716] text-[11px] font-black tracking-[0.5em] uppercase transition-all duration-700 hover:border-[#0046EA] hover:text-[#0046EA] hover:bg-[#F5F8FF] disabled:opacity-50 rounded-full shadow-sm"

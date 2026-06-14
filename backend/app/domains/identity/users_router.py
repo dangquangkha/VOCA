@@ -139,13 +139,17 @@ async def upload_avatar(
 
         final_content = await run_in_threadpool(process_image, content)
 
-        async with await anyio.open_file(file_path, "wb") as f:
-            await f.write(final_content)
+        from backend.app.core.supabase_storage import upload_file_to_supabase
+        avatar_url = await upload_file_to_supabase(
+            bucket="avatars",
+            file_path=filename,
+            file_content=final_content,
+            content_type="image/jpeg"
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not save avatar: {str(e)}")
 
-    avatar_url = f"/uploads/avatars/{filename}"
     current_user.avatar_url = avatar_url
     db.add(current_user)
     await db.commit()

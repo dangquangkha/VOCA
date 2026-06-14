@@ -121,3 +121,4 @@ test_endpoint.py
 backend/complete_pending.py
 backend/get_pending.py
 backend/test_mbti.py
+test_recovery_api.py

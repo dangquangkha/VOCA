@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import api from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function ForgotPasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -18,10 +18,13 @@ export default function ForgotPasswordPage() {
         const email = formData.get('email') as string;
 
         try {
-            await api.post('auth/password-recovery', { email });
+            const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            });
+            if (authError) throw authError;
             setIsSubmitted(true);
-        } catch (err: unknown) {
-            setError('Không thể gửi email khôi phục. Vui lòng thử lại.');
+        } catch (err: any) {
+            setError(err.message || 'Không thể gửi email khôi phục. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
@@ -37,14 +40,14 @@ export default function ForgotPasswordPage() {
                         </svg>
                     </div>
                 </div>
-                <h2 className="font-garamond italic font-light text-[32px] text-navy mb-6">Kiểm tra Terminal!</h2>
+                <h2 className="font-garamond italic font-light text-[32px] text-navy mb-6">Kiểm tra Email!</h2>
                 <p className="font-dm-sans text-xs text-navy/60 leading-relaxed mb-10 uppercase tracking-widest">
-                    Vì đây là bản demo, chúng tôi đã in token khôi phục vào Backend Terminal.
-                    <br /> Hãy copy token đó và nhấn nút bên dưới.
+                    Chúng tôi đã gửi một đường dẫn khôi phục mật khẩu.
+                    <br /> Vui lòng kiểm tra hộp thư đến (hoặc thư rác) của bạn.
                 </p>
-                <Link href="/reset-password">
-                    <button className="w-full h-14 bg-navy text-ivory text-[11px] font-medium tracking-[0.4em] uppercase transition-all duration-700 hover:bg-gold hover:text-navy">
-                        Nhập mã khôi phục
+                <Link href="/login">
+                    <button className="w-full h-14 border border-navy/20 text-navy text-[11px] font-medium tracking-[0.4em] uppercase transition-all duration-700 hover:bg-navy hover:text-ivory">
+                        Quay lại Đăng nhập
                     </button>
                 </Link>
             </div>

@@ -45,8 +45,11 @@ PLATFORM_COMMISSION_RATE = 0.20
 # ─── DB Session Factory ────────────────────────────────────────────────────────
 
 def _make_session_factory():
+    url = settings.DATABASE_URL
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://")
     engine = create_async_engine(
-        settings.DATABASE_URL, 
+        url, 
         echo=False,
         pool_size=10,
         max_overflow=20,

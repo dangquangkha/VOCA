@@ -7,6 +7,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
+    # Supabase config
+    SUPABASE_URL: str = "https://jjbicqwwnwtjnhucessm.supabase.co"
+    SUPABASE_ANON_KEY: str = "placeholder"
+    SUPABASE_SERVICE_ROLE_KEY: str = "placeholder"
+    SUPABASE_JWT_SECRET: str | None = None
+    
     # SePay
     SEPAY_API_TOKEN: str = "placeholder_token"
     SEPAY_ACCOUNT_NUMBER: str = "placeholder_account"

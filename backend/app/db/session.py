@@ -1,8 +1,12 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from backend.app.core.config import settings
 
+url = settings.DATABASE_URL
+if url.startswith("postgresql://"):
+    url = url.replace("postgresql://", "postgresql+asyncpg://")
+
 engine = create_async_engine(
-    settings.DATABASE_URL, 
+    url, 
     echo=False,
     pool_size=20,
     max_overflow=40,

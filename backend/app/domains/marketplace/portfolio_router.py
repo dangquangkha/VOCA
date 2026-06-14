@@ -55,16 +55,19 @@ async def upload_portfolio_file(
 
     ext = file.filename.split(".")[-1] if "." in file.filename else ""
     unique_filename = f"{uuid.uuid4().hex}.{ext}"
-    file_path = os.path.join(upload_dir, unique_filename)
 
     try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        from backend.app.core.supabase_storage import upload_file_to_supabase
+        file_content = await file.read()
+        file_url = await upload_file_to_supabase(
+            bucket="portfolio",
+            file_path=unique_filename,
+            file_content=file_content,
+            content_type=file.content_type or "application/octet-stream"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
-    file_url = f"/uploads/portfolio/{unique_filename}"
-    
     return {
         "url": file_url,
         "name": file.filename,

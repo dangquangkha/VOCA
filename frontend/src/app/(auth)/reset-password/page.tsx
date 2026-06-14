@@ -1,15 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [hasSession, setHasSession] = useState(false);
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                setError('Phiên làm việc khôi phục mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại email mới.');
+                setHasSession(false);
+            } else {
+                setHasSession(true);
+            }
+        };
+        checkSession();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,7 +31,6 @@ export default function ResetPasswordPage() {
         setError('');
 
         const formData = new FormData(e.target as HTMLFormElement);
-        const token = formData.get('token') as string;
         const password = formData.get('password') as string;
         const confirmPassword = formData.get('confirmPassword') as string;
 
@@ -28,13 +41,15 @@ export default function ResetPasswordPage() {
         }
 
         try {
-            await api.post('auth/reset-password', {
-                token,
-                new_password: password
+            const { error: authError } = await supabase.auth.updateUser({
+                password: password
             });
+            if (authError) throw authError;
             setSuccess(true);
+            // Sign out to clean up the temporary reset session
+            await supabase.auth.signOut();
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Khôi phục mật khẩu thất bại. Vui lòng kiểm tra mã token của bạn.');
+            setError(err.message || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
@@ -80,61 +95,64 @@ export default function ResetPasswordPage() {
                     </div>
                 )}
 
-                <div className="space-y-8">
-                    {/* Token */}
-                    <div className="group">
-                        <label className="block text-[9px] font-medium text-navy/40 uppercase tracking-[0.2em] mb-2 group-focus-within:text-gold transition-colors">
-                            Mã khôi phục (Token)
-                        </label>
-                        <input
-                            name="token"
-                            type="text"
-                            required
-                            placeholder="Dán mã từ Terminal vào đây"
-                            className="w-full bg-transparent border-b border-navy/10 py-3 text-sm font-light text-navy placeholder-[var(--color-navy)]/20 focus:outline-none focus:border-gold transition-all duration-500"
-                        />
-                    </div>
+                {hasSession && (
+                    <div className="space-y-8">
+                        {/* New Password */}
+                        <div className="group">
+                            <label className="block text-[9px] font-medium text-navy/40 uppercase tracking-[0.2em] mb-2 group-focus-within:text-gold transition-colors">
+                                Mật khẩu mới
+                            </label>
+                            <input
+                                name="password"
+                                type="password"
+                                required
+                                placeholder="Tối thiểu 8 ký tự"
+                                className="w-full bg-transparent border-b border-navy/10 py-3 text-sm font-light text-navy placeholder-[var(--color-navy)]/20 focus:outline-none focus:border-gold transition-all duration-500"
+                            />
+                        </div>
 
-                    {/* New Password */}
-                    <div className="group">
-                        <label className="block text-[9px] font-medium text-navy/40 uppercase tracking-[0.2em] mb-2 group-focus-within:text-gold transition-colors">
-                            Mật khẩu mới
-                        </label>
-                        <input
-                            name="password"
-                            type="password"
-                            required
-                            placeholder="Tối thiểu 8 ký tự"
-                            className="w-full bg-transparent border-b border-navy/10 py-3 text-sm font-light text-navy placeholder-[var(--color-navy)]/20 focus:outline-none focus:border-gold transition-all duration-500"
-                        />
-                    </div>
+                        {/* Confirm Password */}
+                        <div className="group">
+                            <label className="block text-[9px] font-medium text-navy/40 uppercase tracking-[0.2em] mb-2 group-focus-within:text-gold transition-colors">
+                                Xác nhận mật khẩu mới
+                            </label>
+                            <input
+                                name="confirmPassword"
+                                type="password"
+                                required
+                                placeholder="Lặp lại mật khẩu mới"
+                                className="w-full bg-transparent border-b border-navy/10 py-3 text-sm font-light text-navy placeholder-[var(--color-navy)]/20 focus:outline-none focus:border-gold transition-all duration-500"
+                            />
+                        </div>
 
-                    {/* Confirm Password */}
-                    <div className="group">
-                        <label className="block text-[9px] font-medium text-navy/40 uppercase tracking-[0.2em] mb-2 group-focus-within:text-gold transition-colors">
-                            Xác nhận mật khẩu mới
-                        </label>
-                        <input
-                            name="confirmPassword"
-                            type="password"
-                            required
-                            placeholder="Lặp lại mật khẩu mới"
-                            className="w-full bg-transparent border-b border-navy/10 py-3 text-sm font-light text-navy placeholder-[var(--color-navy)]/20 focus:outline-none focus:border-gold transition-all duration-500"
-                        />
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full h-14 bg-navy text-ivory text-[11px] font-medium tracking-[0.4em] uppercase transition-all duration-700 hover:bg-gold hover:text-navy flex items-center justify-center gap-4 group disabled:opacity-50"
+                        >
+                            {isLoading ? (
+                                <div className="w-4 h-4 border border-ivory/30 border-t-[var(--color-ivory)] rounded-full animate-spin" />
+                            ) : (
+                                <span>Đặt lại mật khẩu</span>
+                            )}
+                        </button>
                     </div>
-                </div>
+                )}
 
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-14 bg-navy text-ivory text-[11px] font-medium tracking-[0.4em] uppercase transition-all duration-700 hover:bg-gold hover:text-navy flex items-center justify-center gap-4 group disabled:opacity-50"
-                >
-                    {isLoading ? (
-                        <div className="w-4 h-4 border border-ivory/30 border-t-[var(--color-ivory)] rounded-full animate-spin" />
-                    ) : (
-                        <span>Đặt lại mật khẩu</span>
-                    )}
-                </button>
+                {!hasSession && !error && (
+                    <div className="text-center py-6">
+                        <div className="w-8 h-8 border border-navy/20 border-t-navy rounded-full animate-spin mx-auto mb-4" />
+                        <p className="font-dm-sans text-[11px] uppercase tracking-widest text-navy/60">Đang kiểm tra quyền khôi phục...</p>
+                    </div>
+                )}
+
+                {!hasSession && error && (
+                    <Link href="/forgot-password">
+                        <button type="button" className="w-full h-14 border border-navy/20 text-navy text-[11px] font-medium tracking-[0.4em] uppercase transition-all duration-700 hover:bg-navy hover:text-ivory mt-6">
+                            Yêu cầu gửi lại email mới
+                        </button>
+                    </Link>
+                )}
             </form>
         </div>
     );

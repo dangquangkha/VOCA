@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export default function RegisterPage() {
     const [noExperience, setNoExperience] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [infoMessage, setInfoMessage] = useState('');
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +27,7 @@ export default function RegisterPage() {
         e.preventDefault();
         setIsLoading(true);
         setError('');
+        setInfoMessage('');
 
         const formData = new FormData(e.currentTarget as HTMLFormElement);
         const fullName = formData.get('fullName') as string;
@@ -52,37 +55,39 @@ export default function RegisterPage() {
                 rolePayload = 'MENTOR';
             }
 
-            const payload = {
+            const { data, error: authError } = await supabase.auth.signUp({
                 email,
-                phone_number: phone,
                 password,
-                full_name: fullName,
-                role: rolePayload,
-                years_of_experience: role === 'expert' ? (noExperience ? 0 : parseInt(yearsOfExperience) || 0) : 0
-            };
-
-            await api.post('auth/register', payload);
-            router.push('/login');
-        } catch (err: any) {
-            const responseData = err.response?.data;
-            let message = 'Đăng ký thất bại. Vui lòng thử lại hoặc liên hệ hỗ trợ.';
-
-            if (responseData) {
-                if (typeof responseData.detail === 'string') {
-                    message = responseData.detail;
-                    if (message.includes('already exists')) {
-                        message = 'Email hoặc số điện thoại này đã được sử dụng.';
+                options: {
+                    emailRedirectTo: `${window.location.origin}/login`,
+                    data: {
+                        full_name: fullName,
+                        phone_number: phone,
+                        role: rolePayload,
+                        years_of_experience: role === 'expert' ? (noExperience ? 0 : parseInt(yearsOfExperience) || 0) : 0
                     }
-                } else if (Array.isArray(responseData.detail)) {
-                    message = responseData.detail.map((e: any) => e.msg || e.message).join(', ');
-                } else if (responseData.message) {
-                    message = responseData.message;
                 }
-            } else if (err.message === 'Network Error') {
-                message = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
-            }
+            });
 
-            setError(message);
+            if (authError) throw authError;
+
+            // If email confirmation is enabled, data.user will have a status.
+            // Let's show a success info message.
+            if (data.session) {
+                // Instantly logged in
+                const token = data.session.access_token;
+                localStorage.setItem('token', token);
+                const userResponse = await api.get('users/me', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                loginStore(token, userResponse.data);
+                window.dispatchEvent(new Event('auth-change'));
+                router.push('/dashboard');
+            } else {
+                setInfoMessage('Đăng ký thành công! Vui lòng kiểm tra email của bạn để xác nhận tài khoản trước khi đăng nhập.');
+            }
+        } catch (err: any) {
+            setError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
@@ -92,32 +97,16 @@ export default function RegisterPage() {
         setIsLoading(true);
         setError('');
         try {
-            // Mock Google Login for development/demo
-            const mockToken = `mock_google_user_${Math.floor(Math.random() * 1000)}@gmail.com`;
-
-            const { data } = await api.post('auth/google', {
-                id_token: mockToken
+            const { error: authError } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/dashboard`
+                }
             });
-
-            localStorage.setItem('token', data.access_token);
-            const userResponse = await api.get('users/me', {
-                headers: { Authorization: `Bearer ${data.access_token}` },
-            });
-
-            loginStore(data.access_token, userResponse.data);
-            window.dispatchEvent(new Event('auth-change'));
-            
-            const { role, expert_profile } = userResponse.data;
-            if (role === 'ADMIN') router.push('/dashboard/admin');
-            else if (role === 'EXPERT') {
-                router.push(expert_profile?.kyc_status === 'APPROVED' ? '/dashboard/expert' : '/expert/kyc');
-            } else if (role === 'MENTOR') {
-                router.push('/dashboard/expert');
-            } else router.push('/dashboard');
+            if (authError) throw authError;
         } catch (err: any) {
             console.error("Google Registration Error:", err);
             setError('Đăng ký bằng Google thất bại. Vui lòng thử lại.');
-        } finally {
             setIsLoading(false);
         }
     };
@@ -160,6 +149,12 @@ export default function RegisterPage() {
                 {error && (
                     <div className="p-6 bg-red-50 border-l-4 border-red-500 text-red-600 text-[13px] font-bold uppercase tracking-wider rounded-r-2xl shadow-sm animate-fade-in">
                         {error}
+                    </div>
+                )}
+
+                {infoMessage && (
+                    <div className="p-6 bg-green-50 border-l-4 border-green-500 text-green-700 text-[13px] font-bold tracking-wider rounded-r-2xl shadow-sm animate-fade-in">
+                        {infoMessage}
                     </div>
                 )}
 
@@ -326,7 +321,7 @@ export default function RegisterPage() {
 
                         <button
                             type="button"
-                            onClick={handleGoogleLogin}
+                            onClick={() => handleGoogleLogin()}
                             disabled={isLoading}
                             className="flex items-center justify-center gap-6 w-full py-6 bg-white border-2 border-black/5 text-[#171716] text-[11px] font-black tracking-[0.5em] uppercase transition-all duration-700 hover:border-[#0046EA] hover:text-[#0046EA] hover:bg-[#F5F8FF] disabled:opacity-50 rounded-full shadow-sm"
                         >

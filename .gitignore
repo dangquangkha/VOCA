@@ -122,3 +122,17 @@ backend/complete_pending.py
 backend/get_pending.py
 backend/test_mbti.py
 test_recovery_api.py
+
+# Keys and Secrets
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets.json
+client_secret.json
+*-credentials.json
+firebase-adminsdk-*.json
+*.env.vault
+

@@ -37,7 +37,7 @@ target_metadata = None
 # config.set_main_option("sqlalchemy.url", ...) <--- XÓA HOẶC COMMENT DÒNG CŨ NÀY ĐI
 
 # THÊM DÒNG NÀY: Lấy URL từ file settings của chúng ta
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Gán metadata của models vào target_metadata
 # target_metadata = None <--- SỬA DÒNG NÀY THÀNH:

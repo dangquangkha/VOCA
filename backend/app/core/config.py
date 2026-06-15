@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = "password"
     EMAILS_FROM_EMAIL: str = "info@careerpathai.com"
     EMAILS_FROM_NAME: str = "CareerPath AI"
+    RESEND_KEY: str | None = None
 
     GOOGLE_CLIENT_ID: str | None = None
     ALLOW_MOCK_LOGIN: bool = False  # Set to True ONLY in local dev (.env), never in production

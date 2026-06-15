@@ -32,6 +32,36 @@ async def send_email(
         print("="*60)
         return
 
+    # 2.5 Send via Resend REST API (HTTP) to bypass Render Free port block
+    if settings.RESEND_KEY:
+        import httpx
+        resend_url = "https://api.resend.com/emails"
+        headers = {
+            "Authorization": f"Bearer {settings.RESEND_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "from": f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>",
+            "to": [to],
+            "subject": subject,
+            "text": body
+        }
+        if html_body:
+            payload["html"] = html_body
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(resend_url, json=payload, headers=headers)
+                if response.status_code in [200, 201, 250]:
+                    print(f"Email sent successfully to {to} via Resend API")
+                    return
+                else:
+                    print(f"ERROR Sending Email via Resend: {response.text}")
+                    print("Attempting SMTP fallback...")
+        except Exception as e:
+            print(f"EXCEPTION Sending Email via Resend: {e}")
+            print("Attempting SMTP fallback...")
+
     # 3. Send via SMTP
     message_kwargs = {
         "subject": subject,

@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str
+    PROJECT_NAME: str = "CareerPath AI"
     DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str = "HS256"

@@ -36,8 +36,11 @@ target_metadata = None
 # ... etc.
 # config.set_main_option("sqlalchemy.url", ...) <--- XÓA HOẶC COMMENT DÒNG CŨ NÀY ĐI
 
-# THÊM DÒNG NÀY: Lấy URL từ file settings của chúng ta
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
+# THÊM DÒNG NÀY: Lấy URL từ file settings của chúng ta và chuyển sang asyncpg
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+config.set_main_option("sqlalchemy.url", db_url.replace("%", "%%"))
 
 # Gán metadata của models vào target_metadata
 # target_metadata = None <--- SỬA DÒNG NÀY THÀNH:

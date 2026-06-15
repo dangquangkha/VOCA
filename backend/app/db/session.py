@@ -12,6 +12,6 @@ engine = create_async_engine(
     max_overflow=40,
     pool_timeout=30,
     pool_recycle=1800,
-    prepared_statement_cache_size=0
+    connect_args={"statement_cache_size": 0}
 )
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)

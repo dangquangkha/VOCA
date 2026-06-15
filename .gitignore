@@ -111,7 +111,8 @@ backend/uploads/
 
 # Scratch and test files
 scratch/
-scripts/
+scripts/*
+!scripts/deploy.sh
 token.txt
 check_locks.sh
 debug_expert_500.py
